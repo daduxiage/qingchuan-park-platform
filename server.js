@@ -238,7 +238,8 @@ function handleRequest(req, res, urlPath) {
         }
         const ext = path.extname(fullPath);
         const ct = MIME[ext] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': ct, 'Cache-Control': ext === '.html' ? 'no-cache' : 'public,max-age=3600' });
+        const maxAge = (ext === '.html' || ext === '.json') ? 'no-cache' : 'public,max-age=604800,immutable';
+        res.writeHead(200, { 'Content-Type': ct, 'Cache-Control': maxAge });
         res.end(data);
     });
 }
