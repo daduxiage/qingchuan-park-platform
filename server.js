@@ -236,10 +236,18 @@ function handleRequest(req, res, urlPath) {
             }
             return;
         }
+        const stat = fs.statSync(fullPath);
+        const lastMod = stat.mtime.toUTCString();
+        const ifModSince = req.headers['if-modified-since'];
+        if (ifModSince && new Date(ifModSince) >= stat.mtime) {
+            res.writeHead(304, { 'Last-Modified': lastMod });
+            res.end();
+            return;
+        }
         const ext = path.extname(fullPath);
         const ct = MIME[ext] || 'application/octet-stream';
         const maxAge = (ext === '.html' || ext === '.json') ? 'no-cache' : 'public,max-age=604800,immutable';
-        res.writeHead(200, { 'Content-Type': ct, 'Cache-Control': maxAge });
+        res.writeHead(200, { 'Content-Type': ct, 'Cache-Control': maxAge, 'Last-Modified': lastMod });
         res.end(data);
     });
 }
