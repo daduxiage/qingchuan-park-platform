@@ -9,16 +9,27 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: 通过 SSH 部署到服务器
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 通过 rsync 部署到服务器
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete --exclude='node_modules' --exclude='.data' --exclude='.git'
+          path: /
+          remote_path: /opt/park-platform/
+          remote_host: ${{ secrets.SERVER_HOST }}
+          remote_user: ${{ secrets.SERVER_USER }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: 重启服务
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SERVER_PORT || 22 }}
           script: |
-            cd /opt/park-platform || git clone https://github.com/${{ github.repository }}.git /opt/park-platform && cd /opt/park-platform
-            git pull origin main
-            npm install --production
-            pm2 restart park-platform || pm2 start ecosystem.config.js
+            cd /opt/park-platform
+            pm2 restart park-platform || pm2 start server.js --name park-platform
+            pm2 save
             echo "✅ 部署完成 $(date '+%Y-%m-%d %H:%M:%S')"
