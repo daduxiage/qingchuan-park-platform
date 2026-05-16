@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>用工信息 · 青川庄子上智慧工业园</title>
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+:root{--c-dk:#1B4332;--c-mid:#40916C;--c-light:#D8F3DC;--c-text:#2d3748;--c-sub:#718096;--sidebar-w:220px;--top-h:64px;--sub-h:40px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f5f5;color:var(--c-text);font-family:"Microsoft YaHei","微软雅黑",sans-serif;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+.top-nav{flex-shrink:0;background:var(--c-dk);height:var(--top-h);display:flex;align-items:center;padding:0 32px;border-bottom:2px solid var(--c-mid);z-index:100}
+
+/* ===== 顶部导航 深绿主题 ===== */
+.top-nav{flex-shrink:0;background:var(--c-dk);height:var(--top-h);display:flex;align-items:center;padding:0 32px;border-bottom:2px solid var(--c-mid)}
+.top-nav-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:#fff;text-decoration:none}
+.top-nav-logo svg{width:34px;height:34px}
+.top-nav-menu{display:flex;gap:32px;margin-left:48px;list-style:none}
+.top-nav-menu a{color:rgba(255,255,255,.65);text-decoration:none;font-size:14px;padding:8px 0;border-bottom:2px solid transparent;transition:.2s;white-space:nowrap}
+.top-nav-menu a:hover,.top-nav-menu a.active{color:#fff;border-bottom-color:var(--c-mid)}
+.top-nav-right{margin-left:auto;display:flex;align-items:center;gap:16px}
+.top-nav-right a{color:rgba(255,255,255,.65);font-size:13px;text-decoration:none}
+.top-nav-right .btn-login{background:var(--c-mid);color:#fff;padding:6px 20px;border-radius:20px;font-weight:600;font-size:13px;text-decoration:none;border:none;cursor:pointer;transition:.2s}
+.top-nav-right .btn-login:hover{background:#2d6a4f}
+
+/* ===== 面包屑 ===== */
+.sub-header{flex-shrink:0;background:#fff;height:var(--sub-h);display:flex;align-items:center;padding:0 32px;border-bottom:1px solid #e8e8e8}
+.sub-header a{color:var(--c-mid);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:6px;font-weight:500}
+.sub-header a:hover{color:var(--c-dk)}
+.sub-header .sep{color:#ccc;margin:0 6px;font-size:12px}
+.sub-header .current{color:var(--c-sub);font-size:12px}
+
+/* ===== 主体 ===== */
+.main-wrap{flex:1;display:flex;min-height:0}
+
+/* 左侧栏 */
+.sidebar{width:var(--sidebar-w);background:#fff;border-right:1px solid #e0e0e0;overflow-y:auto;flex-shrink:0;padding-top:20px}
+.side-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;cursor:pointer;transition:.15s;border-left:3px solid transparent;font-size:13px;font-weight:500;color:var(--c-text)}
+.side-btn:hover{background:#f0faf5}
+.side-btn.active{background:rgba(64,145,108,.08);border-left-color:var(--c-mid);color:var(--c-dk);font-weight:600}
+.side-btn .sb-num{font-size:11px;color:var(--c-sub);margin-left:auto}
+
+/* 右侧 */
+.content{flex:1;overflow:hidden;padding:20px 24px 0;display:flex;flex-direction:column}
+.content-panel{display:none;flex:1;flex-direction:column;overflow:hidden}
+.content-panel.show{display:flex}
+.content-panel .panel-body{flex:1;overflow-y:auto;min-height:0}
+
+/* 岗位卡片网格 */
+.job-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:1400px){.job-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1000px){.job-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.job-grid{grid-template-columns:1fr}}
+.job-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.04);cursor:pointer;transition:.2s;border:1px solid transparent}
+.job-card:hover{border-color:var(--c-mid);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.job-card .jc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.job-card .jc-title{font-size:15px;font-weight:600;color:var(--c-dk)}
+.job-card .jc-status{font-size:11px;padding:3px 8px;border-radius:4px;white-space:nowrap}
+.st-open{background:#e8f5e9;color:#2e7d32}.st-closed{background:#fafafa;color:#9e9e9e}.st-pause{background:#fff3e0;color:#e65100}
+.job-card .jc-company{font-size:14px;font-weight:700;margin-bottom:6px}
+.job-card .jc-meta{display:flex;gap:16px;font-size:12px;color:var(--c-sub);margin-bottom:10px}
+.job-card .jc-tags{display:flex;gap:6px;flex-wrap:wrap}
+.job-card .jc-tags span{font-size:11px;padding:3px 10px;border-radius:10px;background:var(--c-light);color:var(--c-dk)}
+
+.jc-company-1{color:#1B4332}.jc-company-2{color:#2d6a4f}.jc-company-3{color:#c77800}.jc-company-4{color:#6c4ce0}.jc-company-5{color:#c0392b}.jc-company-6{color:#1565c0}
+
+/* 筛选栏 */
+.filter-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filter-bar input,.filter-bar select{padding:8px 14px;border:1px solid #d0d0d0;border-radius:8px;font-size:13px;font-family:inherit;outline:none;background:#fff;transition:.15s}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--c-mid);box-shadow:0 0 0 3px rgba(64,145,108,.06)}
+.filter-bar input{width:180px}
+.filter-bar select{min-width:120px}
+.filter-bar .btn-reset{padding:8px 16px;border:1px solid #d0d0d0;border-radius:8px;background:#fff;font-size:13px;cursor:pointer;transition:.15s;color:var(--c-sub)}
+.filter-bar .btn-reset:hover{border-color:var(--c-mid);color:var(--c-dk)}
+.filter-bar .result-count{font-size:12px;color:var(--c-sub);margin-left:auto}
+/* 页脚（与首页一致） */
+.page-footer{flex-shrink:0;background:var(--c-dk);padding:28px 32px 16px}
+.footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:36px}
+.fcol h5{color:var(--c-light);font-size:14px;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.1)}
+.fcol p,.fcol a{color:rgba(255,255,255,.6);font-size:13px;line-height:2;text-decoration:none;display:block}
+.fcol a:hover{color:#fff}
+.footer-bot{max-width:1200px;margin:20px auto 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);text-align:center;color:rgba(255,255,255,.4);font-size:12px}
+.pagination{display:flex;justify-content:center;align-items:center;gap:6px;padding:10px 0 20px;flex-shrink:0}
+.pagination .page-btn{width:36px;height:36px;border-radius:8px;border:1px solid #d0d0d0;background:#fff;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.pagination .page-btn:hover{border-color:var(--c-mid);color:var(--c-dk)}
+.pagination .page-btn.active{background:var(--c-dk);color:#fff;border-color:var(--c-dk)}
+.pagination .page-btn.disabled{opacity:.3;cursor:default}
+.pagination .page-info{font-size:12px;color:var(--c-sub);padding:0 8px}
+.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:2000;display:none;align-items:center;justify-content:center}
+.detail-overlay.show{display:flex}
+.detail-panel{background:#fff;border-radius:16px;width:600px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.detail-header{background:var(--c-dk);color:#fff;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;border-radius:16px 16px 0 0}
+.detail-header h3{font-size:18px}.detail-close{cursor:pointer;font-size:22px;opacity:.7}.detail-close:hover{opacity:1}
+.detail-body{padding:24px}
+.detail-row{display:flex;gap:16px;margin-bottom:16px}
+.detail-col{flex:1}
+.detail-label{font-size:11px;color:var(--c-sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.detail-value{font-size:14px;font-weight:600;color:var(--c-dk)}
+.detail-desc{margin-top:20px;padding:16px;background:#f9f9f9;border-radius:8px;font-size:13px;line-height:1.8;color:var(--c-sub)}
+.detail-footer{text-align:right;padding:16px 24px;border-top:1px solid #eee}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+.btn-primary{background:var(--c-mid);color:#fff}.btn-primary:hover{background:var(--c-dk)}
+.btn-outline{background:#fff;border:1px solid #d0d0d0;color:var(--c-text);margin-right:8px}
+
+@media(max-width:900px){.top-nav-menu{display:none}.sidebar{width:180px}.job-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 深绿主题 -->
+<div class="top-nav">
+    <a href="info_publish.html" class="top-nav-logo">
+        <svg viewBox="0 0 34 34"><rect width="34" height="34" rx="8" fill="#40916C"/><rect x="8" y="18" width="8" height="10" rx="2" fill="#fff"/><rect x="18" y="10" width="8" height="18" rx="2" fill="#fff" opacity=".6"/></svg>
+        青川庄子上智慧工业园
+    </a>
+    <ul class="top-nav-menu">
+        <li><a href="info_publish.html">首页</a></li>
+        <li><a href="employment_detail.html" class="active">用工信息</a></li>
+        <li><a href="logistics_supply.html">物流供需</a></li>
+        <li><a href="featured_supply.html">特色供需</a></li>
+        <li><a href="policy_detail.html">园区政策</a></li>
+        <li><a href="catering.html">园区餐饮</a></li>
+        <li><a href="parking_detail.html">停车服务</a></li>
+        <li><a href="venue_service.html">场馆服务</a></li>
+        <li><a href="activities_detail.html">园区活动</a></li>
+        <li><a href="notice_detail.html">园区公告</a></li>
+    </ul>
+    <div class="top-nav-right">
+        <a href="../login.html">登录</a>
+        <a href="#" class="btn-login">注册</a>
+    </div>
+</div>
+
+<div class="sub-header">
+    <a href="info_publish.html"><i class="fa fa-arrow-left"></i> 返回信息发布</a>
+    <span class="sep">/</span>
+    <span class="current">用工信息</span>
+</div>
+
+<div class="main-wrap">
+    <div class="sidebar" id="sidebar">
+        <div class="side-btn active" data-cat="all">所有岗位<span class="sb-num">31</span></div>
+        <div class="side-btn" data-cat="技术研发">技术研发<span class="sb-num">6</span></div>
+        <div class="side-btn" data-cat="生产制造">生产制造<span class="sb-num">5</span></div>
+        <div class="side-btn" data-cat="质量管理">质量管理<span class="sb-num">5</span></div>
+        <div class="side-btn" data-cat="物流仓储">物流仓储<span class="sb-num">4</span></div>
+        <div class="side-btn" data-cat="行政人事">行政人事<span class="sb-num">3</span></div>
+        <div class="side-btn" data-cat="财务审计">财务审计<span class="sb-num">3</span></div>
+        <div class="side-btn" data-cat="市场营销">市场营销<span class="sb-num">3</span></div>
+        <div class="side-btn" data-cat="设备维护">设备维护<span class="sb-num">4</span></div>
+    </div>
+
+    <div class="content" id="content">
+        <div class="content-panel show" id="panel-all">
+            <div class="panel-body">
+            <div class="filter-bar">
+                <input type="text" id="fKeyword" placeholder="搜索企业/岗位..." oninput="applyFilters()">
+                <select id="fCat" onchange="applyFilters()"><option value="">全部类型</option></select>
+                <select id="fStatus" onchange="applyFilters()"><option value="">全部状态</option><option value="open">招聘中</option><option value="pause">暂停</option><option value="closed">已招满</option></select>
+                <button class="btn-reset" onclick="resetFilters()"><i class="fa fa-undo"></i> 重置</button>
+                <span class="result-count" id="resultCount"></span>
+            </div>
+            <div class="job-grid" id="jobGrid"></div>
+            <div class="pagination" id="pagination"></div>
+            </div><!-- /panel-body -->
+        </div>
+    </div>
+</div>
+
+<!-- 全宽页脚 -->
+<div class="page-footer">
+    <div class="footer-inner">
+        <div class="fcol">
+            <h5>联系我们</h5>
+            <p>青川县庄子上工业园区管委会</p>
+            <p>地址：四川省广元市青川县竹园镇</p>
+            <p>电话：0839-xxxxxxx</p>
+            <p>邮箱：park@zhuangzishang.gov.cn</p>
+            <p>工作时间：周一至周五 8:30-17:30</p>
+        </div>
+        <div class="fcol">
+            <h5>快速链接</h5>
+            <a href="../index.html">智慧园区</a>
+        </div>
+        <div class="fcol">
+            <h5>关于平台</h5>
+            <p>青川县庄子上工业园区智慧园区平台，为园区企业提供一站式信息发布与综合服务。覆盖用工招聘、物流对接、政策解读、场馆预约等全方位功能，助力园区企业高效运营。</p>
+        </div>
+    </div>
+    <div class="footer-bot">
+        Copyright &copy; 2026 青川县庄子上工业园区管委会 All Rights Reserved | 蜀ICP备XXXXXXXX号-1 | 技术支持：青迅科技
+    </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+    <div class="detail-panel" id="detailPanel"></div>
+</div>
+
+<script>
+var jobs = [
+    {cat:'技术研发',title:'技术研发工程师',company:'阜成新材',cc:'jc-company-1',count:5,salary:'¥8,000-15,000/月',time:'2026-05-10',status:'open',stat:'招聘中',tags:['本科及以上','材料/化工','3年经验'],desc:'负责新材料研发与工艺优化，参与产品配方设计、小试验证及量产工艺制定。要求熟悉高分子材料或无机非金属材料，有实验室管理经验者优先。'},
+    {cat:'技术研发',title:'工艺技术员',company:'虹禾晶',cc:'jc-company-2',count:3,salary:'¥6,000-9,000/月',time:'2026-05-08',status:'open',stat:'招聘中',tags:['大专以上','化工工艺','2年经验'],desc:'负责生产工艺参数监控与调整，参与生产异常分析与改进。熟悉DCS系统操作，有化工企业工作经验者优先。'},
+    {cat:'技术研发',title:'电气工程师',company:'中能建',cc:'jc-company-3',count:2,salary:'¥9,000-14,000/月',time:'2026-05-05',status:'open',stat:'招聘中',tags:['本科','电气自动化','持电工证'],desc:'负责厂区电气系统设计、安装调试及维护管理。熟悉PLC编程、变频器调试，有高低压配电经验。'},
+    {cat:'技术研发',title:'检测分析员',company:'九晟新材',cc:'jc-company-4',count:2,salary:'¥5,000-8,000/月',time:'2026-05-03',status:'pause',stat:'暂停',tags:['大专以上','化学分析','1年经验'],desc:'负责原材料及成品检验检测，操作GC/HPLC等分析仪器。要求化学分析相关专业，有CNAS认可实验室经验者优先。'},
+    {cat:'生产制造',title:'生产操作工',company:'虹禾晶',cc:'jc-company-2',count:20,salary:'¥4,500-7,000/月',time:'2026-05-09',status:'open',stat:'招聘中',tags:['初中以上','吃苦耐劳','倒班制'],desc:'负责生产线设备的日常操作与巡检，按要求完成生产任务。能适应三班倒工作制，有制造业工作经验者优先。'},
+    {cat:'生产制造',title:'生产班长',company:'广袤新材',cc:'jc-company-5',count:4,salary:'¥6,000-9,000/月',time:'2026-05-06',status:'open',stat:'招聘中',tags:['高中以上','3年管理经验','现场管理'],desc:'负责生产班组的日常管理，人员排班、任务分配、质量与安全管理。要求有生产线现场管理经验，沟通协调能力强。'},
+    {cat:'生产制造',title:'CNC操作工',company:'星恒青源',cc:'jc-company-6',count:5,salary:'¥5,000-8,000/月',time:'2026-05-04',status:'closed',stat:'已招满',tags:['中专以上','数控加工','2年经验'],desc:'负责CNC加工中心的操作与日常维护，按图纸要求完成精密零部件加工。熟悉FANUC或SIEMENS系统。'},
+    {cat:'质量管理',title:'质量管理主管',company:'中能建',cc:'jc-company-3',count:2,salary:'¥10,000-18,000/月',time:'2026-05-09',status:'open',stat:'招聘中',tags:['大专以上','5年经验','ISO体系'],desc:'全面负责公司质量管理体系建设与运行，组织内审与管理评审。熟悉ISO9001/14001体系，有制造业质量管理经验。'},
+    {cat:'质量管理',title:'质量检验员',company:'阜成新材',cc:'jc-company-1',count:6,salary:'¥4,000-6,000/月',time:'2026-05-05',status:'closed',stat:'已招满',tags:['高中以上','有质检经验','细心负责'],desc:'负责产品外观与尺寸检验，填写检验记录。要求责任心强、视力良好，有质检工作经验者优先。'},
+    {cat:'物流仓储',title:'仓库管理员',company:'佳兴铝业',cc:'jc-company-3',count:3,salary:'¥4,000-6,000/月',time:'2026-05-08',status:'closed',stat:'已招满',tags:['高中以上','WMS系统','叉车证'],desc:'负责仓库物资的收发存管理，保持库房整洁有序。熟练使用WMS仓储管理系统，持有叉车操作证者优先。'},
+    {cat:'行政人事',title:'行政专员',company:'星恒青源',cc:'jc-company-6',count:1,salary:'¥5,000-8,000/月',time:'2026-05-08',status:'open',stat:'招聘中',tags:['大专以上','1年经验','熟练Office'],desc:'负责公司日常行政事务管理，包括文档处理、会议安排、来访接待等。要求沟通表达能力好，熟练使用办公软件。'},
+    {cat:'财务审计',title:'财务会计',company:'九晟新材',cc:'jc-company-4',count:1,salary:'¥6,000-10,000/月',time:'2026-05-07',status:'open',stat:'招聘中',tags:['本科','初级会计证','2年经验'],desc:'负责日常账务处理、税务申报及财务报表编制。要求财会专业本科以上学历，持有初级会计师以上证书。'},
+    {cat:'市场营销',title:'市场营销经理',company:'华纳实业',cc:'jc-company-6',count:2,salary:'¥8,000-12,000/月',time:'2026-05-07',status:'open',stat:'招聘中',tags:['本科','3年B2B经验','建材行业'],desc:'负责公司产品的市场推广与客户开发，制定营销策略并完成销售目标。要求有建材/工业品行业销售经验。'},
+    {cat:'设备维护',title:'设备维护工程师',company:'新通鑫',cc:'jc-company-5',count:3,salary:'¥7,000-11,000/月',time:'2026-05-06',status:'pause',stat:'暂停',tags:['大专以上','机电一体化','持电工证'],desc:'负责生产设备的日常维护保养与故障检修，制定设备维护计划。要求机电一体化专业，熟悉液压/气动系统。'},
+    {cat:'技术研发',title:'新材料研究员',company:'阜成新材',cc:'jc-company-1',count:3,salary:'¥10,000-18,000/月',time:'2026-05-11',status:'open',stat:'招聘中',tags:['硕士以上','高分子材料','研发经验'],desc:'负责新型复合材料研发，包括配方优化、性能测试与应用验证。要求材料科学相关专业硕士学历。'},
+    {cat:'生产制造',title:'焊工',company:'广袤新材',cc:'jc-company-5',count:8,salary:'¥6,000-10,000/月',time:'2026-05-10',status:'open',stat:'招聘中',tags:['持焊工证','气保焊/氩弧焊','2年经验'],desc:'负责钢结构件焊接作业，按工艺要求完成焊接任务。持有特种作业焊工操作证，熟悉CO2气保焊与氩弧焊。'},
+    {cat:'质量管理',title:'体系工程师',company:'华纳实业',cc:'jc-company-6',count:1,salary:'¥8,000-12,000/月',time:'2026-05-11',status:'open',stat:'招聘中',tags:['本科','ISO内审员','3年经验'],desc:'负责公司质量/环境/职业健康管理体系运行维护。持有ISO内审员证书，有体系认证审核经验。'},
+    {cat:'物流仓储',title:'物流专员',company:'中能建',cc:'jc-company-3',count:2,salary:'¥5,000-7,000/月',time:'2026-05-09',status:'open',stat:'招聘中',tags:['大专以上','物流管理','1年经验'],desc:'负责原材料进货及成品出货的物流调度安排，对接第三方物流公司。物流管理专业优先。'},
+    {cat:'行政人事',title:'人事主管',company:'虹禾晶',cc:'jc-company-2',count:1,salary:'¥8,000-12,000/月',time:'2026-05-11',status:'open',stat:'招聘中',tags:['本科','5年HR经验','持人力资源管理师证'],desc:'全面负责公司人力资源管理工作，包括招聘、培训、绩效考核、薪酬福利等。'},
+    {cat:'财务审计',title:'出纳',company:'佳兴铝业',cc:'jc-company-3',count:1,salary:'¥4,000-6,000/月',time:'2026-05-10',status:'open',stat:'招聘中',tags:['大专以上','1年经验','细心负责'],desc:'负责现金及银行收付业务，登记日记账，保管票据及印章。要求细心严谨，熟练使用财务软件。'},
+    {cat:'市场营销',title:'外贸业务员',company:'九晟新材',cc:'jc-company-4',count:3,salary:'¥7,000-12,000/月',time:'2026-05-11',status:'open',stat:'招聘中',tags:['本科','英语六级','外贸经验'],desc:'负责海外市场开发与客户维护，协调订单生产与物流发货。英语听说读写流利，有化工/材料行业外贸经验。'},
+    {cat:'设备维护',title:'电工',company:'星恒青源',cc:'jc-company-6',count:2,salary:'¥5,000-8,000/月',time:'2026-05-09',status:'open',stat:'招聘中',tags:['持电工证','高压操作','3年经验'],desc:'负责厂区电气设备安装、维修与巡检。持有高压电工操作证，有工厂电工工作经验。'},
+    {cat:'技术研发',title:'实验室技术员',company:'九晟新材',cc:'jc-company-4',count:2,salary:'¥5,000-7,000/月',time:'2026-05-08',status:'closed',stat:'已招满',tags:['大专以上','化学分析','应届可'],desc:'协助研发工程师进行样品制备、性能测试与数据分析。化学/化工相关专业。'},
+    {cat:'生产制造',title:'叉车工',company:'佳兴铝业',cc:'jc-company-3',count:4,salary:'¥5,000-7,000/月',time:'2026-05-07',status:'open',stat:'招聘中',tags:['持叉车证','2年经验','安全意识强'],desc:'负责仓库及车间物料搬运、装卸。持有叉车操作证，有制造业叉车工作经验。'},
+    {cat:'行政人事',title:'前台文员',company:'华纳实业',cc:'jc-company-6',count:1,salary:'¥3,500-5,000/月',time:'2026-05-06',status:'closed',stat:'已招满',tags:['大专以上','形象气质佳','熟练Office'],desc:'负责公司前台接待、来电接转、快递收发等行政事务。形象好，沟通能力强。'},
+    {cat:'物流仓储',title:'配送司机',company:'新通鑫',cc:'jc-company-5',count:3,salary:'¥5,000-8,000/月',time:'2026-05-11',status:'open',stat:'招聘中',tags:['B2以上驾照','3年驾龄','熟悉川内路线'],desc:'负责公司产品的短途配送，主要配送区域为青川至绵阳/成都。B2及以上驾照，无重大交通事故记录。'},
+    {cat:'财务审计',title:'成本会计',company:'广袤新材',cc:'jc-company-5',count:1,salary:'¥7,000-10,000/月',time:'2026-05-08',status:'open',stat:'招聘中',tags:['本科','制造业成本核算','3年经验'],desc:'负责公司产品成本核算与分析，编制成本报表。有制造业成本会计工作经验，熟悉ERP系统。'},
+    {cat:'市场营销',title:'销售代表',company:'阜成新材',cc:'jc-company-1',count:5,salary:'¥5,000-10,000/月',time:'2026-05-11',status:'open',stat:'招聘中',tags:['大专以上','B2B销售','能出差'],desc:'负责公司新材料产品的市场推广及客户开发维护。有化工/建材行业销售经验，能接受短期出差。'},
+    {cat:'设备维护',title:'仪表工程师',company:'中能建',cc:'jc-company-3',count:2,salary:'¥8,000-13,000/月',time:'2026-05-05',status:'pause',stat:'暂停',tags:['本科','自动化仪表','DCS/PLC'],desc:'负责厂区仪表设备的日常维护与校准，参与自动化改造项目。自动化/测控相关专业。'},
+    {cat:'质量管理',title:'来料检验员',company:'虹禾晶',cc:'jc-company-2',count:3,salary:'¥4,000-6,000/月',time:'2026-05-10',status:'open',stat:'招聘中',tags:['高中以上','品质检验','责任心强'],desc:'负责原材料来料检验，按标准进行外观检查与尺寸测量。有QC检验经验者优先。'},
+    {cat:'技术研发',title:'配方工程师',company:'星恒青源',cc:'jc-company-6',count:2,salary:'¥9,000-15,000/月',time:'2026-05-04',status:'closed',stat:'已招满',tags:['本科','精细化工','配方开发'],desc:'负责新产品配方设计与工艺制定。要求精细化工相关专业，有日化/涂料行业配方经验。'}
+];
+
+function renderJobs(cat){
+    var keyword = (document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var fCat = document.getElementById('fCat').value;
+    var fStatus = document.getElementById('fStatus').value;
+    var filtered = jobs.filter(function(j){
+        if(cat && cat!=='all' && j.cat!==cat) return false;
+        if(fCat && j.cat!==fCat) return false;
+        if(fStatus && j.status!==fStatus) return false;
+        if(keyword){
+            var txt = (j.title+' '+j.company+' '+j.salary+' '+j.tags.join(' ')+' '+j.desc).toLowerCase();
+            if(txt.indexOf(keyword)===-1) return false;
+        }
+        return true;
+    });
+    document.getElementById('resultCount').textContent = '共 '+filtered.length+' 条';
+    var PAGE_SIZE = 12;
+    var totalPages = Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
+    var page = (window._curPage||1);
+    if(page>totalPages) page = totalPages;
+    window._curPage = page;
+    window._totalPages = totalPages;
+    var start = (page-1)*PAGE_SIZE, end = Math.min(start+PAGE_SIZE, filtered.length);
+    var grid = document.getElementById('jobGrid');
+    grid.innerHTML = filtered.slice(start,end).map(function(j){
+        return '<div class="job-card" onclick=\'showDetail('+JSON.stringify(j).replace(/'/g,"&#39;")+')\'>'+
+            '<div class="jc-header"><span class="jc-title">'+j.title+'</span><span class="jc-status '+(j.status==='open'?'st-open':j.status==='pause'?'st-pause':'st-closed')+'">'+j.stat+'</span></div>'+
+            '<div class="jc-company '+j.cc+'">'+j.company+'</div>'+
+            '<div class="jc-meta"><span><i class="fa fa-users"></i> 招'+j.count+'人</span><span><i class="fa fa-cny"></i> '+j.salary+'</span><span><i class="fa fa-calendar"></i> '+j.time+'</span></div>'+
+            '<div class="jc-tags">'+j.tags.map(function(t){return '<span>'+t+'</span>'}).join('')+'</div>'+
+        '</div>';
+    }).join('');
+    renderPagination(page,totalPages,filtered);
+}
+function renderPagination(cur,total,filtered){
+    var pg = document.getElementById('pagination');
+    var PS = 12;
+    var startN = filtered.length>0?(cur-1)*PS+1:0, endN = Math.min(cur*PS, filtered.length);
+    var html = '<button class="page-btn'+(cur<=1?' disabled':'')+'" onclick="goPage('+(cur-1)+')">&laquo;</button>';
+    var sp=Math.max(1,cur-2), ep=Math.min(total,sp+4); if(ep-sp<4) sp=Math.max(1,ep-4);
+    for(var p=sp;p<=ep;p++) html+='<button class="page-btn'+(p===cur?' active':'')+'" onclick="goPage('+p+')">'+p+'</button>';
+    html+='<button class="page-btn'+(cur>=total?' disabled':'')+'" onclick="goPage('+(cur+1)+')">&raquo;</button>';
+    html+='<span class="page-info">第'+startN+'-'+endN+'条 / 共'+filtered.length+'条</span>';
+    pg.innerHTML = html;
+}
+function goPage(p){ if(p<1||p>window._totalPages) return; window._curPage=p; applyFilters(); }
+
+function showDetail(j){
+    var panel = document.getElementById('detailPanel');
+    panel.innerHTML =
+        '<div class="detail-header"><h3>'+j.title+'</h3><div class="detail-close" onclick="closeDetail()">&times;</div></div>'+
+        '<div class="detail-body">'+
+            '<div class="detail-row">'+
+                '<div class="detail-col"><div class="detail-label">企业名称</div><div class="detail-value '+j.cc+'">'+j.company+'</div></div>'+
+                '<div class="detail-col"><div class="detail-label">岗位类型</div><div class="detail-value">'+j.cat+'</div></div>'+
+            '</div>'+
+            '<div class="detail-row">'+
+                '<div class="detail-col"><div class="detail-label">招聘人数</div><div class="detail-value">'+j.count+'人</div></div>'+
+                '<div class="detail-col"><div class="detail-label">薪资范围</div><div class="detail-value" style="color:#c0392b">'+j.salary+'</div></div>'+
+            '</div>'+
+            '<div class="detail-row">'+
+                '<div class="detail-col"><div class="detail-label">发布时间</div><div class="detail-value">'+j.time+'</div></div>'+
+                '<div class="detail-col"><div class="detail-label">招聘状态</div><div class="detail-value"><span class="jc-status '+(j.status==='open'?'st-open':j.status==='pause'?'st-pause':'st-closed')+'">'+j.stat+'</span></div></div>'+
+            '</div>'+
+            '<div class="detail-desc"><b>岗位要求与职责</b><br><br>'+j.desc+'</div>'+
+            '<div style="margin-top:12px"><b>技能标签：</b> '+j.tags.map(function(t){return '<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:var(--c-light);color:var(--c-dk);margin-right:6px">'+t+'</span>'}).join('')+'</div>'+
+        '</div>'+
+        '<div class="detail-footer"><button class="btn btn-outline" onclick="closeDetail()">关闭</button><button class="btn btn-primary"><i class="fa fa-paper-plane"></i> 投递简历</button></div>';
+    document.getElementById('detailOverlay').classList.add('show');
+}
+
+function closeDetail(){ document.getElementById('detailOverlay').classList.remove('show'); }
+
+// 侧边栏切换
+document.getElementById('sidebar').addEventListener('click',function(e){
+    var btn = e.target.closest('.side-btn');
+    if(!btn) return;
+    document.querySelectorAll('.side-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    renderJobs(btn.getAttribute('data-cat'));
+});
+
+// 初始渲染
+(function init(){
+    // 填充类型下拉框
+    var cats = [...new Set(jobs.map(function(j){return j.cat;}))];
+    var sel = document.getElementById('fCat');
+    cats.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+    applyFilters();
+    window.addEventListener('resize', function(){ applyFilters(); });
+})();
+
+function applyFilters(){
+    var activeBtn = document.querySelector('.side-btn.active');
+    var cat = activeBtn ? activeBtn.getAttribute('data-cat') : 'all';
+    renderJobs(cat);
+}
+
+function resetFilters(){
+    document.getElementById('fKeyword').value='';
+    document.getElementById('fCat').value='';
+    document.getElementById('fStatus').value='';
+    applyFilters();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产业经济 - 青川县竹园镇智慧园区</title>
+<link rel="icon" href="../favicon.ico" type="image/x-icon">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0e1a;font-family:'PingFang SC','Microsoft YaHei',sans-serif;color:#e0e6f0;overflow:hidden;}
+
+/* 顶部标题栏 */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:56px;background:linear-gradient(135deg,#101838 0%,#162969 50%,#101838 100%);
+  border-bottom:1px solid rgba(64,196,255,0.3);
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.5);
+}
+.top-title{display:flex;align-items:center;gap:12px;}
+.top-title h1{font-size:18px;font-weight:700;letter-spacing:2px;background:linear-gradient(90deg,#40c4ff,#80d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.top-time{font-size:12px;color:#40c4ff;font-family:'SF Mono',monospace;letter-spacing:1px;}
+
+/* 左侧面板 */
+.left-panel{
+  position:fixed;left:10px;top:66px;bottom:10px;width:280px;z-index:100;
+  display:flex;flex-direction:column;gap:10px;overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:rgba(64,196,255,0.3) transparent;
+}
+.panel-card{
+  background:rgba(16,24,56,0.9);border:1px solid rgba(64,196,255,0.2);
+  border-radius:10px;padding:14px 16px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3);backdrop-filter:blur(10px);
+}
+.card-title{font-size:12px;font-weight:600;color:#40c4ff;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.card-title::before{content:'';width:3px;height:12px;border-radius:2px;background:linear-gradient(180deg,#40c4ff,#0091ea);display:inline-block;}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat-item{background:rgba(22,41,105,0.6);border:1px solid rgba(64,196,255,0.15);border-radius:8px;padding:10px;text-align:center;transition:all .3s;}
+.stat-item:hover{border-color:rgba(64,196,255,0.4);transform:translateY(-1px);}
+.stat-value{font-size:22px;font-weight:700;color:#40c4ff;margin-bottom:4px;font-family:'SF Mono',monospace;}
+.stat-label{font-size:10px;color:#78909c;letter-spacing:0.5px;}
+
+.industry-bar{display:flex;flex-direction:column;gap:8px;}
+.industry-item{display:flex;align-items:center;gap:8px;}
+.industry-name{font-size:11px;color:#b0bec5;width:60px;flex-shrink:0;}
+.industry-progress{flex:1;height:6px;background:rgba(22,41,105,0.8);border-radius:3px;overflow:hidden;}
+.industry-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+.industry-percent{font-size:11px;color:#40c4ff;width:36px;text-align:right;font-family:'SF Mono',monospace;}
+
+.search-box{position:relative;margin-bottom:10px;}
+.search-input{
+  width:100%;padding:10px 12px;border-radius:8px;
+  background:rgba(22,41,105,0.8);border:1px solid rgba(64,196,255,0.2);color:#e0e6f0;font-size:12px;outline:none;transition:border-color .2s;
+}
+.search-input:focus{border-color:#40c4ff;box-shadow:0 0 0 3px rgba(64,196,255,0.1);}
+.search-input::placeholder{color:#546e7a;}
+.search-btn{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:#40c4ff;cursor:pointer;font-size:14px;padding:4px;
+}
+
+/* 右侧面板 */
+.right-panel{
+  position:fixed;right:10px;top:66px;bottom:10px;width:300px;z-index:100;
+  display:flex;flex-direction:column;gap:10px;overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:rgba(64,196,255,0.3) transparent;
+}
+.enterprise-list{display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;}
+.enterprise-item{
+  background:rgba(22,41,105,0.6);border:1px solid rgba(64,196,255,0.15);
+  border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .25s;
+}
+.enterprise-item:hover{border-color:#40c4ff;background:rgba(22,41,105,0.9);}
+.enterprise-item.active{border-color:#40c4ff;background:rgba(64,196,255,0.1);}
+.e-name{font-size:13px;font-weight:600;color:#e0e6f0;margin-bottom:4px;}
+.e-type{font-size:10px;color:#40c4ff;margin-bottom:3px;}
+.e-info{font-size:10px;color:#78909c;display:flex;align-items:center;gap:10px;}
+
+/* 地图容器 */
+#map-container{
+  position:fixed;top:56px;left:290px;right:310px;bottom:10px;
+  border-radius:12px;overflow:hidden;
+  border:1px solid rgba(64,196,255,0.2);
+  box-shadow:0 4px 24px rgba(0,0,0,0.5);z-index:1;
+}
+#amap{width:100%;height:100%;}
+
+/* 地图控件 */
+.map-controls{position:absolute;top:10px;right:10px;z-index:50;display:flex;flex-direction:column;gap:6px;}
+.map-ctrl-btn{
+  width:36px;height:36px;border-radius:8px;
+  background:rgba(16,24,56,0.9);border:1px solid rgba(64,196,255,0.3);
+  color:#40c4ff;cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.map-ctrl-btn:hover{background:rgba(64,196,255,0.2);border-color:#40c4ff;}
+.map-ctrl-btn.active{background:rgba(64,196,255,0.3);border-color:#40c4ff;}
+
+/* 加载动画 */
+.loading-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;
+  background:linear-gradient(135deg,#0a0e1a,#101838);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s;
+}
+.loading-overlay.hide{opacity:0;pointer-events:none;}
+.loading-title{font-size:24px;font-weight:700;background:linear-gradient(90deg,#40c4ff,#80d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px;}
+</style>
+<!-- 高德地图安全密钥配置（必须在API脚本之前） -->
+<script type="text/javascript">
+  window._AMapSecurityConfig = {
+    securityJsCode: '8cc1e17e87bd8d7f80d303d6e7bdbc0a',
+  };
+</script>
+<script src="https://cdn.bootcdn.net/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+<!-- 加载动画 -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-title">产业经济大数据平台</div>
+  <div style="width:240px;height:3px;background:rgba(64,196,255,0.2);border-radius:2px;overflow:hidden;"><div style="height:100%;background:linear-gradient(90deg,#40c4ff,#0091ea);border-radius:2px;animation:loading 2s ease-in-out infinite;"></div></div>
+  <div style="font-size:12px;color:#607d8b;" id="loadingTip">正在初始化高德地图 3D 引擎...</div>
+</div>
+
+<!-- 顶部标题栏 -->
+<div class="top-bar">
+  <div class="top-title"><h1>产业经济大数据平台</h1><span style="font-size:10px;color:#607d8b;">青川县竹园镇智慧园区</span></div>
+  <div class="top-time" id="topTime"></div>
+</div>
+
+<!-- 左侧面板 -->
+<div class="left-panel">
+  <div class="panel-card"><div class="card-title">核心经济指标</div><div class="stat-grid" id="statGrid">
+      <div class="stat-item"><div class="stat-value" id="statEnterprises">0</div><div class="stat-label">企业总数</div></div>
+      <div class="stat-item"><div class="stat-value" id="statRevenue">0</div><div class="stat-label">营收(亿)</div></div>
+      <div class="stat-item"><div class="stat-value" id="statEmployees">0</div><div class="stat-label">员工总数</div></div>
+      <div class="stat-item"><div class="stat-value" id="statGrowth">0%</div><div class="stat-label">同比增长</div></div>
+    </div></div>
+  <div class="panel-card"><div class="card-title">产业分布</div><div class="industry-bar" id="industryBars"></div></div>
+  <div class="panel-card">
+    <div class="card-title">企业查询</div>
+    <div class="search-box">
+      <input type="text" class="search-input" id="searchInput" placeholder="输入企业名称搜索...">
+      <button class="search-btn" onclick="searchEnterprise()">🔍</button>
+    </div>
+    <div id="searchResults"></div>
+  </div>
+</div>
+
+<!-- 地图容器 -->
+<div id="map-container">
+  <div id="amap"></div>
+  <div class="map-controls">
+    <div class="map-ctrl-btn" title="放大" onclick="mapZoomIn()">＋</div>
+    <div class="map-ctrl-btn" title="缩小" onclick="mapZoomOut()">－</div>
+    <div class="map-ctrl-btn" title="重置视角" onclick="resetView()">🎯</div>
+    <div class="map-ctrl-btn" title="切换3D/2D" onclick="toggleViewMode()">🌐</div>
+    <div class="map-ctrl-btn" title="显示建筑" id="btnBuilding" onclick="toggleBuildings()">🏢</div>
+  </div>
+</div>
+
+<!-- 右侧面板 -->
+<div class="right-panel">
+  <div class="panel-card" style="flex:1;display:flex;flex-direction:column;">
+    <div class="card-title">企业列表</div><div class="enterprise-list" id="enterpriseList"></div>
+  </div>
+  <div class="panel-card"><div class="card-title">月度营收趋势</div><div id="trendChart" style="height:120px;display:flex;align-items:flex-end;gap:4px;padding:10px 0;"></div></div>
+</div>
+
+<script>
+// ========= 配置常量 ==========
+const ZHUYUAN_CENTER = [105.23, 32.33];
+const INITIAL_ZOOM = 13;
+const INITIAL_PITCH = 55;
+
+const enterpriseTypes = [
+  {type:'制造业', color:'#40c4ff', icon:'🏭'},
+  {type:'食品业', color:'#69f0ae', icon:'🍜'},
+  {type:'新材料', color:'#ffd740', icon:'⚗️'},
+  {type:'电子信息', color:'#ff5252', icon:'💻'},
+  {type:'物流仓储', color:'#b388ff', icon:'📦'},
+  {type:'其他', color:'#90a4ae', icon:'🏢'}
+];
+const enterpriseNames = [
+  '青川竹园食品有限公司','广元新材料科技有限公司','竹园电子制造厂',
+  '青川农产品加工厂','四川竹园物流有限公司','青川矿业开发有限公司',
+  '竹园镇建材市场','青川绿色食品加工厂','广元竹园包装有限公司',
+  '青川电子信息产业园','竹园机械制造有限公司','青川中药材加工厂',
+  '四川竹园饮料有限公司','青川纺织品有限公司','竹园镇化工有限公司',
+  '青川新能源汽车配件厂','竹园镇电商产业园','青川猕猴桃加工厂',
+  '四川竹园医疗器械有限公司','青川饮用水有限公司'
+];
+const enterprises = [];
+(function randomEnterprises(){
+  for(var i=0;i<enterpriseNames.length;i++){
+    var offx=(Math.random()-0.5)*0.06, offy=(Math.random()-0.5)*0.04;
+    var t = enterpriseTypes[Math.floor(Math.random()*enterpriseTypes.length)];
+    enterprises.push({
+      id:i+1, name:enterpriseNames[i],
+      lng:ZHUYUAN_CENTER[0]+offx, lat:ZHUYUAN_CENTER[1]+offy,
+      type:t.type, color:t.color, icon:t.icon,
+      revenue:(Math.random()*5+0.5).toFixed(1),
+      employees:Math.floor(Math.random()*500+50),
+      address:'青川县竹园镇工业园区',
+      status:Math.random()>0.2?'营业中':'筹备中'
+    });
+  }
+})();
+
+// ========= 地图变量 ==========
+let map = null;
+let enterpriseMarkers = [];
+let currentViewMode = '3D';
+let buildingsVisible = true;
+
+// ========= AMap 就绪回调 ==========
+function initMap(){
+  debug('高德地图脚本加载成功 ✓');
+  if(typeof AMap === 'undefined'){ setTip('❌ 高德地图加载失败'); return; }
+  map = new AMap.Map('amap',{
+    zoom:INITIAL_ZOOM, pitch:INITIAL_PITCH, bearing:0,
+    center:ZHUYUAN_CENTER, viewMode:'3D',
+    mapStyle:'amap://styles/blue', showLabel:true,
+    showIndoorMap:false, rotateEnable:true, pitchEnable:true,
+    features:['bg','road','building','point']
+  });
+  debug('AMap.Map 实例创建 ✓');
+  AMap.plugin(['AMap.ToolBar','AMap.ControlBar','AMap.Scale','AMap.PlaceSearch','AMap.InfoWindow'], function(){
+    debug('插件加载完成 ✓');
+    map.addControl(new AMap.Scale({position:'LB',offset:new AMap.Pixel(15,15)}));
+    map.addControl(new AMap.ToolBar({position:'RB',offset:new AMap.Pixel(10,10)}));
+    map.addControl(new AMap.ControlBar({position:'RB',offset:new AMap.Pixel(10,95),showControlButton:true}));
+    createBuildings3D();
+  });
+}
+
+// ========= Three.js + AMap.CustomLayer 生成 3D 建筑群 ==========
+var __threeLayer = null; // CustomLayer 引用
+var __threeScene  = null;
+var __threeCamera = null;
+var __threeRenderer = null;
+var __threeBuildings = []; // 建筑 mesh 数组（用于射线检测等）
+
+function createBuildings3D(){
+  debug('开始生成 3D 建筑群（Three.js + CustomLayer）...');
+  if(typeof THREE === 'undefined'){ debug('❌ THREE 未加载'); setTip('❌ Three.js 加载失败'); return; }
+  if(!map){ debug('❌ map 未初始化'); return; }
+
+  var center = ZHUYUAN_CENTER;
+  var colors = ['#40c4ff','#69f0ae','#ffd740','#ff5252','#b388ff','#80d8ff','#00e5ff','#ff80ab'];
+  var gridCols = 120, gridRows = 60; // 7200 栋
+  var lngSpan = 0.07, latSpan = 0.05;
+
+  // 创建 Three.js 场景
+  var scene = new THREE.Scene();
+  var ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+  var dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(100, 200, 100);
+  scene.add(dirLight);
+
+  // 经纬度转墨卡托坐标，再转 Three.js 世界坐标（手动计算，不依赖 AMap 实例方法）
+  var MERCATOR_RANGE = 20037508.34;
+  function lngLatToMercator(lng, lat) {
+    var x = lng * MERCATOR_RANGE / 180;
+    var y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) * MERCATOR_RANGE / Math.PI;
+    return { x: x, y: -y }; // y 取反适配 Three.js 坐标系
+  }
+  function lngLatToWorld(lng, lat, height) {
+    var m = lngLatToMercator(lng, lat);
+    return new THREE.Vector3(m.x, m.y, height);
+  }
+
+  for(var row=0;row<gridRows;row++){
+    for(var col=0;col<gridCols;col++){
+      var lng = center[0] - lngSpan/2 + (col/gridCols)*lngSpan + (Math.random()-0.5)*0.0003;
+      var lat = center[1] - latSpan/2 + (row/gridRows)*latSpan + (Math.random()-0.5)*0.0003;
+      var height = 8 + Math.random()*72;
+      var size   = 0.0001 + Math.random()*0.0002;
+      var colorHex = colors[Math.floor(Math.random()*colors.length)];
+      var hex = parseInt(colorHex.replace('#',''), 16);
+
+      var w = size * 111000 * Math.cos(lat * Math.PI/180) * 0.7;
+      var d = size * 111000 * 0.7;
+      var geo = new THREE.BoxGeometry(w, d, height);
+      var mat = new THREE.MeshPhongMaterial({ color:hex, transparent:true, opacity:0.75 });
+      var mesh = new THREE.Mesh(geo, mat);
+
+      var pos = lngLatToWorld(lng, lat, 0);
+      mesh.position.set(pos.x + w/2, pos.y - d/2, height/2);
+      mesh.userData = { lng:lng, lat:lat, height:height, color:colorHex };
+      scene.add(mesh);
+      __threeBuildings.push(mesh);
+    }
+  }
+
+  __threeScene = scene;
+  buildingsVisible = true;
+  debug('Three.js 场景构建完成，建筑数：' + __threeBuildings.length);
+
+  // 创建 AMap.CustomLayer（传 canvas DOM 元素，不能用字符串）
+  var canvas = document.createElement('canvas');
+  canvas.style.position = 'absolute';
+  canvas.style.top = '0';
+  canvas.style.left = '0';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.pointerEvents = 'none';
+  document.getElementById('amap').appendChild(canvas);
+
+  var customLayer = new AMap.CustomLayer({
+    canvas: canvas,
+    alwaysRender:true,
+    zIndex:10,
+    render: function(gl, matrix){
+      if(!__threeScene) return;
+      // 初始化 renderer（只执行一次）
+      if(!__threeRenderer){
+        __threeRenderer = new THREE.WebGLRenderer({
+          context: gl,
+          alpha: true,
+          antialias: false
+        });
+        __threeRenderer.autoClear = false; // 关键：不清除 AMap 已绘制内容
+        __threeRenderer.setPixelRatio(window.devicePixelRatio);
+      }
+      if(!__threeCamera){
+        __threeCamera = new THREE.PerspectiveCamera(60, 1, 0.1, 10000);
+      }
+      // 将 AMap 的 matrix 直接作为 projectionMatrix
+      // AMap matrix 是列主序 Float64Array，直接转 THREE.Matrix4
+      __threeCamera.projectionMatrix = new THREE.Matrix4().fromArray(new Float32Array(matrix));
+      // 视图矩阵设为单位矩阵（AMap 已在 matrix 中处理了视图变换）
+      __threeCamera.matrixWorldInverse = new THREE.Matrix4();
+      __threeCamera.matrixAutoUpdate = false;
+
+      __threeRenderer.render(__threeScene, __threeCamera);
+    }
+  });
+  __threeLayer = customLayer;
+  customLayer.setMap(map);
+  debug('CustomLayer 已添加到地图 ✓');
+  afterBuildingsInit();
+}
+
+// ========= 建筑初始化完成回调 ==========
+function afterBuildingsInit(){
+  addEnterpriseMarkers();
+  updateStatistics();
+  renderEnterpriseList();
+  renderIndustryBars();
+  renderTrendChart();
+  document.getElementById('btnBuilding').classList.add('active');
+  setTimeout(function(){ document.getElementById('loadingOverlay').classList.add('hide'); }, 800);
+  debug('地图初始化完成 ✓');
+}
+
+// ========= 添加企业标注 ==========
+function addEnterpriseMarkers(){
+  enterprises.forEach(function(ent){
+    var marker = new AMap.Marker({
+      position:[ent.lng,ent.lat], title:ent.name,
+      icon:createMarkerIcon(ent), offset:new AMap.Pixel(-16,-32), zIndex:100
+    });
+    marker.on('click', function(){ openEnterpriseInfo(ent); });
+    marker.entData = ent;
+    marker.setMap(map);
+    enterpriseMarkers.push(marker);
+  });
+  debug('企业标注添加完成: ' + enterprises.length + ' 个');
+}
+
+function createMarkerIcon(ent){
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">' +
+    '<path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 24 16 24s16-12 16-24C32 7.2 24.8 0 16 0z" fill="'+ent.color+'"/>' +
+    '<circle cx="16" cy="14" r="8" fill="#fff" opacity="0.9"/>' +
+    '<text x="16" y="18" text-anchor="middle" font-size="12">'+ent.icon+'</text></svg>';
+  return new AMap.Icon({size:new AMap.Size(32,40),
+    image:'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg))),
+    imageSize:new AMap.Size(32,40)});
+}
+
+// ========= 打开企业信息窗体 ==========
+function openEnterpriseInfo(ent){
+  var content = '<div style="min-width:220px;">' +
+    '<div style="font-size:14px;font-weight:700;color:#40c4ff;margin-bottom:8px;">'+ent.icon+' '+ent.name+'</div>' +
+    '<div style="font-size:11px;color:#b0bec5;line-height:1.8;">' +
+    '<div>📍 地址：'+ent.address+'</div>' +
+    '<div>🏷️ 类型：'+ent.type+'</div>' +
+    '<div>💰 年营收：'+ent.revenue+' 亿元</div>' +
+    '<div>👥 员工数：'+ent.employees+' 人</div>' +
+    '<div>📊 状态：<span style="color:'+(ent.status==='营业中'?'#69f0ae':'#ffd740')+'">'+ent.status+'</span></div>' +
+    '</div></div>';
+  new AMap.InfoWindow({content:content, offset:new AMap.Pixel(0,-36), closeWhenClickMap:true}).open(map,[ent.lng,ent.lat]);
+}
+
+// ========= 更新统计数据 ==========
+function updateStatistics(){
+  var tE=enterprises.length, tR=enterprises.reduce(function(s,e){return s+parseFloat(e.revenue)},0),
+      tP=enterprises.reduce(function(s,e){return s+e.employees},0),
+      g=(Math.random()*15+5).toFixed(1);
+  animateNumber('statEnterprises',tE);
+  animateNumber('statRevenue',tR.toFixed(1));
+  animateNumber('statEmployees',tP);
+  document.getElementById('statGrowth').textContent = g+'%';
+}
+function animateNumber(id, target){
+  var el=document.getElementById(id), tN=parseFloat(target), d=1500, s=performance.now();
+  (function u(now){
+    var p=Math.min((now-s)/d,1), c=(1-Math.pow(1-p,3))*tN;
+    el.textContent = Number.isInteger(tN)?Math.floor(c).toLocaleString():c.toFixed(1);
+    if(p<1) requestAnimationFrame(u);
+  })(s);
+}
+
+// ========= 渲染企业列表 ==========
+function renderEnterpriseList(){
+  var list=document.getElementById('enterpriseList'); list.innerHTML='';
+  enterprises.forEach(function(ent){
+    var item=document.createElement('div');
+    item.className='enterprise-item';
+    item.innerHTML='<div class="e-name">'+ent.icon+' '+ent.name+'</div>' +
+      '<div class="e-type">'+ent.type+'</div>' +
+      '<div class="e-info"><span>💰 '+ent.revenue+'亿</span><span>👥 '+ent.employees+'人</span>' +
+      '<span><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+(ent.status==='营业中'?'#69f0ae':'#ffd740')+'"></span> '+ent.status+'</span></div>';
+    item.onclick=function(){ map.setZoomAndCenter(16,[ent.lng,ent.lat]); openEnterpriseInfo(ent);
+      document.querySelectorAll('.enterprise-item').forEach(function(e){e.classList.remove('active');});
+      item.classList.add('active'); };
+    list.appendChild(item);
+  });
+}
+
+// ========= 渲染产业分布 ==========
+function renderIndustryBars(){
+  var list=document.getElementById('industryBars'); list.innerHTML='';
+  var counts={}; enterprises.forEach(function(e){ counts[e.type]=(counts[e.type]||0)+1; });
+  var maxC=Math.max.apply(null,Object.values(counts));
+  Object.entries(counts).forEach(function(entry){
+    var type=entry[0], count=entry[1];
+    var t=enterpriseTypes.find(function(t){return t.type===type})||enterpriseTypes[enterpriseTypes.length-1];
+    var p=Math.round(count/maxC*100);
+    var item=document.createElement('div'); item.className='industry-item';
+    item.innerHTML='<div class="industry-name">'+t.icon+' '+type+'</div>' +
+      '<div class="industry-progress"><div class="industry-fill" style="width:'+p+'%;background:linear-gradient(90deg,'+t.color+','+t.color+'aa);"></div></div>' +
+      '<div class="industry-percent">'+count+'家</div>';
+    list.appendChild(item);
+  });
+}
+
+// ========= 渲染趋势图 ==========
+function renderTrendChart(){
+  var chart=document.getElementById('trendChart'); chart.innerHTML='';
+  var months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var values=months.map(function(){return Math.random()*80+20;});
+  var maxV=Math.max.apply(null,values);
+  months.forEach(function(m,i){
+    var bar=document.createElement('div');
+    bar.style.cssText='flex:1;height:'+(values[i]/maxV*100)+'%;background:linear-gradient(180deg,#40c4ff,#0091ea);border-radius:3px 3px 0 0;position:relative;min-width:0;transition:height .6s ease;';
+    bar.title=m+'：'+values[i].toFixed(1)+'亿元';
+    var label=document.createElement('div');
+    label.style.cssText='position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:8px;color:#607d8b;white-space:nowrap;';
+    label.textContent=m; bar.appendChild(label);
+    chart.appendChild(bar);
+  });
+  chart.style.position='relative'; chart.style.paddingBottom='18px';
+}
+
+// ========= 搜索企业 ==========
+function searchEnterprise(){
+  var kw=document.getElementById('searchInput').value.trim(); if(!kw) return;
+  var results=enterprises.filter(function(e){return e.name.indexOf(kw)!==-1||e.type.indexOf(kw)!==-1;});
+  if(results.length>0){ var f=results[0]; map.setZoomAndCenter(16,[f.lng,f.lat]); openEnterpriseInfo(f); }
+  else alert('未找到匹配的企业');
+}
+
+// ========= 地图控制 ==========
+function mapZoomIn(){ map.zoomIn(); }
+function mapZoomOut(){ map.zoomOut(); }
+function resetView(){ map.setZoomAndCenter(INITIAL_ZOOM,ZHUYUAN_CENTER); map.setPitch(INITIAL_PITCH); map.setBearing(0); }
+function toggleViewMode(){
+  if(currentViewMode==='3D'){ map.setViewMode('2D'); currentViewMode='2D'; }
+  else { map.setViewMode('3D'); map.setPitch(INITIAL_PITCH); currentViewMode='3D'; }
+}
+function toggleBuildings(){
+  if(!__threeLayer) return;
+  buildingsVisible = !buildingsVisible;
+  if(buildingsVisible){
+    __threeLayer.setMap(map);
+    document.getElementById('btnBuilding').classList.add('active');
+  } else {
+    __threeLayer.setMap(null);
+    document.getElementById('btnBuilding').classList.remove('active');
+  }
+}
+
+// ========= 工具函数 ==========
+function debug(msg){ console.log('[IndustrialEconomy]',msg); }
+function setTip(msg){ var el=document.getElementById('loadingTip'); if(el)el.textContent=msg; }
+function updateClock(){
+  document.getElementById('topTime').textContent=new Date().toLocaleString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ========= 启动 ==========
+updateClock(); setInterval(updateClock,1000);
+document.getElementById('searchInput').addEventListener('keypress',function(e){if(e.key==='Enter')searchEnterprise();});
+</script>
+
+<script type="text/javascript">
+window.amapReady = function(){
+  console.log('[amapReady] callback fired');
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',initMap); }
+  else { setTimeout(initMap,0); }
+};
+</script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=7d2674ce8375986e20c048ead06989d0&callback=amapReady&securityJsCode=8cc1e17e87bd8d7f80d303d6e7bdbc0a"></script>
+
+</body>
+</html>

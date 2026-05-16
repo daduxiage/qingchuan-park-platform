@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青川县庄子上工业园区智慧园区平台 - 工作台</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #40c4ff;
+            --secondary-color-1: #2b68e0;
+            --secondary-color-2: #7b61ff;
+            --secondary-color-3: #00c2b8;
+            --warning-color: #ff9500;
+            --danger-color: #ff4d4f;
+            --success-color: #4cd964;
+            --bg-primary: #0a1024;
+            --bg-card: linear-gradient(135deg, #101838, #162969);
+            --text-primary: #fff;
+            --text-secondary: #a0cfff;
+            --text-tertiary: #80bfff;
+            --border-color: #2b68e0;
+            --split-color: rgba(50,100,204,0.2);
+            --border-radius: 8px;
+            --universal-gap: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: "Microsoft Yahei","微软雅黑",sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== 顶部标题 ===== */
+        .header {
+            background: linear-gradient(135deg, #101838, #162969);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 20px rgba(43,104,224,0.3);
+        }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-logo {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #40c4ff, #2b68e0);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+        .header-title h1 {
+            font-size: 20px; font-weight: 700; letter-spacing: 2px;
+            background: linear-gradient(90deg, #40c4ff, #7b61ff);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .header-title p { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .header-time {
+            font-size: 12px; color: rgba(255,255,255,0.55);
+            letter-spacing: 0.5px; white-space: nowrap;
+            padding-left: 4px;
+        }
+        .header-btn {
+            height: 32px;
+            padding: 0 13px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.22);
+            color: rgba(255,255,255,0.85);
+            cursor: pointer; font-size: 13px;
+            transition: all 0.25s;
+            display: inline-flex; align-items: center; gap: 6px;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        .header-btn:hover {
+            background: rgba(255,255,255,0.20);
+            border-color: rgba(255,255,255,0.45);
+            color: #fff;
+        }
+        .theme-toggle-btn { width: 32px; padding: 0; justify-content: center; font-size: 14px; }
+        .header-btn.btn-logout:hover {
+            background: rgba(255,77,79,0.22);
+            border-color: rgba(255,100,102,0.55);
+            color: #ff6b6b;
+            box-shadow: 0 0 10px rgba(255,77,79,0.25);
+        }
+        .user-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            height: 32px;
+            padding: 0 13px;
+            background: rgba(255,255,255,0.10);
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.22);
+            font-size: 13px; color: rgba(255,255,255,0.85);
+            cursor: pointer;
+            transition: all 0.25s;
+            flex-shrink: 0; white-space: nowrap;
+        }
+        .user-tag:hover {
+            background: rgba(255,255,255,0.20);
+            border-color: rgba(255,255,255,0.45);
+            color: #fff;
+        }
+
+        /* ===== 统计栏 ===== */
+        .stats-bar {
+            background: rgba(16,24,56,0.6);
+            border-bottom: 1px solid var(--split-color);
+            padding: 14px 24px;
+            display: flex; gap: 16px;
+            backdrop-filter: blur(10px);
+        }
+        .stat-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 20px;
+            background: rgba(10,16,36,0.8);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(43,104,224,0.3);
+            flex: 1; min-width: 0;
+            transition: all 0.3s;
+        }
+        .stat-item:hover { border-color: var(--primary-color); box-shadow: 0 0 15px rgba(64,196,255,0.2); }
+        .stat-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .si-blue { background: rgba(64,196,255,0.15); color: #40c4ff; }
+        .si-green { background: rgba(76,217,100,0.15); color: #4cd964; }
+        .si-orange { background: rgba(255,149,0,0.15); color: #ff9500; }
+        .si-red { background: rgba(255,77,79,0.15); color: #ff4d4f; }
+        .si-purple { background: rgba(123,97,255,0.15); color: #7b61ff; }
+        .si-teal { background: rgba(0,194,184,0.15); color: #00c2b8; }
+        .stat-info { min-width: 0; }
+        .stat-num { font-size: 22px; font-weight: 700; line-height: 1; }
+        .stat-label { font-size: 12px; color: var(--text-tertiary); margin-top: 3px; }
+        .stat-trend {
+            font-size: 11px; margin-top: 2px;
+            display: flex; align-items: center; gap: 3px;
+        }
+        .trend-up { color: #4cd964; }
+        .trend-down { color: #ff4d4f; }
+
+        /* ===== 主体 ===== */
+        .main-body {
+            padding: 20px 24px;
+            min-height: calc(100vh - 64px - 80px);
+        }
+
+        /* ===== 右侧内容 ===== */
+        .right-content {
+            display: flex; flex-direction: column; gap: 16px;
+        }
+
+        /* ===== 功能模块卡片区 ===== */
+        .module-section {
+            background: linear-gradient(135deg, #101838, #162969);
+            border: 1px solid rgba(43,104,224,0.4);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        .module-header {
+            padding: 12px 18px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--split-color);
+            background: rgba(43,104,224,0.08);
+        }
+        .module-title {
+            font-size: 14px; font-weight: 600;
+            color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .module-title-icon {
+            width: 24px; height: 24px;
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+        }
+        .mt-blue { background: rgba(64,196,255,0.2); color: #40c4ff; }
+        .mt-green { background: rgba(76,217,100,0.2); color: #4cd964; }
+        .mt-orange { background: rgba(255,149,0,0.2); color: #ff9500; }
+        .mt-purple { background: rgba(123,97,255,0.2); color: #7b61ff; }
+        .mt-teal { background: rgba(0,194,184,0.2); color: #00c2b8; }
+        .mt-red { background: rgba(255,77,79,0.2); color: #ff4d4f; }
+
+        .module-more {
+            font-size: 12px; color: var(--text-tertiary);
+            cursor: pointer; display: flex; align-items: center; gap: 4px;
+            transition: color 0.2s;
+        }
+        .module-more:hover { color: var(--primary-color); }
+
+        .module-grid {
+            padding: 14px 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        /* ===== 功能按钮卡片 ===== */
+        .func-card {
+            padding: 14px 12px;
+            background: rgba(10,16,36,0.6);
+            border: 1px solid rgba(43,104,224,0.25);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 8px;
+            text-align: center;
+            position: relative;
+            text-decoration: none;
+        }
+        .func-card:hover {
+            border-color: var(--primary-color);
+            background: rgba(64,196,255,0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(64,196,255,0.2);
+        }
+        .func-card-icon {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .fci-blue { background: linear-gradient(135deg, rgba(64,196,255,0.2), rgba(43,104,224,0.3)); color: #40c4ff; }
+        .fci-green { background: linear-gradient(135deg, rgba(76,217,100,0.2), rgba(0,194,184,0.2)); color: #4cd964; }
+        .fci-orange { background: linear-gradient(135deg, rgba(255,149,0,0.2), rgba(255,77,79,0.1)); color: #ff9500; }
+        .fci-purple { background: linear-gradient(135deg, rgba(123,97,255,0.2), rgba(64,196,255,0.1)); color: #7b61ff; }
+        .fci-teal { background: linear-gradient(135deg, rgba(0,194,184,0.2), rgba(43,104,224,0.1)); color: #00c2b8; }
+        .fci-red { background: linear-gradient(135deg, rgba(255,77,79,0.2), rgba(255,149,0,0.1)); color: #ff4d4f; }
+
+        .func-card-name {
+            font-size: 12px; color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        .func-card-badge {
+            position: absolute; top: 6px; right: 6px;
+            font-size: 10px; padding: 1px 5px;
+            border-radius: 8px;
+            background: rgba(255,77,79,0.2); color: #ff4d4f;
+            border: 1px solid rgba(255,77,79,0.3);
+        }
+        .func-card-badge.new {
+            background: rgba(76,217,100,0.2); color: #4cd964;
+            border-color: rgba(76,217,100,0.3);
+        }
+        .func-card-badge.hot {
+            background: rgba(255,149,0,0.2); color: #ff9500;
+            border-color: rgba(255,149,0,0.3);
+        }
+
+        /* ===== 告警列表 ===== */
+        .alert-section {
+            background: linear-gradient(135deg, #101838, #162969);
+            border: 1px solid rgba(43,104,224,0.4);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        .alert-list { padding: 0; }
+        .alert-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--split-color);
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .alert-item:last-child { border-bottom: none; }
+        .alert-item:hover { background: rgba(64,196,255,0.05); }
+        .alert-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            flex-shrink: 0; animation: dotPulse 2s infinite;
+        }
+        .dot-red { background: #ff4d4f; box-shadow: 0 0 6px rgba(255,77,79,0.6); }
+        .dot-orange { background: #ff9500; box-shadow: 0 0 6px rgba(255,149,0,0.6); }
+        .dot-blue { background: #40c4ff; box-shadow: 0 0 6px rgba(64,196,255,0.6); }
+        .dot-green { background: #4cd964; box-shadow: 0 0 6px rgba(76,217,100,0.6); }
+        @keyframes dotPulse {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.8); }
+        }
+        .alert-content { flex: 1; min-width: 0; }
+        .alert-title { font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .alert-desc { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+        .alert-time { font-size: 11px; color: var(--text-tertiary); flex-shrink: 0; }
+        .alert-tag {
+            font-size: 10px; padding: 2px 7px;
+            border-radius: 4px; flex-shrink: 0;
+        }
+        .tag-danger { background: rgba(255,77,79,0.15); color: #ff4d4f; border: 1px solid rgba(255,77,79,0.3); }
+        .tag-warning { background: rgba(255,149,0,0.15); color: #ff9500; border: 1px solid rgba(255,149,0,0.3); }
+        .tag-info { background: rgba(64,196,255,0.15); color: #40c4ff; border: 1px solid rgba(64,196,255,0.3); }
+        .tag-success { background: rgba(76,217,100,0.15); color: #4cd964; border: 1px solid rgba(76,217,100,0.3); }
+
+        /* ===== 底部双列布局 ===== */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* ===== 快捷入口 ===== */
+        .quick-entry-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 8px; padding: 14px 18px;
+        }
+        .quick-btn {
+            padding: 12px;
+            background: rgba(10,16,36,0.6);
+            border: 1px solid rgba(43,104,224,0.25);
+            border-radius: var(--border-radius);
+            cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; gap: 10px;
+            font-size: 13px; color: var(--text-secondary);
+            text-decoration: none;
+        }
+        .quick-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: rgba(64,196,255,0.08);
+        }
+        .quick-btn .qb-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; flex-shrink: 0;
+        }
+
+        /* ===== 今日概况 ===== */
+        .today-stats { padding: 14px 18px; }
+        .ts-row {
+            display: flex; justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--split-color);
+        }
+        .ts-row:last-child { border-bottom: none; }
+        .ts-label { font-size: 13px; color: var(--text-tertiary); }
+        .ts-value {
+            font-size: 14px; font-weight: 600;
+            color: var(--text-primary);
+            display: flex; align-items: center; gap: 6px;
+        }
+        .ts-tag {
+            font-size: 11px; padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        /* ===== 动画 ===== */
+        .fade-in { animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== 滚动条 ===== */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(16,24,56,0.5); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: var(--secondary-color-1); border-radius: 3px; }
+
+        /* 欢迎横幅 */
+        .welcome-banner {
+            background: linear-gradient(135deg, rgba(43,104,224,0.2), rgba(64,196,255,0.1));
+            border: 1px solid rgba(64,196,255,0.3);
+            border-radius: var(--border-radius);
+            padding: 14px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .wb-left { display: flex; align-items: center; gap: 12px; }
+        .wb-avatar {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: linear-gradient(135deg, #40c4ff, #2b68e0);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .wb-info h2 { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .wb-info p { font-size: 12px; color: var(--text-tertiary); margin-top: 3px; }
+        .wb-right { display: flex; gap: 10px; }
+        .wb-metric {
+            text-align: center; padding: 6px 16px;
+            background: rgba(10,16,36,0.5);
+            border-radius: 6px; border: 1px solid var(--split-color);
+        }
+        .wb-metric .wm-num { font-size: 20px; font-weight: 700; color: var(--primary-color); }
+        .wb-metric .wm-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+    </style>
+<script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<script src="pages/tracker.js"></script>
+</head>
+<body>
+<script>
+// 首屏拦截：无登录态立即跳转，避免闪烁
+if (!sessionStorage.getItem('logged_in') && !window.location.search.includes('fromlogin=1')) {
+    location.replace('login.html');
+}
+</script>
+
+<!-- 顶部导航 -->
+<div class="header">
+    <div class="header-left">
+        <div class="header-logo">🏭</div>
+        <div class="header-title">
+            <h1>青川县庄子上工业园区智慧园区平台</h1>
+            <p>Zhuangzishang Industrial Park Smart Platform</p>
+        </div>
+    </div>
+    <div class="header-right">
+        <button class="header-btn theme-toggle-btn" id="indexThemeBtn" onclick="toggleTheme()" title="切换深色/浅色模式"><i class="fas fa-sun"></i></button>
+        <button class="header-btn" id="hardReloadBtn" onclick="hardReload()" title="强制刷新（等同 Ctrl+Shift+R）"><i class="fas fa-sync-alt"></i> 强制刷新</button>
+        <button class="header-btn" id="clearCacheBtn" onclick="clearCacheNow()" title="一键清除浏览器缓存"><i class="fas fa-trash-alt"></i> 清除缓存</button>
+        <div class="user-tag" id="indexUserTag" title="当前用户">
+            <i class="fas fa-user-circle"></i> 管理员
+        </div>
+        <button class="header-btn btn-logout" onclick="confirmLogout()">
+            <i class="fas fa-sign-out-alt"></i> 退出
+        </button>
+        <div class="header-time" id="headerTime"></div>
+    </div>
+</div>
+
+<!-- 统计栏 -->
+<div class="stats-bar">
+    <div class="stat-item">
+        <div class="stat-icon si-blue"><i class="fa fa-building"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" style="color:#40c4ff">36</div>
+            <div class="stat-label">入驻企业</div>
+            <div class="stat-trend trend-up"><i class="fa fa-arrow-up"></i> +3家</div>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-icon si-green"><i class="fa fa-industry"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" style="color:#4cd964">28</div>
+            <div class="stat-label">在产企业</div>
+            <div class="stat-trend trend-up"><i class="fa fa-arrow-up"></i> +2家</div>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-icon si-orange"><i class="fa fa-warning"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" style="color:#ff9500">8</div>
+            <div class="stat-label">今日告警</div>
+            <div class="stat-trend trend-down"><i class="fa fa-arrow-down"></i> -3件</div>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-icon si-red"><i class="fa fa-camera"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" style="color:#ff4d4f">142</div>
+            <div class="stat-label">监控设备</div>
+            <div class="stat-trend" style="color:#a0cfff"><i class="fa fa-check"></i> 在线</div>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-icon si-purple"><i class="fa fa-car"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" style="color:#7b61ff">1,258</div>
+            <div class="stat-label">今日车次</div>
+            <div class="stat-trend trend-up"><i class="fa fa-arrow-up"></i> +12%</div>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-icon si-teal"><i class="fa fa-cubes"></i></div>
+        <div class="stat-info">
+            <div class="stat-num" style="color:#00c2b8">8.6万</div>
+            <div class="stat-label">月产值(万元)</div>
+            <div class="stat-trend trend-up"><i class="fa fa-arrow-up"></i> +15.3%</div>
+        </div>
+    </div>
+</div>
+
+<!-- 主体 -->
+<div class="main-body">
+    <!-- 右侧内容 -->
+    <div class="right-content fade-in">
+
+        <!-- 欢迎横幅 -->
+        <div class="welcome-banner">
+            <div class="wb-left">
+                <div class="wb-avatar">👤</div>
+                <div class="wb-info">
+                    <h2>欢迎回来，园区管理员</h2>
+                    <p>青川县庄子上工业园区智慧园区平台 · <span id="todayDate"></span></p>
+                </div>
+            </div>
+            <div class="wb-right">
+                <div class="wb-metric">
+                    <div class="wm-num">98.6%</div>
+                    <div class="wm-label">设备在线率</div>
+                </div>
+                <div class="wb-metric">
+                    <div class="wm-num">99.2%</div>
+                    <div class="wm-label">合规率</div>
+                </div>
+                <div class="wb-metric">
+                    <div class="wm-num" style="color:#ff9500">5</div>
+                    <div class="wm-label">待办事项</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 实时告警 + 今日业务概况 -->
+        <div class="bottom-grid">
+
+            <!-- 实时告警 -->
+            <div class="alert-section">
+                <div class="module-header">
+                    <div class="module-title">
+                        <div class="module-title-icon mt-orange"><i class="fa fa-bell"></i></div>
+                        实时告警
+                    </div>
+                    <div class="module-more">查看全部 <i class="fa fa-angle-right"></i></div>
+                </div>
+                <div class="alert-list">
+                    <div class="alert-item">
+                        <div class="alert-dot dot-red"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">园区东门 - 车辆逆行告警</div>
+                            <div class="alert-desc">川H8765D于10:23逆行闯入园区</div>
+                        </div>
+                        <span class="alert-tag tag-danger">紧急</span>
+                        <div class="alert-time">3分钟前</div>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-dot dot-orange"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">B区边坡位移监测预警</div>
+                            <div class="alert-desc">位移量达12mm，建议关注</div>
+                        </div>
+                        <span class="alert-tag tag-warning">预警</span>
+                        <div class="alert-time">15分钟前</div>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-dot dot-orange"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">污水排口COD超标告警</div>
+                            <div class="alert-desc">3号企业排口COD: 85mg/L，超标</div>
+                        </div>
+                        <span class="alert-tag tag-warning">预警</span>
+                        <div class="alert-time">28分钟前</div>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-dot dot-blue"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">AI摄像头设备离线</div>
+                            <div class="alert-desc">A区2号高位鹰眼离线</div>
+                        </div>
+                        <span class="alert-tag tag-info">设备</span>
+                        <div class="alert-time">1小时前</div>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-dot dot-green"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">新企业入驻申请</div>
+                            <div class="alert-desc">四川青川某公司提交入驻申请</div>
+                        </div>
+                        <span class="alert-tag tag-success">待审批</span>
+                        <div class="alert-time">2小时前</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 今日概况 + 快捷入口 -->
+            <div style="display:flex;flex-direction:column;gap:16px;">
+
+                <!-- 今日概况 -->
+                <div class="module-section">
+                    <div class="module-header">
+                        <div class="module-title">
+                            <div class="module-title-icon mt-teal"><i class="fa fa-bar-chart"></i></div>
+                            今日业务概况
+                        </div>
+                    </div>
+                    <div class="today-stats">
+                        <div class="ts-row">
+                            <span class="ts-label">园区产值</span>
+                            <span class="ts-value">2,860 万元 <span class="ts-tag" style="background:rgba(76,217,100,0.15);color:#4cd964">↑12.3%</span></span>
+                        </div>
+                        <div class="ts-row">
+                            <span class="ts-label">物流车次</span>
+                            <span class="ts-value">1,258 次</span>
+                        </div>
+                        <div class="ts-row">
+                            <span class="ts-label">能耗监测企业</span>
+                            <span class="ts-value">18 / 20 <span class="ts-tag" style="background:rgba(64,196,255,0.15);color:#40c4ff">90%</span></span>
+                        </div>
+                        <div class="ts-row">
+                            <span class="ts-label">环保合规率</span>
+                            <span class="ts-value">97.8% <span class="ts-tag" style="background:rgba(76,217,100,0.15);color:#4cd964">正常</span></span>
+                        </div>
+                        <div class="ts-row">
+                            <span class="ts-label">招商线索</span>
+                            <span class="ts-value" style="color:#7b61ff">5 条</span>
+                        </div>
+                        <div class="ts-row">
+                            <span class="ts-label">企业诉求</span>
+                            <span class="ts-value">3 条待处理</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快捷入口 -->
+                <div class="module-section">
+                    <div class="module-header">
+                        <div class="module-title">
+                            <div class="module-title-icon mt-purple"><i class="fa fa-bolt"></i></div>
+                            快捷入口
+                        </div>
+                    </div>
+                    <div class="quick-entry-grid">
+                        <div class="quick-btn">
+                            <div class="qb-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff">📊</div>
+                            数据驾驶舱
+                        </div>
+                        <div class="quick-btn">
+                            <div class="qb-icon" style="background:rgba(255,77,79,0.15);color:#ff4d4f">📹</div>
+                            视频监控
+                        </div>
+                        <div class="quick-btn">
+                            <div class="qb-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff">🤖</div>
+                            AI招商
+                        </div>
+                        <div class="quick-btn">
+                            <div class="qb-icon" style="background:rgba(76,217,100,0.15);color:#4cd964">📢</div>
+                            企业诉求
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 实时事件 + 公告通知（企业端） -->
+        <div class="bottom-grid">
+            <!-- 实时事件（企业端） -->
+            <div class="alert-section">
+                <div class="module-header">
+                    <div class="module-title">
+                        <div class="module-title-icon mt-orange"><i class="fa fa-bolt"></i></div>
+                        实时事件（企业端）
+                    </div>
+                </div>
+                <div class="alert-list">
+                    <div class="alert-item" onclick="location.href='pages/appeal_direct.html'">
+                        <div class="alert-dot dot-red"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">B3区排水管道堵塞报修</div>
+                            <div class="alert-desc">佳兴铝业提交诉求 · 已派单</div>
+                        </div>
+                        <span class="alert-tag tag-danger">待处理</span>
+                        <div class="alert-time">20分钟前</div>
+                    </div>
+                    <div class="alert-item" onclick="location.href='pages/service_direct.html'">
+                        <div class="alert-dot dot-orange"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">佳兴铝业用电增容申请</div>
+                            <div class="alert-desc">服务直达 · 2200KVA增容</div>
+                        </div>
+                        <span class="alert-tag tag-warning">处理中</span>
+                        <div class="alert-time">1小时前</div>
+                    </div>
+                    <div class="alert-item" onclick="location.href='pages/park_enterprise_interact.html'">
+                        <div class="alert-dot dot-orange"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">第二季度用水用电预计数据填报</div>
+                            <div class="alert-desc">园企交互 · 截止5月20日</div>
+                        </div>
+                        <span class="alert-tag tag-warning">待填写</span>
+                        <div class="alert-time">2小时前</div>
+                    </div>
+                    <div class="alert-item" onclick="location.href='pages/disaster_warning.html'">
+                        <div class="alert-dot dot-red"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">雷暴+冰雹预警</div>
+                            <div class="alert-desc">预计今日下午有强雷暴 · 请暂停户外作业</div>
+                        </div>
+                        <span class="alert-tag tag-danger">预警中</span>
+                        <div class="alert-time">3小时前</div>
+                    </div>
+                    <div class="alert-item" onclick="location.href='pages/disaster_warning.html'">
+                        <div class="alert-dot dot-orange"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">大风暴雨复合预警</div>
+                            <div class="alert-desc">台风外围影响 · 加固厂房门窗</div>
+                        </div>
+                        <span class="alert-tag tag-warning">预警中</span>
+                        <div class="alert-time">5小时前</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 公告通知（企业端） -->
+            <div class="alert-section">
+                <div class="module-header">
+                    <div class="module-title">
+                        <div class="module-title-icon mt-blue"><i class="fa fa-bullhorn"></i></div>
+                        公告通知（企业端）
+                    </div>
+                </div>
+                <div class="alert-list">
+                    <div class="alert-item" onclick="location.href='pages/policy_detail.html'">
+                        <div class="alert-dot dot-green"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">2026年度科技创新补贴申报通知</div>
+                            <div class="alert-desc">园区政策 · 申报截止6月30日</div>
+                        </div>
+                        <span class="alert-tag tag-success">新发布</span>
+                        <div class="alert-time">1天前</div>
+                    </div>
+                    <div class="alert-item" onclick="location.href='pages/activities_detail.html'">
+                        <div class="alert-dot dot-blue"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">园区企业家沙龙（第五期）</div>
+                            <div class="alert-desc">园区活动 · 5月28日14:00 综合服务中心</div>
+                        </div>
+                        <span class="alert-tag tag-info">即将开始</span>
+                        <div class="alert-time">2天前</div>
+                    </div>
+                    <div class="alert-item" onclick="location.href='pages/notice_detail.html'">
+                        <div class="alert-dot dot-orange"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">关于开展2026年度安全生产大检查的通知</div>
+                            <div class="alert-desc">园区公告 · 请各企业自查并报送</div>
+                        </div>
+                        <span class="alert-tag tag-warning">重要</span>
+                        <div class="alert-time">3天前</div>
+                    </div>
+                    <div class="alert-item" onclick="location.href='pages/policy_detail.html'">
+                        <div class="alert-dot dot-green"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">人才引进专项补贴实施细则</div>
+                            <div class="alert-desc">园区政策 · 博士10万/硕士5万安家补贴</div>
+                        </div>
+                        <span class="alert-tag tag-success">新发布</span>
+                        <div class="alert-time">5天前</div>
+                    </div>
+                    <div class="alert-item" onclick="location.href='pages/notice_detail.html'">
+                        <div class="alert-dot dot-blue"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">园区污水处理设施维护检修通知</div>
+                            <div class="alert-desc">园区公告 · 检修时间5月15日-16日</div>
+                        </div>
+                        <span class="alert-tag tag-info">一般</span>
+                        <div class="alert-time">6天前</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 智慧园区可视化中心 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-teal"><i class="fa fa-eye"></i></div>
+                    智慧园区可视化中心
+                </div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/digital_sand.html'">
+                    <div class="func-card-icon fci-blue">🗺️</div>
+                    <div class="func-card-name">数字化沙盘</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/park_overview.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-teal">🏙️</div>
+                    <div class="func-card-name">园区总览</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/land_planning.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-teal">🏗️</div>
+                    <div class="func-card-name">用地规划</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/ai_recruit.html'">
+                    <div class="func-card-badge hot">重点</div>
+                    <div class="func-card-icon fci-purple">🤖</div>
+                    <div class="func-card-name">AI招商</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/investment_factors.html'">
+                    <div class="func-card-icon fci-orange">📈</div>
+                    <div class="func-card-name">投资要素</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/safety_monitor.html'">
+                    <div class="func-card-icon fci-red">🛡️</div>
+                    <div class="func-card-name">全域安全</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/emergency_command.html'">
+                    <div class="func-card-icon fci-teal">🚨</div>
+                    <div class="func-card-name">应急指挥</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/operations_mgmt.html'">
+                    <div class="func-card-icon fci-green">🏭</div>
+                    <div class="func-card-name">园区运营</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 公众服务 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-green"><i class="fa fa-globe"></i></div>
+                    公众服务
+                </div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="window.open('pages/zhuangzishang_park.html')">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-teal">🌐</div>
+                    <div class="func-card-name">对外展示</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI招商模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-purple"><i class="fa fa-robot"></i></div>
+                    AI招商服务
+                </div>
+                <div class="module-more" onclick="location.href='pages/ai_recruit_service.html'">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/ai_recruit.html'">
+                    <div class="func-card-badge hot">重点</div>
+                    <div class="func-card-icon fci-purple">🤖</div>
+                    <div class="func-card-name">AI智能招商</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/digital_sand.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">🗺️</div>
+                    <div class="func-card-name">数字沙盘</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/enterprise_dossier.html'">
+                    <div class="func-card-icon fci-teal">📋</div>
+                    <div class="func-card-name">企业档案</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/industry_chain.html'">
+                    <div class="func-card-icon fci-green">🔗</div>
+                    <div class="func-card-name">产业链图谱</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/target_enterprise.html'">
+                    <div class="func-card-icon fci-orange">🎯</div>
+                    <div class="func-card-name">目标企业挖掘</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/investment_project.html'">
+                    <div class="func-card-icon fci-blue">📊</div>
+                    <div class="func-card-name">招商项目管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/recruit_portal.html'">
+                    <div class="func-card-icon fci-purple">🏢</div>
+                    <div class="func-card-name">招商门户</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/cloud_exhibit.html'">
+                    <div class="func-card-icon fci-teal">📱</div>
+                    <div class="func-card-name">云展馆/电子名片</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 全域安全监控模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-red"><i class="fa fa-shield-alt"></i></div>
+                    全域安全监控
+                </div>
+                <div class="module-more" onclick="location.href='pages/safety_monitor.html'">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/traffic_monitor.html'">
+                    <div class="func-card-badge hot">天眼</div>
+                    <div class="func-card-icon fci-red">📹</div>
+                    <div class="func-card-name">道路交通安全监控</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/disaster_monitor.html'">
+                    <div class="func-card-badge hot">哨兵</div>
+                    <div class="func-card-icon fci-orange">🛡️</div>
+                    <div class="func-card-name">地灾安全监测</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/env_monitor.html'">
+                    <div class="func-card-badge hot">慧眼</div>
+                    <div class="func-card-icon fci-teal">💧</div>
+                    <div class="func-card-name">环保监控检测</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/video_surveillance.html'">
+                    <div class="func-card-icon fci-blue">📹</div>
+                    <div class="func-card-name">视频监控总览</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/emergency_command.html'">
+                    <div class="func-card-icon fci-purple">🚨</div>
+                    <div class="func-card-name">应急指挥联动</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/safety_monitor.html'">
+                    <div class="func-card-icon fci-green">📊</div>
+                    <div class="func-card-name">安全态势分析</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 企业服务模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-blue"><i class="fa fa-handshake"></i></div>
+                    企业服务（企业端）
+                </div>
+                <div class="module-more" onclick="location.href='pages/enterprise_service.html'">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/appeal_direct.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">📸</div>
+                    <div class="func-card-name">诉求直达(随手拍)</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/service_direct.html'">
+                    <div class="func-card-icon fci-green">🚀</div>
+                    <div class="func-card-name">服务直达</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/park_enterprise_interact.html'">
+                    <div class="func-card-icon fci-purple">💬</div>
+                    <div class="func-card-name">园企交互</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/project_daily_fill.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-orange">📋</div>
+                    <div class="func-card-name">项目日报填写</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/gas_payment.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-orange">🔥</div>
+                    <div class="func-card-name">天然气费缴纳</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/water_payment.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">💧</div>
+                    <div class="func-card-name">水费缴纳</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/power_payment.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-teal">⚡</div>
+                    <div class="func-card-name">电费缴纳</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/comm_payment.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-purple">📡</div>
+                    <div class="func-card-name">通信费用缴纳</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/visitor_checkin.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-green">👤</div>
+                    <div class="func-card-name">访客录入</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/venue_booking.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-red">🏟️</div>
+                    <div class="func-card-name">场馆预约</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/event_booking.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">🎉</div>
+                    <div class="func-card-name">活动预约</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/employment_info.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-orange">💼</div>
+                    <div class="func-card-name">用工信息</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/disaster_warning.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-red">⚠️</div>
+                    <div class="func-card-name">灾害预警</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/settle_apply.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-teal">🏭</div>
+                    <div class="func-card-name">入驻申请</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 信息发布模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-teal"><i class="fa fa-bullhorn"></i></div>
+                    信息发布（企业端）
+                </div>
+                <div class="module-more" onclick="location.href='pages/info_publish.html'">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/info_publish.html#employment'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-orange">💼</div>
+                    <div class="func-card-name">用工信息</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/info_publish.html#logistics'">
+                    <div class="func-card-icon fci-blue">🚚</div>
+                    <div class="func-card-name">物流供需</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/info_publish.html#featured'">
+                    <div class="func-card-icon fci-teal">🛒</div>
+                    <div class="func-card-name">特色供需</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/info_publish.html#policy'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-purple">📋</div>
+                    <div class="func-card-name">园区政策</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/info_publish.html#catering'">
+                    <div class="func-card-icon fci-green">🍜</div>
+                    <div class="func-card-name">园区餐饮</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/info_publish.html#parking'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">🅿️</div>
+                    <div class="func-card-name">停车服务</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/info_publish.html#venue'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-teal">🏛️</div>
+                    <div class="func-card-name">场馆服务</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/info_publish.html#activities'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">🎪</div>
+                    <div class="func-card-name">园区活动</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/info_publish.html#notice'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-purple">📢</div>
+                    <div class="func-card-name">园区公告</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 运营管理模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-green"><i class="fa fa-cogs"></i></div>
+                    运营管理
+                </div>
+                <div class="module-more" onclick="location.href='pages/operations_mgmt.html'">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/project_daily_view.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">📊</div>
+                    <div class="func-card-name">项目日报总览</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/enterprise_settle.html'">
+                    <div class="func-card-icon fci-orange">🏭</div>
+                    <div class="func-card-name">企业入驻</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/license_mgmt.html'">
+                    <div class="func-card-icon fci-blue">📜</div>
+                    <div class="func-card-name">证照管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/credit_eval.html'">
+                    <div class="func-card-icon fci-green">⭐</div>
+                    <div class="func-card-name">信用评价</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/info_publish_admin.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">📰</div>
+                    <div class="func-card-name">信息发布管理</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 能效与运营监测模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-orange"><i class="fa fa-bolt"></i></div>
+                    能效与运营监测
+                </div>
+                <div class="module-more" onclick="location.href='pages/energy_monitoring.html'">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/energy_monitor.html'">
+                    <div class="func-card-badge hot">计量</div>
+                    <div class="func-card-icon fci-orange">⚡</div>
+                    <div class="func-card-name">企业用能监测</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/mu_efficiency.html'">
+                    <div class="func-card-icon fci-blue">📊</div>
+                    <div class="func-card-name">亩均论英雄</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/efficiency_analysis.html'">
+                    <div class="func-card-icon fci-teal">📈</div>
+                    <div class="func-card-name">能效分析</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/anomaly_warning.html'">
+                    <div class="func-card-icon fci-purple">⚠️</div>
+                    <div class="func-card-name">异常预警</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/energy_monitor.html'">
+                    <div class="func-card-icon fci-green">📉</div>
+                    <div class="func-card-name">能耗统计</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/energy_monitor.html'">
+                    <div class="func-card-icon fci-blue">🔌</div>
+                    <div class="func-card-name">设备用能</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 三方接入模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-purple"><i class="fa fa-plug"></i></div>
+                    三方接入
+                </div>
+                <div class="module-more">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/third_party_gas.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-orange">🔥</div>
+                    <div class="func-card-name">天然气</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/third_party_water.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">💧</div>
+                    <div class="func-card-name">水</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/third_party_power.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-teal">⚡</div>
+                    <div class="func-card-name">电力</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/third_party_law.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-purple">⚖️</div>
+                    <div class="func-card-name">综合执法</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/third_party_env.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-green">🌿</div>
+                    <div class="func-card-name">环保</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/third_party_emergency.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-red">🚨</div>
+                    <div class="func-card-name">应急</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/third_party_traffic.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">🚦</div>
+                    <div class="func-card-name">交通</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/third_party_police.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-purple">👮</div>
+                    <div class="func-card-name">公安局</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/third_party_natural.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-teal">🗺️</div>
+                    <div class="func-card-name">自然资源</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/third_party_weather.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-green">🌤️</div>
+                    <div class="func-card-name">气象</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/third_party_hr.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-orange">👥</div>
+                    <div class="func-card-name">人力资源和社会保障</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/third_party_isp.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">📡</div>
+                    <div class="func-card-name">运营商</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据中心模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-blue"><i class="fa fa-database"></i></div>
+                    数据中心
+                </div>
+                <div class="module-more">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/data_cockpit.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">🚀</div>
+                    <div class="func-card-name">数据驾驶舱</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/data_report.html'">
+                    <div class="func-card-icon fci-purple">📊</div>
+                    <div class="func-card-name">数据报表</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/data_quality.html'">
+                    <div class="func-card-icon fci-teal">🔬</div>
+                    <div class="func-card-name">数据质量</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/api_service.html'">
+                    <div class="func-card-icon fci-orange">🔌</div>
+                    <div class="func-card-name">API服务</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/data_backup.html'">
+                    <div class="func-card-icon fci-green">💾</div>
+                    <div class="func-card-name">数据备份</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/user_analytics.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-teal">👥</div>
+                    <div class="func-card-name">用户分析</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理支撑模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-purple"><i class="fa fa-cogs"></i></div>
+                    管理支撑
+                </div>
+                <div class="module-more">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/alert_center.html'">
+                    <div class="func-card-badge">5</div>
+                    <div class="func-card-icon fci-red">🔔</div>
+                    <div class="func-card-name">告警中心</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/warning_handle.html'">
+                    <div class="func-card-icon fci-orange">⚠️</div>
+                    <div class="func-card-name">预警处置</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/ops_approval.html'">
+                    <div class="func-card-icon fci-green">✅</div>
+                    <div class="func-card-name">运营核准</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/work_report.html'">
+                    <div class="func-card-icon fci-blue">📋</div>
+                    <div class="func-card-name">工作简报</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/todo_center.html'">
+                    <div class="func-card-icon fci-teal">📌</div>
+                    <div class="func-card-name">待办提醒</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/e_signature.html'">
+                    <div class="func-card-icon fci-purple">✍️</div>
+                    <div class="func-card-name">电子签名</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/supervision.html'">
+                    <div class="func-card-icon fci-orange">📣</div>
+                    <div class="func-card-name">违规投诉</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/field_inspection.html'">
+                    <div class="func-card-icon fci-blue">🔍</div>
+                    <div class="func-card-name">现场巡查</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数字化办公模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-blue"><i class="fa fa-laptop"></i></div>
+                    数字化办公
+                </div>
+                <div class="module-more">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/asset_mgmt.html'">
+                    <div class="func-card-icon fci-blue">🏷️</div>
+                    <div class="func-card-name">资产管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/meeting.html'">
+                    <div class="func-card-icon fci-purple">📅</div>
+                    <div class="func-card-name">会议管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/car_usage.html'">
+                    <div class="func-card-icon fci-green">🚗</div>
+                    <div class="func-card-name">用车申请</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/overtime.html'">
+                    <div class="func-card-icon fci-orange">⏰</div>
+                    <div class="func-card-name">加班申请</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/daily_expense.html'">
+                    <div class="func-card-icon fci-teal">🧾</div>
+                    <div class="func-card-name">日常报销</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/project_payment.html'">
+                    <div class="func-card-icon fci-blue">💳</div>
+                    <div class="func-card-name">项目支付</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/onboarding.html'">
+                    <div class="func-card-icon fci-green">🙋</div>
+                    <div class="func-card-name">入职管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/offboarding.html'">
+                    <div class="func-card-icon fci-red">🚪</div>
+                    <div class="func-card-name">离职管理</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 基础支撑模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-teal"><i class="fa fa-server"></i></div>
+                    基础支撑
+                </div>
+                <div class="module-more">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/tenant_mgmt.html'">
+                    <div class="func-card-badge new">新</div>
+                    <div class="func-card-icon fci-blue">🏢</div>
+                    <div class="func-card-name">租户管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/role_mgmt.html'">
+                    <div class="func-card-icon fci-purple">🔐</div>
+                    <div class="func-card-name">角色权限</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/device_mgmt.html'">
+                    <div class="func-card-icon fci-teal">📡</div>
+                    <div class="func-card-name">设备管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/staff_check.html'">
+                    <div class="func-card-icon fci-green">👥</div>
+                    <div class="func-card-name">用工年龄筛查</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/equipment_mgmt.html'">
+                    <div class="func-card-icon fci-orange">⚙️</div>
+                    <div class="func-card-name">生产机具</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/contract_mgmt.html'">
+                    <div class="func-card-icon fci-blue">📑</div>
+                    <div class="func-card-name">合同管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/digital_cert.html'">
+                    <div class="func-card-icon fci-teal">🔏</div>
+                    <div class="func-card-name">数字证书</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/log_audit.html'">
+                    <div class="func-card-icon fci-purple">📋</div>
+                    <div class="func-card-name">日志审计</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/notify_config.html'">
+                    <div class="func-card-icon fci-blue">🔔</div>
+                    <div class="func-card-name">消息通知</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/sys_config.html'">
+                    <div class="func-card-icon fci-purple">⚙️</div>
+                    <div class="func-card-name">系统参数</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/user_management.html'">
+                    <div class="func-card-icon fci-blue">👤</div>
+                    <div class="func-card-name">用户管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/org_structure.html'">
+                    <div class="func-card-icon fci-teal">🏗️</div>
+                    <div class="func-card-name">组织架构</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据接入与基础管理模块 -->
+        <div class="module-section">
+            <div class="module-header">
+                <div class="module-title">
+                    <div class="module-title-icon mt-purple"><i class="fa fa-plug"></i></div>
+                    数据接入与基础管理
+                </div>
+                <div class="module-more">全部 <i class="fa fa-angle-right"></i></div>
+            </div>
+            <div class="module-grid">
+                <div class="func-card" onclick="location.href='pages/fence_data.html'">
+                    <div class="func-card-icon fci-purple">🛡️</div>
+                    <div class="func-card-name">围栏数据管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/device_scale.html'">
+                    <div class="func-card-icon fci-blue">⚖️</div>
+                    <div class="func-card-name">称重磅称接入</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/device_lidar.html'">
+                    <div class="func-card-icon fci-teal">📡</div>
+                    <div class="func-card-name">激光雷达接入</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/device_camera.html'">
+                    <div class="func-card-icon fci-orange">📹</div>
+                    <div class="func-card-name">视频监控接入</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/device_gps.html'">
+                    <div class="func-card-icon fci-purple">🛰️</div>
+                    <div class="func-card-name">车辆定位接入</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/license_plate.html'">
+                    <div class="func-card-icon fci-blue">🔍</div>
+                    <div class="func-card-name">车牌识别接入</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/station_mgmt.html'">
+                    <div class="func-card-icon fci-teal">🏭</div>
+                    <div class="func-card-name">场站管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/project_point.html'">
+                    <div class="func-card-icon fci-orange">📍</div>
+                    <div class="func-card-name">项目点管理</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/supplier_producer.html'">
+                    <div class="func-card-icon fci-purple">🏢</div>
+                    <div class="func-card-name">生产供应商</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/supplier_transport.html'">
+                    <div class="func-card-icon fci-blue">🚚</div>
+                    <div class="func-card-name">运输供应商</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/drivers.html'">
+                    <div class="func-card-icon fci-orange">👤</div>
+                    <div class="func-card-name">驾驶员档案</div>
+                </div>
+                <div class="func-card" onclick="location.href='pages/customers.html'">
+                    <div class="func-card-icon fci-green">🤝</div>
+                    <div class="func-card-name">客户管理</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ECharts数据图表区 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div style="background:linear-gradient(135deg,#101838,#162969);border:1px solid rgba(43,104,224,0.4);border-radius:8px;padding:16px;">
+                <div style="font-size:13px;color:#a0cfff;margin-bottom:10px;font-weight:600;">📈 近7日物流车次趋势</div>
+                <div id="chart-transport" style="height:200px;"></div>
+            </div>
+            <div style="background:linear-gradient(135deg,#101838,#162969);border:1px solid rgba(43,104,224,0.4);border-radius:8px;padding:16px;">
+                <div style="font-size:13px;color:#a0cfff;margin-bottom:10px;font-weight:600;">📊 企业产值分布</div>
+                <div id="chart-compliance" style="height:200px;"></div>
+            </div>
+            <div style="background:linear-gradient(135deg,#101838,#162969);border:1px solid rgba(43,104,224,0.4);border-radius:8px;padding:16px;">
+                <div style="font-size:13px;color:#a0cfff;margin-bottom:10px;font-weight:600;">💰 本月销售收入</div>
+                <div id="chart-revenue" style="height:200px;"></div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;">
+            <div style="background:linear-gradient(135deg,#101838,#162969);border:1px solid rgba(43,104,224,0.4);border-radius:8px;padding:16px;">
+                <div style="font-size:13px;color:#a0cfff;margin-bottom:10px;font-weight:600;">📦 能耗与产值综合看板</div>
+                <div id="chart-overview" style="height:200px;"></div>
+            </div>
+            <div style="background:linear-gradient(135deg,#101838,#162969);border:1px solid rgba(43,104,224,0.4);border-radius:8px;padding:16px;">
+                <div style="font-size:13px;color:#a0cfff;margin-bottom:10px;font-weight:600;">🔔 告警分类统计</div>
+                <div id="chart-alert" style="height:200px;"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // ===== 登录验证（fromlogin 标记） =====
+    (function() {
+        if (window.location.search.includes('fromlogin=1')) {
+            sessionStorage.setItem('logged_in', '1');
+        }
+    })();
+
+    // ===== 时间更新 =====
+    function updateTime() {
+        const now = new Date();
+        const pad = n => String(n).padStart(2,'0');
+        const timeEl = document.getElementById('headerTime');
+        if (timeEl) timeEl.textContent =
+            `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        const dateEl = document.getElementById('todayDate');
+        if (dateEl) dateEl.textContent =
+            `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 星期${'日一二三四五六'[now.getDay()]}`;
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    // ===== ECharts 图表初始化 =====
+    window.addEventListener('load', function() {
+        // 图表1：近7日物流车次趋势
+        const c1 = echarts.init(document.getElementById('chart-transport'));
+        c1.setOption({
+            animation: true,
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: ['4-20','4-21','4-22','4-23','4-24','4-25','4-26'], axisLabel: { color: '#a0cfff', fontSize: 11 }, axisLine: { lineStyle: { color: '#2b68e0' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#a0cfff', fontSize: 11 }, splitLine: { lineStyle: { color: 'rgba(43,104,224,0.2)' } } },
+            grid: { left: 40, right: 10, top: 10, bottom: 30 },
+            series: [{ name: '物流车次', type: 'line', smooth: true, data: [1100, 1180, 1250, 1190, 1320, 1280, 1258], lineStyle: { color: '#40c4ff', width: 2 }, areaStyle: { color: 'rgba(64,196,255,0.12)' }, symbol: 'circle', symbolSize: 5, itemStyle: { color: '#40c4ff' } }]
+        });
+
+        // 图表2：企业产值分布饼图
+        const c2 = echarts.init(document.getElementById('chart-compliance'));
+        c2.setOption({
+            animation: true,
+            tooltip: { trigger: 'item' },
+            series: [{
+                type: 'pie', radius: ['45%', '72%'],
+                data: [{ value: 35, name: '农产品加工' }, { value: 28, name: '新能源' }, { value: 20, name: '建材' }, { value: 17, name: '其他' }],
+                itemStyle: { color: function(p) { return ['#40c4ff','#4cd964','#ff9500','#7b61ff'][p.dataIndex]; } },
+                label: { color: '#a0cfff', fontSize: 11 },
+                animationType: 'scale', animationEasing: 'elasticOut'
+            }],
+            legend: { bottom: 0, textStyle: { color: '#a0cfff', fontSize: 11 } }
+        });
+
+        // 图表3：本月销售收入
+        const c3 = echarts.init(document.getElementById('chart-revenue'));
+        c3.setOption({
+            animation: true,
+            tooltip: { trigger: 'axis', formatter: '{b}: ¥{c}万' },
+            xAxis: { type: 'category', data: ['1周','2周','3周','本周'], axisLabel: { color: '#a0cfff', fontSize: 11 }, axisLine: { lineStyle: { color: '#2b68e0' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#a0cfff', fontSize: 11, formatter: '{value}万' }, splitLine: { lineStyle: { color: 'rgba(43,104,224,0.2)' } } },
+            grid: { left: 45, right: 10, top: 10, bottom: 30 },
+            series: [{ name: '销售额', type: 'bar', data: [185, 220, 198, 168], itemStyle: { color: function(p) { const colors=['#4cd964','#40c4ff','#7b61ff','#ff9500']; return colors[p.dataIndex]; }, borderRadius: [4,4,0,0] } }]
+        });
+
+        // 图表4：能耗与产值综合看板
+        const c4 = echarts.init(document.getElementById('chart-overview'));
+        c4.setOption({
+            animation: true,
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['产值(万元)','能耗(吨标煤)'], textStyle: { color: '#a0cfff', fontSize: 11 }, top: 0 },
+            xAxis: { type: 'category', data: ['4-20','4-21','4-22','4-23','4-24','4-25','4-26'], axisLabel: { color: '#a0cfff', fontSize: 11 }, axisLine: { lineStyle: { color: '#2b68e0' } } },
+            yAxis: { type: 'value', axisLabel: { color: '#a0cfff', fontSize: 11 }, splitLine: { lineStyle: { color: 'rgba(43,104,224,0.2)' } } },
+            grid: { left: 40, right: 10, top: 30, bottom: 30 },
+            series: [
+                { name: '产值(万元)', type: 'bar', data: [2600,2800,2750,2900,2850,2950,2860], itemStyle: { color: '#40c4ff', borderRadius: [0,0,0,0] } },
+                { name: '能耗(吨标煤)', type: 'line', smooth: true, data: [320,345,338,360,352,368,355], lineStyle: { color: '#ff9500', width: 2 }, symbol: 'circle', symbolSize: 5, itemStyle: { color: '#ff9500' } }
+            ]
+        });
+
+        // 图表5：告警分类
+        const c5 = echarts.init(document.getElementById('chart-alert'));
+        c5.setOption({
+            animation: true,
+            tooltip: { trigger: 'item' },
+            series: [{
+                type: 'pie', radius: ['40%', '68%'],
+                data: [{ value: 32, name: '交通安全' }, { value: 22, name: '地灾预警' }, { value: 18, name: '环保超标' }, { value: 15, name: '设备离线' }, { value: 8, name: '其他' }],
+                itemStyle: { color: function(p) { return ['#ff4d4f','#ff9500','#4cd964','#8c8c8c','#40c4ff'][p.dataIndex]; } },
+                label: { color: '#a0cfff', fontSize: 11 },
+                animationType: 'scale', animationEasing: 'elasticOut'
+            }],
+            legend: { bottom: 0, textStyle: { color: '#a0cfff', fontSize: 10 }, itemWidth: 10, itemHeight: 10 }
+        });
+
+        window.addEventListener('resize', function() {
+            [c1, c2, c3, c4, c5].forEach(c => c.resize());
+        });
+    });
+</script>
+
+<script>
+// ===== 主题切换 =====
+function applyEChartsTheme(isLight) {
+    const axisColor = isLight ? '#4a6880' : '#a0cfff';
+    const splitColor = isLight ? 'rgba(100,150,220,0.15)' : 'rgba(43,104,224,0.2)';
+    const legendColor = isLight ? '#4a6880' : '#a0cfff';
+    const tooltipBg = isLight ? '#fff' : 'rgba(10,16,36,0.95)';
+    const tooltipBorder = isLight ? 'rgba(100,150,220,0.4)' : 'rgba(43,104,224,0.5)';
+    const tooltipColor = isLight ? '#1a2a4a' : '#e0f0ff';
+    try { c1.setOption({ xAxis:[{axisLabel:{color:axisColor},axisLine:{lineStyle:{color:splitColor}}}], yAxis:[{axisLabel:{color:axisColor},splitLine:{lineStyle:{color:splitColor}}}], tooltip:[{backgroundColor:tooltipBg,borderColor:tooltipBorder,textStyle:{color:tooltipColor}}] }); } catch(e){}
+    try { c2.setOption({ series:[{label:{color:axisColor}}], legend:[{textStyle:{color:legendColor}}], tooltip:[{backgroundColor:tooltipBg,borderColor:tooltipBorder,textStyle:{color:tooltipColor}}] }); } catch(e){}
+    try { c3.setOption({ xAxis:[{axisLabel:{color:axisColor},axisLine:{lineStyle:{color:splitColor}}}], yAxis:[{axisLabel:{color:axisColor},splitLine:{lineStyle:{color:splitColor}}}], tooltip:[{backgroundColor:tooltipBg,borderColor:tooltipBorder,textStyle:{color:tooltipColor}}] }); } catch(e){}
+    try { c4.setOption({ xAxis:[{axisLabel:{color:axisColor},axisLine:{lineStyle:{color:splitColor}}}], yAxis:[{axisLabel:{color:axisColor},splitLine:{lineStyle:{color:splitColor}}}], legend:[{textStyle:{color:legendColor}}], tooltip:[{backgroundColor:tooltipBg,borderColor:tooltipBorder,textStyle:{color:tooltipColor}}] }); } catch(e){}
+    try { c5.setOption({ series:[{label:{color:axisColor}}], legend:[{textStyle:{color:legendColor}}], tooltip:[{backgroundColor:tooltipBg,borderColor:tooltipBorder,textStyle:{color:tooltipColor}}] }); } catch(e){}
+}
+
+function toggleTheme() {
+    const isLight = document.documentElement.classList.toggle('light-theme');
+    localStorage.setItem('ss_theme', isLight ? 'light' : 'dark');
+    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+        btn.innerHTML = isLight ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+    });
+    setTimeout(() => {
+        try { [c1,c2,c3,c4,c5].forEach(c => { try { c.resize(); } catch(e){} }); } catch(e){}
+        applyEChartsTheme(isLight);
+    }, 100);
+}
+
+function confirmLogout() {
+    if (confirm('确定要退出当前登录吗？')) {
+        window.location.href = 'login.html';
+    }
+}
+
+(function() {
+    const isLight = localStorage.getItem('ss_theme') !== 'dark';
+    if (isLight) {
+        document.documentElement.classList.add('light-theme');
+        document.querySelectorAll('.theme-toggle-btn').forEach(b => {
+            b.innerHTML = '<i class="fas fa-moon"></i>';
+        });
+    }
+    window.addEventListener('load', function() {
+        if (isLight) setTimeout(() => applyEChartsTheme(true), 400);
+    });
+})();
+
+// ===== Toast =====
+function showToast(msg, type, dur) {
+    let t = document.getElementById('index-toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'index-toast';
+        t.style.cssText = 'position:fixed;bottom:30px;right:30px;padding:14px 22px;border-radius:8px;font-size:13px;color:#fff;z-index:99999;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.4);max-width:350px;line-height:1.6;';
+        document.body.appendChild(t);
+    }
+    const colors = {success:'rgba(76,217,100,0.92)',error:'rgba(255,77,79,0.92)',warning:'rgba(255,149,0,0.92)',info:'rgba(64,196,255,0.92)'};
+    t.textContent = msg;
+    t.style.background = colors[type || 'success'];
+    t.style.display = 'block';
+    clearTimeout(t._tmr);
+    t._tmr = setTimeout(() => { t.style.display = 'none'; }, dur || 3000);
+}
+
+// ===== 浅色主题CSS =====
+(function injectLightCSS() {
+    const style = document.createElement('style');
+    style.textContent = `
+    html.light-theme body { background: #f0f4f8 !important; color: #1a2a4a !important; }
+    html.light-theme .header { background: linear-gradient(135deg,#1d3a8a,#2b68e0) !important; border-bottom-color: rgba(100,150,220,0.3) !important; }
+    html.light-theme .main-body { background: #f0f4f8 !important; }
+    html.light-theme .right-content { background: #f0f4f8 !important; }
+    html.light-theme .welcome-banner { background: linear-gradient(135deg,#1d3a8a,#2b68e0) !important; border-color: rgba(100,150,220,0.3) !important; }
+    html.light-theme .wb-info h2 { color: #fff !important; }
+    html.light-theme .wb-info p { color: rgba(200,220,255,0.8) !important; }
+    html.light-theme .stats-bar { background: rgba(240,246,255,0.85) !important; border-bottom-color: rgba(100,150,220,0.25) !important; }
+    html.light-theme .stat-item { background: #fff !important; border-color: rgba(100,150,220,0.3) !important; box-shadow: 0 2px 8px rgba(100,150,220,0.1) !important; }
+    html.light-theme .stat-item:hover { border-color: #1677ff !important; }
+    html.light-theme .stat-label { color: #4a6880 !important; }
+    html.light-theme .stat-num { color: #1a2a4a !important; }
+    html.light-theme .module-section { background: linear-gradient(135deg,#fff,#f5f8ff) !important; border-color: rgba(100,150,220,0.3) !important; }
+    html.light-theme .module-header { border-bottom-color: rgba(100,150,220,0.2) !important; }
+    html.light-theme .module-title { color: #1a2a4a !important; }
+    html.light-theme .func-card { background: linear-gradient(135deg,#fff,#f0f6ff) !important; border-color: rgba(100,150,220,0.3) !important; }
+    html.light-theme .func-card:hover { border-color: #1677ff !important; background: linear-gradient(135deg,#f0f6ff,#e8f0ff) !important; }
+    html.light-theme .func-card-name { color: #1a2a4a !important; }
+    html.light-theme .alert-section { background: linear-gradient(135deg,#fff,#f5f8ff) !important; border-color: rgba(100,150,220,0.3) !important; }
+    html.light-theme .alert-item { border-bottom-color: rgba(100,150,220,0.18) !important; }
+    html.light-theme .alert-title { color: #1a2a4a !important; }
+    html.light-theme .alert-desc { color: #4a6880 !important; }
+    html.light-theme [style*="background:linear-gradient(135deg,#101838"] { background: linear-gradient(135deg,#fff,#f5f8ff) !important; border-color: rgba(100,150,220,0.3) !important; }
+    html.light-theme [style*="color:#a0cfff"] { color: #4a6880 !important; }
+    html.light-theme .quick-btn { background: #fff !important; border-color: rgba(100,150,220,0.3) !important; color: #4a6880 !important; }
+    html.light-theme .quick-btn:hover { border-color: #1677ff !important; color: #1677ff !important; }
+    html.light-theme .ts-row { border-bottom-color: rgba(100,150,220,0.15) !important; }
+    html.light-theme .ts-label { color: #4a6880 !important; }
+    html.light-theme .ts-value { color: #1a2a4a !important; }
+    html.light-theme .header-time { color: rgba(200,220,255,0.7) !important; }
+    `;
+    document.head.appendChild(style);
+})();
+
+// ===== 一键清除浏览器缓存 =====
+async function clearCacheNow() {
+    showToast('🧹 正在清除浏览器缓存...', 'info', 2000);
+    const results = [];
+    const preserve = {};
+    ['logged_in','ss_theme','ss_user'].forEach(k => {
+        const v = localStorage.getItem(k); if(v) preserve[k] = v;
+    });
+    localStorage.clear();
+    Object.entries(preserve).forEach(([k,v]) => localStorage.setItem(k,v));
+
+    // 保存登录态，避免清除后切换用户
+    var loginUser = sessionStorage.getItem('login_user');
+    var loginName = sessionStorage.getItem('login_name');
+    sessionStorage.clear();
+    sessionStorage.setItem('logged_in','1');
+    if (loginUser) sessionStorage.setItem('login_user', loginUser);
+    if (loginName) sessionStorage.setItem('login_name', loginName);
+
+    results.push('缓存已清除');
+    setTimeout(() => { showToast('✅ 缓存清除完成！', 'success', 5000); }, 600);
+}
+
+// ===== 强制刷新 =====
+async function hardReload() {
+    const btn = document.getElementById('hardReloadBtn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> 刷新中...'; }
+    location.reload(true);
+}
+</script>
+
+<script>
+// ===== 企业端视图控制 =====
+(function(){
+    var user = sessionStorage.getItem('login_user');
+    var loginName = sessionStorage.getItem('login_name') || '未知';
+    var userTag = document.getElementById('indexUserTag');
+    var wbH2 = document.querySelector('.welcome-banner h2');
+
+    if (user === 'jxly') {
+        if (userTag) userTag.innerHTML = '<i class="fas fa-user-circle"></i> ' + (loginName || '佳兴铝业');
+        if (wbH2) wbH2.textContent = '欢迎回来，' + (loginName || '佳兴铝业');
+        var stats = document.querySelector('.stats-bar');
+        if (stats) stats.style.display = 'none';
+        document.querySelectorAll('.module-section, .alert-section, .bottom-grid').forEach(function(el){ el.style.display = 'none'; });
+        document.querySelectorAll('div[style*="grid-template"]').forEach(function(el){ if (!el.classList.contains('bottom-grid')) el.style.display = 'none'; });
+        var em = [
+            { icon: 'fa-handshake', text: '企业服务' }, { icon: 'fa-bullhorn', text: '信息发布' },
+            { icon: 'fa-bolt', text: '实时事件' }, { icon: 'fa-bullhorn', text: '公告通知' },
+            { icon: 'fa-laptop', text: '数字化办公' }, { icon: 'fa-server', text: '基础支撑' },
+            { icon: 'fa-plug', text: '数据接入与基础管理' }, { icon: 'fa-globe', text: '公众服务' },
+        ];
+        em.forEach(function(m){ document.querySelectorAll('.module-title, .alert-section .module-title').forEach(function(mt){
+            if (!mt.querySelector('.' + m.icon) || mt.textContent.indexOf(m.text) === -1) return;
+            var sec = mt.closest('.module-section') || mt.closest('.alert-section'); if (sec) sec.style.display = '';
+            var bg = mt.closest('.bottom-grid'); if (bg) bg.style.display = '';
+        }); });
+    } else {
+        var ah = [
+            { icon: 'fa-handshake', text: '企业服务' }, { icon: 'fa-bullhorn', text: '信息发布' },
+            { icon: 'fa-bolt', text: '实时事件' }, { icon: 'fa-bullhorn', text: '公告通知' },
+        ];
+        ah.forEach(function(m){ document.querySelectorAll('.module-title, .alert-section .module-title').forEach(function(mt){
+            if (!mt.querySelector('.' + m.icon) || mt.textContent.indexOf(m.text) === -1) return;
+            var sec = mt.closest('.module-section') || mt.closest('.alert-section'); if (sec) sec.style.display = 'none';
+            var bg = mt.closest('.bottom-grid');
+            if (bg) { var allH = true; bg.querySelectorAll('.alert-section').forEach(function(s){ if(s.style.display!=='none') allH=false; }); if (allH) bg.style.display = 'none'; }
+        }); });
+    }
+})();
+</script>
+
+<script>
+// ===== 模块点击追踪 =====
+document.addEventListener('click',function(e){
+    var card = e.target.closest('.func-card');
+    if(!card) return;
+    var name = card.querySelector('.func-card-name');
+    if(name && window._PageTracker){
+        _PageTracker.logModuleClick(name.textContent.trim());
+    }
+});
+// 登出追踪
+var _origLogout = confirmLogout;
+confirmLogout = function(){
+    if(window._PageTracker){
+        var user = sessionStorage.getItem('login_name') || '未知';
+        _PageTracker.logLogout(user);
+    }
+    if(_origLogout) _origLogout();
+};
+</script>
+
+</body>
+</html>

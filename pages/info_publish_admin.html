@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>信息发布管理 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+    <link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script defer src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="/pages/tracker.js"></script>
+    <style>
+.publish-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:12px;margin-bottom:24px}
+.publish-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:18px 12px;text-align:center;cursor:pointer;transition:all .25s}
+.publish-card:hover{border-color:var(--primary-color);transform:translateY(-2px);box-shadow:0 4px 16px rgba(64,196,255,0.1)}
+.publish-card .pc-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin:0 auto 10px}
+.publish-card .pc-title{font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap}
+.publish-card .pc-count{font-size:11px;color:var(--text-tertiary);margin-top:4px}
+.pci-blue{background:rgba(64,196,255,0.15);color:#40c4ff}
+.pci-green{background:rgba(76,217,100,0.15);color:#4cd964}
+.pci-purple{background:rgba(123,97,255,0.15);color:#7b61ff}
+.pci-orange{background:rgba(255,149,0,0.15);color:#ff9500}
+.pci-teal{background:rgba(0,194,184,0.15);color:#00c2b8}
+.pci-red{background:rgba(255,77,79,0.15);color:#ff4d4f}
+.pci-pink{background:rgba(255,126,179,0.15);color:#ff7eb3}
+.pci-amber{background:rgba(255,204,0,0.15);color:#ffcc00}
+.pci-sky{background:rgba(100,200,255,0.15);color:#64c8ff}
+.tag-published{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-draft{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-offline{background:rgba(158,158,158,0.12);color:#9e9e9e;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.filter-row .form-control{min-width:120px;width:auto;flex:0 0 auto}
+.data-table td{white-space:nowrap}
+.export-options{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.export-option{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--split-color);border-radius:8px;cursor:pointer;transition:all .2s;background:transparent}
+.export-option:hover{border-color:#40c4ff;background:rgba(64,196,255,0.06)}
+.export-option.selected{border-color:#40c4ff;background:rgba(64,196,255,0.1)}
+.export-option-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.export-option-icon.excel{background:rgba(76,175,80,0.15);color:#4caf50}
+.export-option-icon.pdf{background:rgba(244,67,54,0.15);color:#f44336}
+.export-option-icon.word{background:rgba(33,150,243,0.15);color:#2196f3}
+.export-option-body{flex:1}
+.export-option-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.export-option-desc{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+.export-option-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--split-color);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.export-option.selected .export-option-check{border-color:#40c4ff;background:#40c4ff}
+.export-option.selected .export-option-check::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+@media(max-width:1200px){.publish-grid{grid-template-columns:repeat(5,1fr)}}
+@media(max-width:768px){.publish-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">信息发布管理 · 加载中...</div></div>
+<div class="page-header"><div class="page-header-left"><a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a><div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>运营管理 / 信息发布管理</span></div></div><div class="page-header-right"></div></div>
+<div class="page-body">
+
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-bullhorn"></i></div><div class="kpi-card-body"><div class="kpi-value" style="color:#40c4ff" id="kpiTotal">0</div><div class="kpi-label">信息总数</div></div></div>
+    <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-check-circle"></i></div><div class="kpi-card-body"><div class="kpi-value" style="color:#4cd964" id="kpiPublished">0</div><div class="kpi-label">已发布</div></div></div>
+    <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-edit"></i></div><div class="kpi-card-body"><div class="kpi-value" style="color:#ff9500" id="kpiDraft">0</div><div class="kpi-label">草稿</div></div></div>
+    <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-layer-group"></i></div><div class="kpi-card-body"><div class="kpi-value" style="color:#7b61ff" id="kpiModules">0</div><div class="kpi-label">涉及模块</div></div></div>
+</div>
+
+<!-- 发布功能区 -->
+<div class="card"><div class="card-header"><div class="card-title"><i class="fa fa-pen-to-square" style="color:#40c4ff"></i> 发布功能区</div></div>
+    <div class="card-body"><div class="publish-grid" id="publishGrid"></div></div>
+</div>
+
+<!-- 信息列表 -->
+<div class="card">
+    <div class="card-header"><div class="card-title"><i class="fa fa-list-alt" style="color:#40c4ff"></i> 信息列表</div>
+        <div class="card-toolbar"><div class="toolbar-actions">
+            <button class="btn btn-default" onclick="resetFilters()">重置</button>
+            <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+            <button class="btn btn-success" onclick="openExportModal()"><i class="fa fa-download"></i> 导出</button>
+        </div></div>
+    </div>
+    <div class="card-body">
+        <div class="filter-row">
+            <input class="form-control" placeholder="搜索..." id="fKeyword">
+            <select class="form-control" id="fModule"><option value="">全部模块</option></select>
+            <select class="form-control" id="fStatus2"><option value="">全部状态</option></select>
+            <input class="form-control" type="date" id="fDate" title="发布时间">
+        </div>
+        <div class="table-wrap"><table class="data-table" id="infoTable">
+            <thead><tr>
+                <th style="width:110px">单号</th><th>归属模块</th><th>事件类型</th><th>事件详情</th>
+                <th style="width:100px">发布时间</th><th style="width:70px">发布人</th><th style="width:70px">状态</th>
+                <th style="width:200px">操作</th>
+            </tr></thead><tbody id="infoTbody"></tbody></table></div>
+        <div class="pagination"><span>共 0 条</span><div class="page-btns"></div></div>
+    </div>
+</div>
+
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="detailModal"><div class="modal" style="width:560px"><div class="modal-header"><span class="modal-title"><i class="fa fa-info-circle" style="color:#7b61ff;margin-right:6px"></i>信息详情</span><div class="modal-close" onclick="closeDetailModal()">×</div></div><div class="modal-body" id="detailBody" style="padding:20px 24px;font-size:14px;line-height:1.8"></div><div class="modal-footer"><button class="btn btn-default" onclick="closeDetailModal()">关闭</button></div></div></div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal"><div class="modal" style="width:440px"><div class="modal-header"><span class="modal-title"><i class="fa fa-download" style="color:#40c4ff;margin-right:6px"></i>导出数据</span><div class="modal-close" onclick="closeExportModal()">×</div></div><div class="modal-body"><div class="export-options"><div class="export-option selected" onclick="selectExport(this,'excel')"><div class="export-option-icon excel"><i class="fa fa-file-excel"></i></div><div class="export-option-body"><div class="export-option-title">Excel</div><div class="export-option-desc">.xlsx</div></div><div class="export-option-check"></div></div><div class="export-option" onclick="selectExport(this,'pdf')"><div class="export-option-icon pdf"><i class="fa fa-file-pdf"></i></div><div class="export-option-body"><div class="export-option-title">PDF</div><div class="export-option-desc">.pdf</div></div><div class="export-option-check"></div></div><div class="export-option" onclick="selectExport(this,'word')"><div class="export-option-icon word"><i class="fa fa-file-word"></i></div><div class="export-option-body"><div class="export-option-title">Word</div><div class="export-option-desc">.doc</div></div><div class="export-option-check"></div></div></div></div><div class="modal-footer"><button class="btn btn-default" onclick="closeExportModal()">取消</button><button class="btn btn-primary" onclick="doExport()"><i class="fa fa-download"></i> 导出</button></div></div></div>
+
+<script src="/pages/common.js"></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+var infos=[], filtered=[], PAGE_SIZE=15, exportFormat='excel';
+function genSN(){return 'FB'+new Date().getFullYear()+String(Math.floor(Math.random()*9000+1000));}
+
+// 9大模块配置
+var MODULES=[
+    {id:'employment',name:'用工信息',icon:'💼',cls:'pci-blue',count:12},
+    {id:'logistics',name:'物流供需',icon:'🚚',cls:'pci-green',count:8},
+    {id:'featured',name:'特色供需',icon:'🛒',cls:'pci-teal',count:5},
+    {id:'policy',name:'园区政策',icon:'📜',cls:'pci-purple',count:15},
+    {id:'catering',name:'园区餐饮',icon:'🍜',cls:'pci-orange',count:6},
+    {id:'parking',name:'停车服务',icon:'🅿️',cls:'pci-red',count:3},
+    {id:'venue',name:'场馆服务',icon:'🏟️',cls:'pci-pink',count:4},
+    {id:'activity',name:'园区活动',icon:'🎉',cls:'pci-amber',count:7},
+    {id:'notice',name:'园区公告',icon:'📢',cls:'pci-sky',count:10},
+];
+
+function seedData(){
+    if(infos.length)return;
+    var persons=['管理员','张编辑','李发布'];
+    var statuses=['已发布','已发布','已发布','已发布','草稿','已下线'];
+    var types=['新增','更新','下架','维护'];
+    MODULES.forEach(function(m){
+        for(var i=0;i<3;i++){
+            infos.push({
+                sn:'FB2025'+String(infos.length+1).padStart(4,'0'), module:m.name,
+                type:types[i%4], detail:m.name+'信息内容第'+(i+1)+'条',
+                date:'2025-'+(i+3).toString().padStart(2,'0')+'-'+(i*5+1).toString().padStart(2,'0'),
+                person:persons[i%3], status:statuses[i%3], id:infos.length
+            });
+        }
+    });
+    updateKPIs();filtered=infos.map(function(_,i){return i;});
+}
+
+function updateKPIs(){
+    document.getElementById('kpiTotal').textContent=infos.length;
+    document.getElementById('kpiPublished').textContent=infos.filter(function(e){return e.status==='已发布'}).length;
+    document.getElementById('kpiDraft').textContent=infos.filter(function(e){return e.status==='草稿'}).length;
+    var mods={};infos.forEach(function(e){mods[e.module]=1;});
+    document.getElementById('kpiModules').textContent=Object.keys(mods).length;
+}
+
+function statusTag(s){
+    if(s==='已发布')return '<span class="tag-published">已发布</span>';
+    if(s==='草稿')return '<span class="tag-draft">草稿</span>';
+    return '<span class="tag-offline">已下线</span>';
+}
+
+function renderPublishGrid(){
+    var grid=document.getElementById('publishGrid');
+    MODULES.forEach(function(m){
+        var d=document.createElement('div');d.className='publish-card';
+        d.innerHTML='<div class="pc-icon '+m.cls+'">'+m.icon+'</div><div class="pc-title">'+m.name+'</div><div class="pc-count">'+m.count+' 条信息</div>';
+        d.onclick=function(){location.href='info_edit.html?module='+m.id;};
+        grid.appendChild(d);
+    });
+}
+
+function renderTable(){
+    var tbody=document.getElementById('infoTbody'),frag=document.createDocumentFragment();
+    filtered.forEach(function(idx){
+        var b=infos[idx],tr=document.createElement('tr');
+        tr.innerHTML='<td>'+b.sn+'</td><td><b>'+b.module+'</b></td><td>'+b.type+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+b.detail+'</td><td>'+b.date+'</td><td>'+b.person+'</td><td>'+statusTag(b.status)+'</td><td></td>';
+        var tdA=tr.lastChild;
+        addBtn(tdA,'详情',idx,function(i){showDetail(i);});
+        addBtn(tdA,'编辑',idx,function(i){var m=MODULES.find(function(mm){return mm.name===infos[i].module;});location.href='info_edit.html?module='+(m?m.id:'employment');});
+        addBtn(tdA,'删除',idx,function(i){var n=infos[i].module+' - '+infos[i].detail;if(confirm('确定删除「'+n+'」吗？')){infos.splice(i,1);filtered=infos.map(function(_,i2){return i2;});updateKPIs();renderTable();showToast('已删除','success');}},true);
+        frag.appendChild(tr);
+    });
+    tbody.innerHTML='';tbody.appendChild(frag);
+    if(typeof initPagination==='function')initPagination();
+}
+function addBtn(parent,text,idx,fn,isDanger){
+    if(parent.children.length)parent.appendChild(document.createTextNode(' '));
+    var btn=document.createElement('button');btn.className='btn btn-'+(isDanger?'danger':'default');btn.style.cssText='padding:3px 8px;font-size:11px';
+    btn.textContent=text;btn.dataset.deleteInited='1';btn.setAttribute('onclick','('+fn.toString()+')('+idx+')');parent.appendChild(btn);
+}
+
+function showDetail(i){
+    var b=infos[i];if(!b){showToast('数据加载失败','warning');return;}
+    var body=document.getElementById('detailBody');
+    body.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px">'+
+        '<div><b style="color:var(--text-secondary)">单号：</b>'+b.sn+'</div>'+
+        '<div><b style="color:var(--text-secondary)">归属模块：</b>'+b.module+'</div>'+
+        '<div><b style="color:var(--text-secondary)">事件类型：</b>'+b.type+'</div>'+
+        '<div><b style="color:var(--text-secondary)">发布时间：</b>'+b.date+'</div>'+
+        '<div><b style="color:var(--text-secondary)">发布人：</b>'+b.person+'</div>'+
+        '<div><b style="color:var(--text-secondary)">状态：</b>'+statusTag(b.status)+'</div>'+
+        '</div>'+
+        '<div style="margin-top:14px"><b style="color:var(--text-secondary)">事件详情：</b></div>'+
+        '<div style="margin-top:6px;padding:12px;background:rgba(123,97,255,0.06);border-radius:6px;line-height:1.7;font-size:13px;border-left:3px solid #7b61ff">'+b.detail+'</div>';
+    document.getElementById('detailModal').classList.add('show');
+}
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('show');}
+
+function filterTable(){
+    var kw=(document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var fm=document.getElementById('fModule').value.trim();
+    var fs=document.getElementById('fStatus2').value.trim();
+    var fd=document.getElementById('fDate').value;
+    filtered=[];infos.forEach(function(e,i){var t=(e.sn+' '+e.module+' '+e.type+' '+e.detail+' '+e.date+' '+e.person).toLowerCase();if((!kw||t.indexOf(kw)>-1)&&(!fm||e.module===fm)&&(!fs||e.status===fs)&&(!fd||e.date>=fd))filtered.push(i);});
+    renderTable();
+}
+function resetFilters(){['fKeyword','fModule','fStatus2','fDate'].forEach(function(id){document.getElementById(id).value='';});filtered=infos.map(function(_,i){return i;});renderTable();showToast('筛选已重置','info');}
+
+var initPagination=(function(){return function(){
+    document.querySelectorAll('.card').forEach(function(card){
+        var table=card.querySelector('.data-table tbody'),pagi=card.querySelector('.pagination');if(!table||!pagi)return;
+        var rows=Array.from(table.querySelectorAll('tr'));if(!rows.length)return;
+        var info=pagi.querySelector('span:first-child'),tp=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+        function rp(p){var s=(p-1)*PAGE_SIZE,e=Math.min(s+PAGE_SIZE,rows.length);rows.forEach(function(r,i){r.style.display=(i>=s&&i<e)?'':'none';});info.textContent='共 '+rows.length+' 条  第'+(s+1)+'-'+e+'条';ub(p,tp,pagi);}
+        function ub(p,t,pgi){var bd=pgi.querySelector('.page-btns');if(!bd)return;bd.innerHTML='';var prev=document.createElement('div');prev.className='page-btn'+(p<=1?' disabled':'');prev.textContent='\u00AB';if(p>1)prev.onclick=function(){rp(p-1);};bd.appendChild(prev);var sp=Math.max(1,p-2),ep=Math.min(t,sp+4);if(ep-sp<4)sp=Math.max(1,ep-4);for(var pp=sp;pp<=ep;pp++){(function(pp){var btn=document.createElement('div');btn.className='page-btn'+(pp===p?' active':'');btn.textContent=pp;btn.onclick=function(){rp(pp);};bd.appendChild(btn);})(pp);}var next=document.createElement('div');next.className='page-btn'+(p>=t?' disabled':'');next.textContent='\u00BB';if(p<t)next.onclick=function(){rp(p+1);};bd.appendChild(next);}
+        rp(1);
+    });
+};})();
+
+function openExportModal(){document.getElementById('exportModal').classList.add('show');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('show');}
+function selectExport(el,fmt){exportFormat=fmt;document.querySelectorAll('.export-option').forEach(function(o){o.classList.remove('selected');});el.classList.add('selected');}
+function doExport(){
+    var data=infos.map(function(b){return{单号:b.sn,归属模块:b.module,事件类型:b.type,事件详情:b.detail,发布时间:b.date,发布人:b.person,状态:b.status};});
+    var fn='信息发布_'+new Date().toISOString().slice(0,10);
+    try{
+        if(exportFormat==='excel'){var ws=XLSX.utils.json_to_sheet(data);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'信息');XLSX.writeFile(wb,fn+'.xlsx');}
+        else if(exportFormat==='pdf'){var w=window.open('','_blank');w.document.write('<html><head><meta charset="utf-8"><title>信息发布</title><style>body{font-family:"Microsoft YaHei",sans-serif;padding:20px;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:5px}th{background:#40c4ff;color:#fff}</style></head><body><h2>信息发布列表</h2><table><thead><tr><th>单号</th><th>模块</th><th>类型</th><th>状态</th></tr></thead><tbody>');data.forEach(function(r){w.document.write('<tr><td>'+r['单号']+'</td><td>'+r['归属模块']+'</td><td>'+r['事件类型']+'</td><td>'+r['状态']+'</td></tr>');});w.document.write('</tbody></table></body></html>');w.document.close();setTimeout(function(){w.print();setTimeout(function(){w.close();},500);},300);}
+        else if(exportFormat==='word'){var html='<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body><h2>信息发布列表</h2><table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:11px;width:100%"><tr style="background:#40c4ff;color:#fff"><th>单号</th><th>模块</th><th>类型</th><th>状态</th></tr>';data.forEach(function(r){html+='<tr><td>'+r['单号']+'</td><td>'+r['归属模块']+'</td><td>'+r['事件类型']+'</td><td>'+r['状态']+'</td></tr>';});html+='</table></body></html>';var blob=new Blob(['\uFEFF'+html],{type:'application/msword'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn+'.doc';document.body.appendChild(a);a.click();a.remove();}
+        showToast('导出成功','success');
+    }catch(e){showToast('导出失败:'+e.message,'warning');}
+    closeExportModal();
+}
+
+window.addEventListener('DOMContentLoaded',function(){
+    seedData();renderPublishGrid();
+    document.querySelector('.btn-search').addEventListener('click',filterTable);
+    renderTable();
+});
+</script>
+</body>
+</html>

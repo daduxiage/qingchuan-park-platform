@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>用工信息 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script defer src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+.tag-open{background:rgba(64,196,255,0.12);color:#40c4ff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-closed{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-paused{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+html.light-theme .tag-open{background:rgba(22,119,255,0.08);color:#1677ff}
+html.light-theme .tag-closed{background:rgba(82,196,26,0.08);color:#389e0d}
+html.light-theme .tag-paused{background:rgba(250,140,22,0.08);color:#d46b08}
+.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.filter-row .form-control{min-width:120px;width:auto;flex:0 0 auto}
+.filter-row select.form-control{text-align:center;text-align-last:center;appearance:none;-webkit-appearance:none;background:#0a1024 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23a0cfff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:32px}
+.filter-row select.form-control option{text-align:center;direction:ltr}
+.salary-high{color:#ff4d4f;font-weight:600}
+.salary-mid{color:#ff9500;font-weight:600}
+.add-form{display:flex;flex-direction:column;gap:14px;padding:4px 0}
+.add-form-row{display:flex;gap:12px;align-items:flex-start}
+.add-form-group{flex:1;display:flex;flex-direction:column;gap:5px}
+.add-form-group label{font-size:12px;color:var(--text-secondary);font-weight:500}
+.add-form-group .form-control{width:100%;padding:8px 12px;font-size:13px}
+.add-form-group textarea.form-control{min-height:60px;resize:vertical}
+/* 导出选项样式 */
+.export-options{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.export-option{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--split-color);border-radius:8px;cursor:pointer;transition:all .2s;background:transparent}
+.export-option:hover{border-color:#40c4ff;background:rgba(64,196,255,0.06)}
+.export-option.selected{border-color:#40c4ff;background:rgba(64,196,255,0.1)}
+.export-option-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.export-option-icon.excel{background:rgba(76,175,80,0.15);color:#4caf50}
+.export-option-icon.pdf{background:rgba(244,67,54,0.15);color:#f44336}
+.export-option-icon.word{background:rgba(33,150,243,0.15);color:#2196f3}
+.export-option-body{flex:1}
+.export-option-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.export-option-desc{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+.export-option-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--split-color);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.export-option.selected .export-option-check{border-color:#40c4ff;background:#40c4ff}
+.export-option.selected .export-option-check::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">加载中...</div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>企业服务 / 用工信息</span></div>
+    </div>
+    <div class="page-header-right"></div>
+</div>
+
+<div class="page-body">
+
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-briefcase"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#40c4ff">68</div>
+            <div class="kpi-label">本月招聘岗位数</div>
+            <div class="kpi-trend" style="color:#40c4ff">↑ 较上月+15.3%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-user-plus"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#4cd964">423</div>
+            <div class="kpi-label">本月求职登记数</div>
+            <div class="kpi-trend" style="color:#4cd964">↑ 较上月+22.6%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-handshake"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#7b61ff">156</div>
+            <div class="kpi-label">本月已匹配人数</div>
+            <div class="kpi-trend" style="color:#7b61ff">匹配率 36.9%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(0,194,184,0.15);color:#00c2b8"><i class="fa fa-building"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#00c2b8">23</div>
+            <div class="kpi-label">招聘中企业</div>
+            <div class="kpi-trend" style="color:#00c2b8">入驻企业覆盖率 70%</div>
+        </div>
+    </div>
+</div>
+
+<div class="chart-row chart-cols-2-1">
+    <div class="chart-box"><div class="chart-box-title">用工需求趋势</div><div id="chartLine" class="chart-canvas" style="height:300px;"></div></div>
+    <div class="chart-box"><div class="chart-box-title">岗位类型分布</div><div id="chartPie" class="chart-canvas" style="height:300px;"></div></div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa fa-list-alt" style="color:#40c4ff"></i> 用工需求列表</div>
+        <div class="card-toolbar">
+            <div class="toolbar-actions">
+                <button class="btn btn-default" onclick="resetFilters()">重置</button>
+                <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+                <button class="btn btn-success" onclick="openExportModal()"><i class="fa fa-download"></i> 导出</button>
+                <button class="btn btn-primary" onclick="openAddModal()"><i class="fa fa-plus"></i> 新增</button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="filter-row">
+            <input class="form-control" placeholder="搜索企业/岗位..." id="fKeyword">
+            <select class="form-control" id="fType"><option value="">全部岗位类型</option></select>
+            <select class="form-control" id="fStatus"><option value="">全部状态</option><option>招聘中</option><option>已招满</option><option>暂停</option></select>
+            <input class="form-control" type="date" id="fDate" title="发布时间">
+        </div>
+        <div class="table-wrap">
+            <table class="data-table" id="jobTable">
+                <thead><tr>
+                    <th style="width:38px;text-align:center"><input type="checkbox" id="__cb_all" style="cursor:pointer" title="全选/反选"></th>
+                    <th>企业名称</th>
+                    <th>岗位名称</th>
+                    <th style="width:70px">招聘人数</th>
+                    <th>薪资范围</th>
+                    <th>发布时间</th>
+                    <th style="width:70px">状态</th>
+                    <th style="width:120px">操作</th>
+                </tr></thead>
+                <tbody id="jobTbody"></tbody>
+            </table>
+        </div>
+        <div class="pagination"><span>共 12 条</span><div class="page-btns"></div></div>
+    </div>
+</div>
+
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal">
+    <div class="modal" style="width:440px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-download" style="color:#40c4ff;margin-right:6px"></i>导出用工数据</span>
+            <div class="modal-close" onclick="closeExportModal()">×</div>
+        </div>
+        <div class="modal-body">
+            <div class="export-options">
+                <div class="export-option selected" onclick="selectExportFormat(this,'excel')" data-format="excel">
+                    <div class="export-option-icon excel"><i class="fa fa-file-excel"></i></div>
+                    <div class="export-option-body">
+                        <div class="export-option-title">Excel 文件</div>
+                        <div class="export-option-desc">导出为 .xlsx 格式，可用 Excel 打开编辑</div>
+                    </div>
+                    <div class="export-option-check"></div>
+                </div>
+                <div class="export-option" onclick="selectExportFormat(this,'pdf')" data-format="pdf">
+                    <div class="export-option-icon pdf"><i class="fa fa-file-pdf"></i></div>
+                    <div class="export-option-body">
+                        <div class="export-option-title">PDF 文件</div>
+                        <div class="export-option-desc">导出为 .pdf 格式，适合打印和分享</div>
+                    </div>
+                    <div class="export-option-check"></div>
+                </div>
+                <div class="export-option" onclick="selectExportFormat(this,'word')" data-format="word">
+                    <div class="export-option-icon word"><i class="fa fa-file-word"></i></div>
+                    <div class="export-option-body">
+                        <div class="export-option-title">Word 文件</div>
+                        <div class="export-option-desc">导出为 .doc 格式，可用 Word 打开编辑</div>
+                    </div>
+                    <div class="export-option-check"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeExportModal()">取消</button>
+            <button class="btn btn-primary" onclick="doExport()"><i class="fa fa-download"></i> 导出</button>
+        </div>
+    </div>
+</div>
+
+<!-- 新增弹窗 -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal" style="width:560px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-plus-circle" style="color:#40c4ff;margin-right:6px"></i>新增用工需求</span>
+            <div class="modal-close" onclick="closeAddModal()">×</div>
+        </div>
+        <div class="modal-body">
+            <div class="add-form">
+                <div class="add-form-row">
+                    <div class="add-form-group">
+                        <label>企业名称 *</label>
+                        <input class="form-control" id="addCompany" placeholder="请输入企业名称">
+                    </div>
+                    <div class="add-form-group">
+                        <label>岗位名称 *</label>
+                        <input class="form-control" id="addJob" placeholder="请输入岗位名称">
+                    </div>
+                </div>
+                <div class="add-form-row">
+                    <div class="add-form-group">
+                        <label>岗位类型 *</label>
+                        <select class="form-control" id="addType">
+                            <option value="">请选择</option>
+                            <option>技术研发</option>
+                            <option>生产制造</option>
+                            <option>质量管理</option>
+                            <option>物流仓储</option>
+                            <option>行政人事</option>
+                            <option>财务审计</option>
+                            <option>市场营销</option>
+                            <option>设备维护</option>
+                        </select>
+                    </div>
+                    <div class="add-form-group">
+                        <label>招聘人数 *</label>
+                        <input class="form-control" type="number" id="addCount" placeholder="请输入人数" min="1">
+                    </div>
+                </div>
+                <div class="add-form-row">
+                    <div class="add-form-group">
+                        <label>薪资范围 *</label>
+                        <input class="form-control" id="addSalary" placeholder="例：¥6,000-10,000/月">
+                    </div>
+                    <div class="add-form-group">
+                        <label>发布时间 *</label>
+                        <input class="form-control" type="datetime-local" id="addTime">
+                    </div>
+                </div>
+                <div class="add-form-row">
+                    <div class="add-form-group">
+                        <label>状态 *</label>
+                        <select class="form-control" id="addStatus">
+                            <option value="">请选择</option>
+                            <option>招聘中</option>
+                            <option>已招满</option>
+                            <option>暂停</option>
+                        </select>
+                    </div>
+                    <div class="add-form-group">
+                        <label>岗位要求</label>
+                        <textarea class="form-control" id="addReq" placeholder="请输入岗位要求及职责描述" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeAddModal()">取消</button>
+            <button class="btn btn-primary" onclick="doAdd()"><i class="fa fa-plus"></i> 新增</button>
+        </div>
+    </div>
+</div>
+
+<script src="/pages/common.js">
+<script src="/pages/tracker.js"></script></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+function showToast(msg,type,duration){
+    duration = duration || 3000;
+    var container=document.getElementById('toastContainer');var t=document.createElement('div');
+    t.style.cssText='padding:10px 20px;border-radius:6px;margin-bottom:8px;background:linear-gradient(135deg,rgba(16,24,56,0.95),rgba(22,41,105,0.95));border:1px solid rgba(43,104,224,0.4);color:#a0cfff;font-size:13px;display:flex;align-items:center;gap:8px;animation:slideIn 0.3s ease';
+    t.innerHTML='<i class="fa fa-'+(type==='success'?'check-circle':type==='warning'?'exclamation-triangle':'info-circle')+'"></i> '+msg;
+    container.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(function(){t.remove()},300)},duration);
+}
+
+function createConfirmModal(title, content, onConfirm) {
+    var old = document.getElementById('__globalModal');if (old) old.remove();
+    var overlay = document.createElement('div');
+    overlay.id = '__globalModal';overlay.className = 'modal-overlay show';
+    var modal = document.createElement('div');
+    modal.className = 'modal';modal.style.width = '420px';
+    var header = document.createElement('div');
+    header.className = 'modal-header';
+    var titleSpan = document.createElement('span');
+    titleSpan.className = 'modal-title';titleSpan.textContent = title;
+    var closeBtn = document.createElement('div');
+    closeBtn.className = 'modal-close';closeBtn.textContent = '×';
+    closeBtn.onclick = function(){overlay.remove();};
+    header.appendChild(titleSpan);header.appendChild(closeBtn);
+    var body = document.createElement('div');
+    body.className = 'modal-body';body.style.padding = '20px 24px';body.style.fontSize = '14px';body.style.lineHeight = '1.7';
+    body.innerHTML = content;
+    var footer = document.createElement('div');
+    footer.className = 'modal-footer';
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-default';cancelBtn.textContent = '取消';
+    cancelBtn.onclick = function(){overlay.remove();};
+    var confirmBtn = document.createElement('button');
+    confirmBtn.className = 'btn btn-primary';confirmBtn.id = '__confirmBtn';confirmBtn.textContent = '确认';
+    confirmBtn.onclick = function(){overlay.remove();if(onConfirm)onConfirm();};
+    footer.appendChild(cancelBtn);footer.appendChild(confirmBtn);
+    modal.appendChild(header);modal.appendChild(body);modal.appendChild(footer);
+    overlay.appendChild(modal);
+    overlay.onclick = function(e){if(e.target===overlay)overlay.remove();};
+    document.body.appendChild(overlay);
+}
+
+// ========== 用工数据 ==========
+var jobs = [
+    {company:'阜成新材',job:'技术研发工程师',type:'技术研发',count:5,salary:'¥8,000-15,000/月',time:'2026-05-10 09:30',status:'招聘中',req:'本科及以上学历，材料科学或化工相关专业，3年以上研发经验'},
+    {company:'虹禾晶',job:'生产操作工',type:'生产制造',count:20,salary:'¥4,500-7,000/月',time:'2026-05-09 14:00',status:'招聘中',req:'初中以上学历，能吃苦耐劳，适应倒班'},
+    {company:'中能建',job:'质量管理主管',type:'质量管理',count:2,salary:'¥10,000-18,000/月',time:'2026-05-09 10:00',status:'招聘中',req:'大专以上学历，5年质量管理经验，熟悉ISO体系'},
+    {company:'佳兴铝业',job:'仓库管理员',type:'物流仓储',count:3,salary:'¥4,000-6,000/月',time:'2026-05-08 15:30',status:'已招满',req:'高中以上学历，熟练使用WMS系统'},
+    {company:'星恒青源',job:'行政专员',type:'行政人事',count:1,salary:'¥5,000-8,000/月',time:'2026-05-08 11:00',status:'招聘中',req:'大专以上学历，1年以上行政工作经验，熟练Office'},
+    {company:'九晟新材',job:'财务会计',type:'财务审计',count:1,salary:'¥6,000-10,000/月',time:'2026-05-07 09:00',status:'招聘中',req:'本科财会专业，持有初级以上会计证，2年经验'},
+    {company:'华纳实业',job:'市场营销经理',type:'市场营销',count:2,salary:'¥8,000-12,000/月',time:'2026-05-07 14:30',status:'招聘中',req:'本科以上学历，3年B2B营销经验，有建材行业背景优先'},
+    {company:'新通鑫',job:'设备维护工程师',type:'设备维护',count:3,salary:'¥7,000-11,000/月',time:'2026-05-06 10:00',status:'暂停',req:'大专以上学历，机电一体化专业，持有电工证'},
+    {company:'广袤新材',job:'生产班长',type:'生产制造',count:4,salary:'¥6,000-9,000/月',time:'2026-05-06 08:30',status:'招聘中',req:'高中以上学历，3年生产线管理经验'},
+    {company:'阜成新材',job:'质量检验员',type:'质量管理',count:6,salary:'¥4,000-6,000/月',time:'2026-05-05 16:00',status:'已招满',req:'高中以上学历，有质检经验优先'},
+    {company:'中能建',job:'物流专员',type:'物流仓储',count:2,salary:'¥5,000-7,000/月',time:'2026-05-05 11:00',status:'招聘中',req:'大专以上学历，物流管理专业，1年经验'},
+    {company:'虹禾晶',job:'人事主管',type:'行政人事',count:1,salary:'¥8,000-12,000/月',time:'2026-05-04 14:00',status:'招聘中',req:'本科以上学历，5年HR经验，持人力资源管理师证'}
+];
+
+var filteredJobs = Array.from({length: jobs.length}, function(_, i) { return i; });
+
+function initFilters(){
+    var sel=document.getElementById('fType');var seen={};
+    jobs.forEach(function(b){if(!seen[b.type]){seen[b.type]=1;var opt=document.createElement('option');opt.textContent=b.type;sel.appendChild(opt);}});
+}
+
+function statusTag(s){
+    if(s==='招聘中') return '<span class="tag-open">招聘中</span>';
+    if(s==='已招满') return '<span class="tag-closed">已招满</span>';
+    return '<span class="tag-paused">暂停</span>';
+}
+
+function salaryClass(s){
+    if(s.indexOf('15,000')>-1||s.indexOf('18,000')>-1||s.indexOf('12,000')>-1) return 'salary-high';
+    if(s.indexOf('10,000')>-1||s.indexOf('11,000')>-1) return 'salary-mid';
+    return '';
+}
+
+function renderTable(){
+    var tbody=document.getElementById('jobTbody');
+    var frag=document.createDocumentFragment();
+    filteredJobs.forEach(function(idx){
+        var b=jobs[idx];
+        var tr=document.createElement('tr');
+
+        var td0=document.createElement('td');
+        td0.style.textAlign='center';
+        var cb=document.createElement('input');
+        cb.type='checkbox';cb.className='row-cb';cb.style.cursor='pointer';cb.setAttribute('data-idx',idx);
+        td0.appendChild(cb);tr.appendChild(td0);
+
+        ['company','job'].forEach(function(k){
+            var td=document.createElement('td');td.textContent=b[k];tr.appendChild(td);
+        });
+
+        var tdC=document.createElement('td');tdC.style.textAlign='center';tdC.textContent=b.count;tr.appendChild(tdC);
+
+        var tdS=document.createElement('td');
+        var sClass=salaryClass(b.salary);
+        tdS.innerHTML=sClass?'<span class="'+sClass+'">'+b.salary+'</span>':b.salary;tr.appendChild(tdS);
+
+        var tdT=document.createElement('td');tdT.style.fontSize='12px';tdT.textContent=b.time;tr.appendChild(tdT);
+
+        var tdSt=document.createElement('td');tdSt.style.textAlign='center';tdSt.innerHTML=statusTag(b.status);tr.appendChild(tdSt);
+
+        var tdA=document.createElement('td');
+        var btn1=document.createElement('button');btn1.className='btn btn-default';btn1.style.cssText='padding:3px 8px;font-size:11px';btn1.textContent='详情';
+        btn1.onclick=function(){showDetail(idx);};tdA.appendChild(btn1);
+        if(b.status==='招聘中'){
+            tdA.appendChild(document.createTextNode(' '));
+            var btn2=document.createElement('button');btn2.className='btn btn-warning';btn2.style.cssText='padding:3px 8px;font-size:11px';btn2.textContent='暂停';
+            btn2.onclick=function(){toggleStatus(idx);};tdA.appendChild(btn2);
+        }
+        tr.appendChild(tdA);
+        frag.appendChild(tr);
+    });
+    tbody.innerHTML='';
+    tbody.appendChild(frag);
+    if(typeof initPagination==='function') initPagination();
+}
+
+function showDetail(i){
+    var b=jobs[i];
+    showToast('<b>'+b.company+' - '+b.job+'</b><br>岗位类型：'+b.type+'<br>招聘人数：'+b.count+'人<br>薪资范围：'+b.salary+'<br>发布时间：'+b.time+'<br>状态：'+b.status+'<br>岗位要求：'+(b.req||'无'),'info');
+}
+
+function toggleStatus(i){
+    var b=jobs[i];
+    if(b.status==='招聘中'){
+        b.status='暂停';
+        showToast(b.job+' 已暂停招聘','warning');
+    }else if(b.status==='暂停'){
+        b.status='招聘中';
+        showToast(b.job+' 已恢复招聘','success');
+    }
+    renderTable();
+}
+
+function filterTable(){
+    var fKeyword=(document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var fType=document.getElementById('fType').value.replace(/[ ]/g,'').trim();
+    var fStatus=document.getElementById('fStatus').value.replace(/[ ]/g,'').trim();
+    var fDate=document.getElementById('fDate').value;
+    filteredJobs = [];
+    for(var i=0;i<jobs.length;i++){
+        var b=jobs[i];
+        var t=[b.company,b.job,b.type,b.salary,b.time,b.status].join(' ').toLowerCase();
+        if((!fKeyword||t.indexOf(fKeyword)>-1)&&(!fType||t.indexOf(fType)>-1)&&(!fStatus||t.indexOf(fStatus)>-1)&&(!fDate||t.indexOf(fDate)>-1)){
+            filteredJobs.push(i);
+        }
+    }
+    renderTable();
+}
+
+function resetFilters(){
+    ['fKeyword','fType','fStatus','fDate'].forEach(function(id){document.getElementById(id).value='';});
+    filteredJobs = Array.from({length: jobs.length}, function(_, i) { return i; });
+    renderTable();
+    showToast('筛选条件已重置','info');
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+    initFilters();
+    document.querySelectorAll('.filter-row select option').forEach(function(opt){
+        var t=opt.textContent.trim();if(t) opt.textContent='　　'+t+'　　';
+    });
+    var searchBtn=document.querySelector('.btn-search');
+    if(searchBtn) searchBtn.addEventListener('click',filterTable);
+});
+
+// ========== ECharts ==========
+var _chart1=null,_chart2=null,_rzFn=null;
+function getCssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||'#a0cfff';}
+function initCharts(){
+    var textColor=getCssVar('--text-primary');
+    var isNarrow = window.innerWidth < 900;
+    var gridLeft = isNarrow ? 35 : 42;
+    var gridBottom = isNarrow ? 42 : 38;
+    var fontSize = isNarrow ? 9 : 11;
+    _chart1=echarts.init(document.getElementById('chartLine'));
+    _chart1.setOption({animation:true,tooltip:{trigger:'axis',textStyle:{color:textColor}},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:fontSize},data:['新增岗位','已招满']},xAxis:{type:'category',boundaryGap:false,data:['5-04','5-05','5-06','5-07','5-08','5-09','5-10'],axisLabel:{color:textColor,fontSize:fontSize},axisLine:{lineStyle:{color:'#2b68e0'}}},yAxis:{type:'value',axisLabel:{color:textColor,fontSize:fontSize},splitLine:{lineStyle:{color:'rgba(43,104,224,0.2)'}}},grid:{left:gridLeft,right:10,top:10,bottom:gridBottom},series:[{name:'新增岗位',type:'line',smooth:true,data:[8,10,7,12,9,11,14],lineStyle:{color:'#40c4ff',width:2},areaStyle:{color:'rgba(64,196,255,0.1)'},symbol:'circle',symbolSize:4,itemStyle:{color:'#40c4ff'}},{name:'已招满',type:'line',smooth:true,data:[5,7,4,8,6,9,11],lineStyle:{color:'#4cd964',width:2},areaStyle:{color:'rgba(76,217,100,0.08)'},symbol:'circle',symbolSize:4,itemStyle:{color:'#4cd964'}}]});
+    _chart2=echarts.init(document.getElementById('chartPie'));
+    _chart2.setOption({animation:true,tooltip:{trigger:'item',textStyle:{color:textColor}},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:fontSize},itemWidth:12,itemHeight:12},series:[{type:'pie',radius:['35%','55%'],center:['50%','45%'],data:[{value:23,name:'技术研发'},{value:32,name:'生产制造'},{value:8,name:'质量管理'},{value:11,name:'物流仓储'},{value:7,name:'行政人事'},{value:5,name:'财务审计'},{value:9,name:'市场营销'},{value:6,name:'设备维护'}],itemStyle:{color:function(p){return['#40c4ff','#ff9500','#4cd964','#7b61ff','#00c2b8','#ff7eb3','#ff4d4f','#ffcc00'][p.dataIndex]}},label:{color:textColor,fontSize:fontSize},animationType:'scale'}]});
+    _rzFn=function(){
+        var isNarrow = window.innerWidth < 900;
+        var gridLeft = isNarrow ? 35 : 42;
+        var gridBottom = isNarrow ? 42 : 38;
+        var fontSize = isNarrow ? 9 : 11;
+        _chart1&&_chart1.resize();
+        _chart2&&_chart2.resize();
+        _chart1&&_chart1.setOption({grid:{left:gridLeft,right:10,top:10,bottom:gridBottom},xAxis:{axisLabel:{fontSize:fontSize}},yAxis:{axisLabel:{fontSize:fontSize}},legend:{textStyle:{fontSize:fontSize}}});
+        _chart2&&_chart2.setOption({legend:{textStyle:{fontSize:fontSize},itemWidth:12,itemHeight:12},series:[{label:{fontSize:fontSize}}]});
+    };
+    window.addEventListener('resize',_rzFn);
+}
+
+window.addEventListener('pagehide',function(){if(_rzFn)window.removeEventListener('resize',_rzFn);if(_chart1){_chart1.dispose();_chart1=null;}if(_chart2){_chart2.dispose();_chart2=null;}});
+window.addEventListener('pageshow',function(e){if(e.persisted&&!_chart1)initCharts();});
+window.addEventListener('DOMContentLoaded',function(){initCharts();renderTable();});
+
+setInterval(function(){var n=new Date();var p=function(x){return String(x).padStart(2,'0')};var el=document.getElementById('pageTime');if(el)el.textContent=n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate())+' '+p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds())},1000);
+
+// ========== 分页 ==========
+var initPagination=(function(){
+    var PAGE_SIZE=10;
+    return function initPagination(){
+        document.querySelectorAll('.card').forEach(function(card){
+            var table=card.querySelector('.data-table tbody');
+            var pagination=card.querySelector('.pagination');
+            if(!table||!pagination)return;
+            var rows=Array.from(table.querySelectorAll('tr'));
+            if(rows.length===0)return;
+            var infoSpan=pagination.querySelector('span:first-child');
+            var totalPages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+            function renderPage(page){
+                var start=(page-1)*PAGE_SIZE,end=Math.min(start+PAGE_SIZE,rows.length);
+                rows.forEach(function(r,i){r.style.display=(i>=start&&i<end)?'':'none';});
+                infoSpan.textContent='共 '+rows.length+' 条  第'+(start+1)+'-'+end+'条';
+                updateBtns(page,totalPages,pagination);
+            }
+            function updateBtns(page,total,pagi){
+                var bd=pagi.querySelector('.page-btns');if(!bd)return;bd.innerHTML='';
+                var prev=document.createElement('div');prev.className='page-btn'+(page<=1?' disabled':'');prev.textContent='«';prev.style.cssText='cursor:'+(page<=1?'default':'pointer')+';opacity:'+(page<=1?'0.4':'1');
+                if(page>1)prev.onclick=function(){renderPage(page-1);};bd.appendChild(prev);
+                var sp=Math.max(1,page-2),ep=Math.min(total,sp+4);if(ep-sp<4)sp=Math.max(1,ep-4);
+                for(var p=sp;p<=ep;p++){(function(pp){var btn=document.createElement('div');btn.className='page-btn'+(pp===page?' active':'');btn.textContent=pp;btn.onclick=function(){renderPage(pp);};bd.appendChild(btn);})(p);}
+                var next=document.createElement('div');next.className='page-btn'+(page>=total?' disabled':'');next.textContent='»';next.style.cssText='cursor:'+(page>=total?'default':'pointer')+';opacity:'+(page>=total?'0.4':'1');
+                if(page<total)next.onclick=function(){renderPage(page+1);};bd.appendChild(next);
+            }
+            renderPage(1);
+        });
+    };
+})();
+
+// ========== 导出功能 ==========
+var exportFormat='excel';
+function openExportModal(){document.getElementById('exportModal').classList.add('show');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('show');}
+function selectExportFormat(el,fmt){
+    exportFormat=fmt;
+    document.querySelectorAll('.export-option').forEach(function(o){o.classList.remove('selected');});
+    el.classList.add('selected');
+}
+function doExport(){
+    var data=jobs.map(function(b){return{
+        '企业名称':b.company,'岗位名称':b.job,'岗位类型':b.type,'招聘人数':b.count,
+        '薪资范围':b.salary,'发布时间':b.time,'状态':b.status,'岗位要求':b.req||'--'
+    };});
+    try{
+        if(exportFormat==='excel'){
+            var ws=XLSX.utils.json_to_sheet(data);
+            var wb=XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb,ws,'用工信息');
+            XLSX.writeFile(wb,'用工信息_'+new Date().toISOString().slice(0,10)+'.xlsx');
+        }else if(exportFormat==='pdf'){
+            var w=window.open('','_blank');
+            w.document.write('<html><head><meta charset="utf-8"><title>用工信息</title>');
+            w.document.write('<style>body{font-family:"Microsoft YaHei",sans-serif;padding:20px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border:1px solid #ccc;padding:7px}th{background:#40c4ff;color:#fff;position:sticky;top:0}</style>');
+            w.document.write('</head><body>');
+            w.document.write('<h2>用工信息</h2>');
+            w.document.write('<table><thead><tr><th>企业名称</th><th>岗位名称</th><th>岗位类型</th><th>招聘人数</th><th>薪资范围</th><th>发布时间</th><th>状态</th></tr></thead><tbody>');
+            data.forEach(function(r){w.document.write('<tr><td>'+r['企业名称']+'</td><td>'+r['岗位名称']+'</td><td>'+r['岗位类型']+'</td><td>'+r['招聘人数']+'</td><td>'+r['薪资范围']+'</td><td>'+r['发布时间']+'</td><td>'+r['状态']+'</td></tr>');});
+            w.document.write('</tbody></table></body></html>');
+            w.document.close();
+            setTimeout(function(){w.print();setTimeout(function(){w.close();},500);},300);
+        }else if(exportFormat==='word'){
+            var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>用工信息</title></head><body>';
+            html+='<h2>用工信息</h2><table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:12px;width:100%">';
+            html+='<tr style="background:#40c4ff;color:#fff"><th>企业名称</th><th>岗位名称</th><th>岗位类型</th><th>招聘人数</th><th>薪资范围</th><th>发布时间</th><th>状态</th></tr>';
+            data.forEach(function(r){html+='<tr><td>'+r['企业名称']+'</td><td>'+r['岗位名称']+'</td><td>'+r['岗位类型']+'</td><td>'+r['招聘人数']+'</td><td>'+r['薪资范围']+'</td><td>'+r['发布时间']+'</td><td>'+r['状态']+'</td></tr>';});
+            html+='</table></body></html>';
+            var blob=new Blob(['\uFEFF'+html],{type:'application/msword'});
+            var url=URL.createObjectURL(blob);
+            var a=document.createElement('a');a.href=url;a.download='用工信息_'+new Date().toISOString().slice(0,10)+'.doc';
+            document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+        }
+        showToast('导出成功！格式：'+exportFormat,'success');
+    }catch(e){showToast('导出失败：'+e.message,'warning');}
+    closeExportModal();
+}
+
+// ========== 新增功能 ==========
+function openAddModal(){
+    document.getElementById('addCompany').value='';
+    document.getElementById('addJob').value='';
+    document.getElementById('addType').value='';
+    document.getElementById('addCount').value='';
+    document.getElementById('addSalary').value='';
+    document.getElementById('addTime').value=new Date().toISOString().slice(0,16);
+    document.getElementById('addStatus').value='';
+    document.getElementById('addReq').value='';
+    document.getElementById('addModal').classList.add('show');
+}
+function closeAddModal(){document.getElementById('addModal').classList.remove('show');}
+function doAdd(){
+    var company=document.getElementById('addCompany').value.trim();
+    var job=document.getElementById('addJob').value.trim();
+    var type=document.getElementById('addType').value;
+    var count=parseInt(document.getElementById('addCount').value)||0;
+    var salary=document.getElementById('addSalary').value.trim();
+    var time=document.getElementById('addTime').value;
+    var status=document.getElementById('addStatus').value;
+    var req=document.getElementById('addReq').value.trim();
+    if(!company){showToast('请输入企业名称','warning');return;}
+    if(!job){showToast('请输入岗位名称','warning');return;}
+    if(!type){showToast('请选择岗位类型','warning');return;}
+    if(!count||count<1){showToast('请输入有效的招聘人数','warning');return;}
+    if(!salary){showToast('请输入薪资范围','warning');return;}
+    if(!time){showToast('请选择发布时间','warning');return;}
+    if(!status){showToast('请选择状态','warning');return;}
+    jobs.unshift({company:company,job:job,type:type,count:count,salary:salary,time:time.replace('T',' '),status:status,req:req});
+    renderTable();
+    closeAddModal();
+    showToast('新增成功！岗位：'+job,'success');
+}
+</script>
+</body>
+</html>

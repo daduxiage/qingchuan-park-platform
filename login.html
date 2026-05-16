@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>登录 - 青川县庄子上工业园区智慧园区平台</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+body {
+  background: #040d1e;
+  color: #fff;
+  font-family: "Microsoft Yahei","微软雅黑",sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ===== AI动态背景 ===== */
+#bg-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+}
+
+/* 网格线背景 */
+.grid-bg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+  background-image:
+    linear-gradient(rgba(64,196,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(64,196,255,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* 扫描线动画 */
+.scan-line {
+  position: fixed;
+  top: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(64,196,255,0.6), transparent);
+  z-index: 2;
+  animation: scanMove 4s linear infinite;
+}
+@keyframes scanMove {
+  0% { top: -2px; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100vh; opacity: 0; }
+}
+
+/* 光晕效果 */
+.glow-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 1;
+  animation: orbFloat 8s ease-in-out infinite;
+}
+.glow-orb-1 { width: 400px; height: 400px; background: rgba(43,104,224,0.25); top: -100px; left: -100px; animation-delay: 0s; }
+.glow-orb-2 { width: 300px; height: 300px; background: rgba(123,97,255,0.2); bottom: -80px; right: -80px; animation-delay: 3s; }
+.glow-orb-3 { width: 250px; height: 250px; background: rgba(0,194,184,0.15); top: 50%; right: 10%; animation-delay: 5s; }
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -20px) scale(1.05); }
+  66% { transform: translate(-20px, 15px) scale(0.95); }
+}
+
+/* 数字雨 */
+.digit-rain {
+  position: fixed;
+  top: 0;
+  font-size: 12px;
+  color: rgba(64,196,255,0.15);
+  z-index: 2;
+  animation: rainFall linear infinite;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  letter-spacing: 4px;
+  user-select: none;
+}
+@keyframes rainFall {
+  0% { transform: translateY(-100%); opacity: 0.15; }
+  50% { opacity: 0.25; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* ===== 登录卡片 ===== */
+.login-wrapper {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+}
+
+.platform-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.logo-icon {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, #2b68e0, #40c4ff);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 0 24px rgba(64,196,255,0.5);
+}
+.platform-name { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 1px; white-space: nowrap; }
+.platform-sub { font-size: 12px; color: rgba(160,207,255,0.7); margin-top: 2px; }
+
+.login-card {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(16,24,56,0.9), rgba(22,41,105,0.85));
+  border: 1px solid rgba(64,196,255,0.25);
+  border-radius: 16px;
+  padding: 32px 36px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 40px rgba(0,0,50,0.6), 0 0 0 1px rgba(64,196,255,0.1);
+  position: relative;
+  overflow: hidden;
+}
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #40c4ff, transparent);
+}
+
+.login-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* 登录方式切换 */
+.login-methods {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-bottom: 24px;
+  background: rgba(10,20,50,0.5);
+  border-radius: 10px;
+  padding: 5px;
+  border: 1px solid rgba(43,104,224,0.3);
+}
+.method-btn {
+  padding: 8px 4px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(160,207,255,0.6);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 3px;
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+}
+.method-btn span.icon { font-size: 16px; line-height: 1; }
+.method-btn span.label { font-size: 11px; line-height: 1; }
+.method-btn.active {
+  background: linear-gradient(135deg, #2b68e0, #1a4db8);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(43,104,224,0.4);
+}
+.method-btn:hover:not(.active) { color: #a0cfff; background: rgba(64,196,255,0.08); }
+
+/* 表单面板 */
+.login-panel { display: none; }
+.login-panel.active { display: block; }
+
+/* 输入框 */
+.form-group {
+  margin-bottom: 16px;
+  position: relative;
+}
+.form-label {
+  font-size: 12px;
+  color: rgba(160,207,255,0.8);
+  margin-bottom: 6px;
+  display: block;
+}
+.form-input {
+  width: 100%;
+  background: rgba(10,16,40,0.8);
+  border: 1px solid rgba(43,104,224,0.4);
+  border-radius: 8px;
+  color: #fff;
+  padding: 11px 40px 11px 14px;
+  font-size: 14px;
+  transition: all 0.3s;
+  font-family: "Microsoft Yahei","微软雅黑",sans-serif;
+}
+.form-input::placeholder { color: rgba(160,207,255,0.35); }
+.form-input:focus {
+  border-color: #40c4ff;
+  box-shadow: 0 0 0 2px rgba(64,196,255,0.15);
+  background: rgba(16,24,56,0.9);
+}
+.form-input.error { border-color: #ff4d4f; box-shadow: 0 0 0 2px rgba(255,77,79,0.15); }
+.input-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(160,207,255,0.4);
+  font-size: 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.input-icon-left {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(160,207,255,0.5);
+  font-size: 15px;
+}
+.form-input.has-left-icon { padding-left: 36px; }
+
+/* 错误提示 */
+.error-msg {
+  font-size: 12px;
+  color: #ff4d4f;
+  margin-top: 5px;
+  display: none;
+  animation: shake 0.3s ease;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* 登录按钮 */
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #2b68e0, #40c4ff);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 8px;
+  font-family: "Microsoft Yahei","微软雅黑",sans-serif;
+  letter-spacing: 2px;
+  position: relative;
+  overflow: hidden;
+}
+.login-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
+}
+.login-btn:hover { box-shadow: 0 4px 20px rgba(64,196,255,0.5); transform: translateY(-1px); }
+.login-btn:active::after { width: 200px; height: 200px; }
+
+/* 其他方式提示 */
+.alt-notice {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(160,207,255,0.5);
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(64,196,255,0.05);
+  border-radius: 8px;
+  border: 1px dashed rgba(64,196,255,0.2);
+}
+
+/* 底部 */
+.login-footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(160,207,255,0.35);
+}
+
+/* 全局遮罩 */
+#loading-mask {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(4,13,30,0.85);
+  z-index: 1000;
+  display: none;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+}
+.loading-spinner {
+  width: 48px; height: 48px;
+  border: 3px solid rgba(64,196,255,0.2);
+  border-top-color: #40c4ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 14px; color: #40c4ff; }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 30px; right: 30px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: none;
+  z-index: 2000;
+  transition: opacity 0.3s;
+}
+</style>
+</head>
+<body>
+<!-- AI动态背景 -->
+<canvas id="bg-canvas"></canvas>
+<div class="grid-bg"></div>
+<div class="scan-line"></div>
+<div class="glow-orb glow-orb-1"></div>
+<div class="glow-orb glow-orb-2"></div>
+<div class="glow-orb glow-orb-3"></div>
+
+<!-- 数字雨 -->
+<div id="digit-rain-container"></div>
+
+<!-- 登录主体 -->
+<div class="login-wrapper">
+  <div class="platform-logo">
+    <div class="logo-icon">🏭</div>
+    <div>
+      <div class="platform-name">青川县庄子上工业园区智慧园区平台</div>
+      <div class="platform-sub">Zhuangzishang Industrial Park Smart Platform</div>
+    </div>
+  </div>
+
+  <div class="login-card">
+    <div class="login-title">欢迎登录</div>
+
+    <!-- 登录方式切换 -->
+    <div class="login-methods">
+      <button class="method-btn active" data-method="password" onclick="switchMethod('password', this)"><span class="icon">🔑</span><span class="label">密码</span></button>
+      <button class="method-btn" data-method="sms" onclick="switchMethod('sms', this)"><span class="icon">📱</span><span class="label">短信</span></button>
+      <button class="method-btn" data-method="face" onclick="switchMethod('face', this)"><span class="icon">👤</span><span class="label">人脸</span></button>
+      <button class="method-btn" data-method="finger" onclick="switchMethod('finger', this)"><span class="icon">🖐</span><span class="label">指纹</span></button>
+      <button class="method-btn" data-method="token" onclick="switchMethod('token', this)"><span class="icon">🔐</span><span class="label">令牌</span></button>
+    </div>
+
+    <!-- 用户名密码登录 -->
+    <div id="panel-password" class="login-panel active">
+      <div class="form-group">
+        <label class="form-label">用户名</label>
+        <div style="position:relative;">
+          <span class="input-icon-left">👤</span>
+          <input type="text" id="username" class="form-input has-left-icon" placeholder="请输入用户名" autocomplete="username">
+        </div>
+        <div id="username-err" class="error-msg"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">密码</label>
+        <div style="position:relative;">
+          <span class="input-icon-left">🔒</span>
+          <input type="password" id="password" class="form-input has-left-icon" placeholder="请输入密码" autocomplete="current-password" id="pwd">
+          <span class="input-icon" id="togglePwd" onclick="togglePassword()" title="显示/隐藏密码">👁</span>
+        </div>
+        <div id="password-err" class="error-msg"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:rgba(160,207,255,0.7);">
+          <input type="checkbox" id="rememberMe" style="accent-color:#40c4ff;"> 记住用户名
+        </label>
+        <a href="#" onclick="showToast2('请联系管理员重置密码','warn');return false;" style="font-size:12px;color:rgba(160,207,255,0.6);text-decoration:none;">忘记密码?</a>
+      </div>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">登 录</button>
+    </div>
+
+    <!-- 短信验证码登录 -->
+    <div id="panel-sms" class="login-panel">
+      <div class="form-group">
+        <label class="form-label">手机号</label>
+        <div style="position:relative;">
+          <span class="input-icon-left">📱</span>
+          <input type="text" id="smsPhone" class="form-input has-left-icon" placeholder="请输入手机号" maxlength="11">
+        </div>
+        <div id="smsPhone-err" class="error-msg"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">验证码</label>
+        <div style="display:flex;gap:8px;">
+          <div style="position:relative;flex:1;">
+            <span class="input-icon-left">🔢</span>
+            <input type="text" id="smsCode" class="form-input has-left-icon" placeholder="请输入验证码" maxlength="6">
+          </div>
+          <button class="login-btn" id="sendSmsBtn" style="width:auto;padding:11px 14px;font-size:12px;letter-spacing:0;flex-shrink:0;" onclick="sendSmsCode()">获取验证码</button>
+        </div>
+        <div id="smsCode-err" class="error-msg"></div>
+      </div>
+      <button class="login-btn" id="smsLoginBtn" onclick="doSmsLogin()">登 录</button>
+    </div>
+
+    <!-- 人脸识别 -->
+    <div id="panel-face" class="login-panel">
+      <div style="text-align:center;padding:24px 0;">
+        <div style="width:120px;height:120px;border-radius:50%;border:2px dashed rgba(64,196,255,0.4);display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:60px;background:rgba(64,196,255,0.05);animation:facePulse 2s ease-in-out infinite;">👤</div>
+        <div style="font-size:14px;color:#a0cfff;margin-top:16px;">人脸识别功能</div>
+        <div style="font-size:12px;color:rgba(160,207,255,0.5);margin-top:8px;">请将面部对准摄像头</div>
+      </div>
+      <div class="alt-notice">📢 人脸识别功能暂未开放，请切换至<strong>密码登录</strong>方式</div>
+      <style>@keyframes facePulse{0%,100%{box-shadow:0 0 0 0 rgba(64,196,255,0.3);}50%{box-shadow:0 0 0 20px rgba(64,196,255,0);}}</style>
+    </div>
+
+    <!-- 指纹登录 -->
+    <div id="panel-finger" class="login-panel">
+      <div style="text-align:center;padding:24px 0;">
+        <div id="finger-icon" style="width:120px;height:120px;border-radius:50%;border:2px dashed rgba(123,97,255,0.4);display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:60px;background:rgba(123,97,255,0.05);animation:fingerPulse 2s ease-in-out infinite;transition:all 0.3s;">🖐</div>
+        <div id="finger-status" style="font-size:14px;color:#a0cfff;margin-top:16px;">指纹识别功能</div>
+        <div id="finger-hint" style="font-size:12px;color:rgba(160,207,255,0.5);margin-top:8px;">首次使用请先注册指纹</div>
+      </div>
+      <button class="login-btn" id="fingerRegisterBtn" onclick="doFingerprintRegister()" style="margin-top:8px;">
+        <span class="btn-text">注册指纹</span>
+      </button>
+      <button class="login-btn" id="fingerLoginBtn" onclick="doFingerprintLogin()" style="margin-top:8px;display:none;">
+        <span class="btn-text">使用指纹登录</span>
+      </button>
+      <div id="finger-result" style="margin-top:12px;font-size:12px;color:#40c4ff;display:none;"></div>
+      <style>@keyframes fingerPulse{0%,100%{box-shadow:0 0 0 0 rgba(123,97,255,0.3);}50%{box-shadow:0 0 0 20px rgba(123,97,255,0);}}.finger-scanning{animation:scanFinger 0.6s ease-in-out infinite alternate;}@keyframes scanFinger{from{border-color:rgba(123,97,255,0.4);background:rgba(123,97,255,0.05);}to{border-color:rgba(123,97,255,0.8);background:rgba(123,97,255,0.15);}}</style>
+    </div>
+
+    <!-- 令牌登录 -->
+    <div id="panel-token" class="login-panel">
+      <div class="form-group">
+        <label class="form-label">用户名</label>
+        <div style="position:relative;"><span class="input-icon-left">👤</span>
+          <input type="text" class="form-input has-left-icon" placeholder="请输入用户名">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">动态令牌</label>
+        <div style="position:relative;"><span class="input-icon-left">🔐</span>
+          <input type="text" class="form-input has-left-icon" placeholder="请输入6位动态令牌" maxlength="6" style="letter-spacing:4px;font-size:18px;">
+        </div>
+      </div>
+      <div class="alt-notice">📢 动态令牌功能暂未开放，请切换至<strong>密码登录</strong>方式</div>
+    </div>
+
+  </div><!-- /login-card -->
+
+  <div class="login-footer">
+    版权所有 © 2026 青川县庄子上工业园区 &nbsp;|&nbsp; v1.0.0
+  </div>
+</div>
+
+<!-- 加载遮罩 -->
+<div id="loading-mask">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">正在验证身份...</div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ===== 粒子背景 =====
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [], lines = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function createParticles(n) {
+    particles = [];
+    for (let i = 0; i < n; i++) {
+      particles.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.5 + 0.5,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        alpha: Math.random() * 0.5 + 0.2,
+        color: Math.random() > 0.5 ? '#40c4ff' : '#7b61ff'
+      });
+    }
+  }
+  createParticles(100);
+
+  function drawParticles() {
+    ctx.clearRect(0, 0, W, H);
+
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          const alpha = (1 - dist / 120) * 0.15;
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(64,196,255,${alpha})`;
+          ctx.lineWidth = 0.5;
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color + Math.floor(p.alpha * 255).toString(16).padStart(2, '0');
+      ctx.fill();
+
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+    });
+
+    ctx.strokeStyle = 'rgba(64,196,255,0.06)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) {
+      const cx = (W / 5) * i + W / 10;
+      const cy = H / 2;
+      const size = 60 + i * 20;
+      ctx.beginPath();
+      for (let a = 0; a < 6; a++) {
+        const angle = (Math.PI / 3) * a - Math.PI / 6;
+        const px = cx + size * Math.cos(angle);
+        const py = cy + size * Math.sin(angle);
+        a === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+})();
+
+// ===== 数字雨 =====
+(function() {
+  const container = document.getElementById('digit-rain-container');
+  const chars = '01智慧园区青川01产业 10数据0110服务01';
+  const columns = Math.floor(window.innerWidth / 80);
+  for (let i = 0; i < columns; i++) {
+    const el = document.createElement('div');
+    el.className = 'digit-rain';
+    el.style.left = (i * 80 + Math.random() * 40) + 'px';
+    el.style.animationDuration = (8 + Math.random() * 8) + 's';
+    el.style.animationDelay = (Math.random() * 10) + 's';
+    let text = '';
+    for (let j = 0; j < 20; j++) text += chars[Math.floor(Math.random() * chars.length)];
+    el.textContent = text;
+    container.appendChild(el);
+  }
+})();
+
+// ===== 登录方式切换 =====
+function switchMethod(method, btn) {
+  document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.login-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + method).classList.add('active');
+}
+
+// ===== 密码显示切换 =====
+function togglePassword() {
+  const pwd = document.getElementById('password');
+  const icon = document.getElementById('togglePwd');
+  if (pwd.type === 'password') {
+    pwd.type = 'text';
+    icon.textContent = '🔕';
+  } else {
+    pwd.type = 'password';
+    icon.textContent = '👁';
+  }
+}
+
+// ===== 登录验证 =====
+const USERS = {
+  'admin': { pass: 'admin123', name: '管理员' },
+  'jxly': { pass: 'jxly123', name: '佳兴铝业' }
+};
+let loginAttempts = 0;
+
+function doLogin() {
+  const uInput = document.getElementById('username');
+  const pInput = document.getElementById('password');
+  const uErr = document.getElementById('username-err');
+  const pErr = document.getElementById('password-err');
+
+  uInput.classList.remove('error');
+  pInput.classList.remove('error');
+  uErr.style.display = 'none';
+  pErr.style.display = 'none';
+
+  const u = uInput.value.trim();
+  const p = pInput.value;
+
+  let hasError = false;
+  if (!u) {
+    uInput.classList.add('error');
+    uErr.textContent = '用户名不能为空';
+    uErr.style.display = 'block';
+    hasError = true;
+  }
+  if (!p) {
+    pInput.classList.add('error');
+    pErr.textContent = '密码不能为空';
+    pErr.style.display = 'block';
+    hasError = true;
+  }
+  if (hasError) return;
+
+  const mask = document.getElementById('loading-mask');
+  mask.style.display = 'flex';
+
+  setTimeout(() => {
+    mask.style.display = 'none';
+
+    if (!USERS[u]) {
+      uInput.classList.add('error');
+      uErr.textContent = '用户名不存在，请检查后重试';
+      uErr.style.display = 'block';
+      loginAttempts++;
+      showToast2('登录失败：用户名不存在', 'error');
+      return;
+    }
+
+    if (p !== USERS[u].pass) {
+      pInput.classList.add('error');
+      pInput.value = '';
+      loginAttempts++;
+      if (loginAttempts >= 3) {
+        pErr.textContent = `密码错误！您已连续失败 ${loginAttempts} 次，请注意账号安全`;
+      } else {
+        pErr.textContent = '密码错误，请重新输入';
+      }
+      pErr.style.display = 'block';
+      showToast2('登录失败：密码错误', 'error');
+      return;
+    }
+
+    loginAttempts = 0;
+    if (document.getElementById('rememberMe').checked) {
+      localStorage.setItem('remembered_user', u);
+    }
+    sessionStorage.setItem('logged_in', '1');
+    sessionStorage.setItem('login_user', u);
+    sessionStorage.setItem('login_name', USERS[u].name);
+
+    // 记录登录日志（sendBeacon 保证页面跳转也不丢）
+    try {
+        var entry = JSON.stringify({
+            user: USERS[u].name, ua: navigator.userAgent.substring(0, 120),
+            event: '登录平台', detail: '用户 ' + USERS[u].name + ' 登录平台', page: '/login.html'
+        });
+        navigator.sendBeacon('/api/log', new Blob([entry], {type: 'application/json'}));
+    } catch(e){}
+    mask.style.display = 'flex';
+    mask.querySelector('.loading-text').textContent = '登录成功，正在跳转...';
+    showToast2('登录成功！欢迎回来，' + USERS[u].name, 'success');
+    setTimeout(() => { window.location.href = 'index.html?fromlogin=1'; }, 1200);
+  }, 1400);
+}
+
+// 记住用户名
+(function() {
+  const saved = localStorage.getItem('remembered_user');
+  if (saved) {
+    document.getElementById('username').value = saved;
+    document.getElementById('rememberMe').checked = true;
+  }
+})();
+
+// 回车登录
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    const activePanel = document.querySelector('.login-panel.active');
+    if (activePanel && activePanel.id === 'panel-password') doLogin();
+  }
+});
+
+// ===== Toast =====
+function showToast2(msg, type) {
+  const t = document.getElementById('toast');
+  const colors = { success: { bg: 'linear-gradient(135deg,#0d3320,#1a5c38)', border: '#4cd964', color: '#4cd964' }, error: { bg: 'linear-gradient(135deg,#3a0d0d,#5c1a1a)', border: '#ff4d4f', color: '#ff4d4f' }, warn: { bg: 'linear-gradient(135deg,#3a2500,#5c3c00)', border: '#ff9500', color: '#ff9500' } };
+  const c = colors[type] || colors.success;
+  t.style.background = c.bg;
+  t.style.border = `1px solid ${c.border}`;
+  t.style.color = c.color;
+  t.style.boxShadow = `0 4px 20px rgba(0,0,0,0.4)`;
+  t.textContent = msg;
+  t.style.display = 'block';
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => {
+    t.style.opacity = '0';
+    setTimeout(() => t.style.display = 'none', 300);
+  }, 3000);
+}
+</script>
+</body>
+</html>

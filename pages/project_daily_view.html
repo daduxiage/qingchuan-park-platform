@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>项目日报总览 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <style>
+.tag-draft{background:rgba(255,149,0,0.15);color:#ff9500;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600}
+.tag-submitted{background:rgba(76,217,100,0.15);color:#4cd964;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600}
+.alert-list{padding:0;list-style:none}
+.alert-list li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--split-color);font-size:13px;color:var(--text-secondary);justify-content:space-between;flex-wrap:wrap}
+.alert-list li:last-child{border-bottom:none}
+.alert-badge{background:rgba(255,77,79,0.15);color:#ff4d4f;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;white-space:nowrap}
+.alert-warn{background:rgba(255,149,0,0.15);color:#ff9500;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:600;white-space:nowrap}
+.stats-mini{display:flex;gap:8px;flex-wrap:wrap}
+.stats-mini span{font-size:11px;color:var(--text-tertiary)}
+.stats-mini b{color:var(--text-secondary)}
+@media(max-width:768px){.alert-list li{flex-direction:column;align-items:flex-start}}
+/* 浅色主题覆盖 */
+html.light-theme .tag-draft{background:rgba(250,140,22,0.1);color:#d46b08}
+html.light-theme .tag-submitted{background:rgba(82,196,26,0.1);color:#389e0d}
+html.light-theme .alert-badge{background:rgba(255,77,79,0.08);color:#cf1322}
+html.light-theme .alert-warn{background:rgba(250,140,22,0.08);color:#d46b08}
+html.light-theme .alert-list li{color:#4a6880}
+html.light-theme .stats-mini span{color:#6080a0}
+html.light-theme .stats-mini b{color:#1a2a4a}
+html.light-theme .toast{background:#fff !important;color:#1a2a4a !important;border-color:rgba(100,150,220,0.4) !important}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">加载中...</div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn" title="返回工作台"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>运营管理 / 项目日报总览</span></div>
+    </div>
+    <div class="page-header-right"></div>
+</div>
+
+<div class="page-body">
+
+<!-- KPI 统计卡片 -->
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-check-double"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#40c4ff" id="kpi_reported">--</div>
+            <div class="kpi-label">本周已上报</div>
+            <div class="kpi-trend" style="color:#40c4ff">应报 7 次</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-building"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#4cd964" id="kpi_projects">--</div>
+            <div class="kpi-label">在推项目数</div>
+            <div class="kpi-trend" style="color:#4cd964">正常推进</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-chart-pie"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#ff9500" id="kpi_rate">--</div>
+            <div class="kpi-label">总体投资完成率</div>
+            <div class="kpi-trend" style="color:#ff9500">累计投资 / 总投资</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,77,79,0.15);color:#ff4d4f"><i class="fa fa-clock"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#ff4d4f" id="kpi_overdue">--</div>
+            <div class="kpi-label">超时未报</div>
+            <div class="kpi-trend" style="color:#ff4d4f">需立即处理</div>
+        </div>
+    </div>
+</div>
+
+<!-- 图表行 -->
+<div class="chart-row chart-cols-2-1">
+    <div class="chart-box"><div class="chart-box-title">近7日投资进度趋势</div><div id="chart-invest" style="height:280px;"></div></div>
+    <div class="chart-box"><div class="chart-box-title">各项目工程量分布</div><div id="chart-pie" style="height:280px;"></div></div>
+</div>
+
+<!-- 日报日志列表 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa fa-list-alt" style="color:#40c4ff"></i> 日报日志列表</div>
+        <div class="card-toolbar">
+            <div class="toolbar-actions">
+                <input class="form-control" id="searchInput" placeholder="搜索项目名称..." style="width:200px;padding:6px 12px;font-size:12px" oninput="filterTable()">
+                <button class="btn btn-default" onclick="document.getElementById('searchInput').value='';filterTable()" style="font-size:12px">重置</button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="data-table" id="reportTable">
+                <thead><tr><th>日期</th><th>项目名称</th><th>填报人</th><th>新增工程量(D)</th><th>新增投资(G/万元)</th><th>累计投资(H/万元)</th><th>投资完成率</th><th>状态</th></tr></thead>
+                <tbody id="reportTbody"></tbody>
+            </table>
+        </div>
+        <div class="pagination"><span>共 0 条</span><div class="page-btns"></div></div>
+        <div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:12px" id="emptyMsg" style="display:none">暂无日报记录</div>
+    </div>
+</div>
+
+<!-- 超时告警 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa fa-bell" style="color:#ff4d4f"></i> 超时未报告警</div>
+        <div class="card-toolbar"><span style="font-size:12px;color:var(--text-tertiary)" id="alertCount">--</span></div>
+    </div>
+    <div class="card-body">
+        <ul class="alert-list" id="alertList"></ul>
+        <div id="alertEmpty" style="text-align:center;padding:20px;color:#4cd964;font-size:13px;display:none"><i class="fa fa-check-circle"></i> 所有项目均已按时上报</div>
+    </div>
+</div>
+
+</div>
+
+<script src="/pages/common.js">
+<script src="/pages/tracker.js"></script></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+window.clearCacheNow = async function() {
+    var results = []; var preserve = {};
+    ['logged_in','ss_theme'].forEach(function(k) { var v = localStorage.getItem(k); if(v) preserve[k]=v; });
+    var lsCount = localStorage.length; localStorage.clear();
+    Object.keys(preserve).forEach(function(k) { localStorage.setItem(k, preserve[k]); });
+    results.push('localStorage清除'+(lsCount-Object.keys(preserve).length)+'项');
+    if ('caches' in window) {
+        try { var ns = await caches.keys(); for(var i=0;i<ns.length;i++) await caches.delete(ns[i]); results.push('Cache清除'+ns.length+'个'); } catch(e){}
+    }
+    showToast('缓存清除完成！'+results.join(' | '),'warning',3000);
+};
+
+function createConfirmModal(title, content, onConfirm) {
+    var old = document.getElementById('__globalModal'); if (old) old.remove();
+    var overlay = document.createElement('div'); overlay.id = '__globalModal'; overlay.className = 'modal-overlay show';
+    overlay.innerHTML = '<div class="modal" style="width:420px"><div class="modal-header"><span class="modal-title">'+title+'</span><div class="modal-close" onclick="document.getElementById(\'__globalModal\').remove()">×</div></div><div class="modal-body" style="padding:20px 24px;font-size:14px;line-height:1.7">'+content+'</div><div class="modal-footer"><button class="btn btn-default" onclick="document.getElementById(\'__globalModal\').remove()">取消</button><button class="btn btn-primary" id="__confirmBtn">确认</button></div></div>';
+    document.body.appendChild(overlay);
+    document.getElementById('__confirmBtn').onclick = function() { document.getElementById('__globalModal').remove(); if (onConfirm) onConfirm(); };
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+}
+
+var todayStr=new Date().toISOString().slice(0,10);
+
+// 模拟初始数据（清空后初始化）
+function initMockData(){
+    var existing=JSON.parse(localStorage.getItem('project_daily_reports')||'[]');
+    if(existing.length>0) return existing;
+    var mock=[
+        {id:1,unit:'四川青川经济开发区管理委员会',person:'王治刚',date:'2026-05-07',project:'庄子产业园二期场平及基础设施配套建设项目',desc:'5号路人行道施工、8号地块精平',invest_total:39185,c:42.3,d:8.14,e:50.44,f:33020.91,g:8.14,h:33029.05,issue:'暂无重大困难',status:'submitted',created_at:'2026-05-07T16:00:00'},
+        {id:2,unit:'四川青川经济开发区管理委员会',person:'王治刚',date:'2026-05-06',project:'庄子产业园二期场平及基础设施配套建设项目',desc:'道路水稳层铺设',invest_total:39185,c:36.2,d:6.1,e:42.3,f:32995.31,g:25.6,h:33020.91,issue:'部分路段受降雨影响',status:'submitted',created_at:'2026-05-06T16:30:00'},
+        {id:3,unit:'四川青川经济开发区管理委员会',person:'李建平',date:'2026-05-07',project:'庄子产业园二期道路及管网工程',desc:'给水管网安装、电力管沟开挖',invest_total:8500,c:28.5,d:12.3,e:40.8,f:6200.5,g:45.2,h:6245.7,issue:'暂无',status:'submitted',created_at:'2026-05-07T15:00:00'},
+        {id:4,unit:'青川县住房和城乡建设局',person:'张明华',date:'2026-05-06',project:'庄子产业园二期道路及管网工程',desc:'道路路基施工',invest_total:8500,c:18.2,d:10.3,e:28.5,f:6140.3,g:60.2,h:6200.5,issue:'材料运输车辆临时调配',status:'submitted',created_at:'2026-05-06T16:00:00'},
+        {id:5,unit:'四川青川经济开发区管理委员会',person:'王治刚',date:'2026-05-05',project:'庄子产业园二期场平及基础设施配套建设项目',desc:'场地平整',invest_total:39185,c:24.1,d:12.1,e:36.2,f:32875.21,g:120.1,h:32995.31,issue:'暂无',status:'submitted',created_at:'2026-05-05T17:00:00'},
+        {id:6,unit:'四川青川经济开发区管理委员会',person:'王治刚',date:'2026-05-04',project:'庄子产业园二期场平及基础设施配套建设项目',desc:'前期准备、施工便道修筑',invest_total:39185,c:12.5,d:11.6,e:24.1,f:32785.21,g:90,h:32875.21,issue:'暂无',status:'submitted',created_at:'2026-05-04T16:20:00'},
+        {id:7,unit:'青川县交通运输局',person:'赵志强',date:'2026-05-05',project:'竹园镇地灾治理项目',desc:'挡土墙施工、截排水沟开挖',invest_total:3200,c:15.8,d:8.9,e:24.7,f:980.5,g:35.2,h:1015.7,issue:'地质条件复杂需调整方案',status:'submitted',created_at:'2026-05-05T15:40:00'},
+    ];
+    localStorage.setItem('project_daily_reports',JSON.stringify(mock));
+    return mock;
+}
+var reports=initMockData();
+
+// 计算KPI
+function calcKPIs(rpts){
+    var today=new Date();var weekAgo=new Date(today);weekAgo.setDate(today.getDate()-today.getDay()-1);
+    var weekReports=rpts.filter(function(r){return r.date>=weekAgo.toISOString().slice(0,10)&&r.status==='submitted'});
+    var projects=new Set(rpts.map(function(r){return r.project}));
+    // 项目总数
+    var allProjects=['庄子产业园二期场平及基础设施配套建设项目','庄子产业园二期道路及管网工程','竹园镇地灾治理项目','庄子上园区污水处理厂扩建'];
+    // 计算最新累计投资占比
+    var latestByProject={};rpts.forEach(function(r){if(r.status==='submitted'){if(!latestByProject[r.project]||r.date>latestByProject[r.project].date)latestByProject[r.project]=r}});
+    var totalInvest=0,totalComplete=0;
+    for(var k in latestByProject){totalInvest+=latestByProject[k].invest_total;totalComplete+=latestByProject[k].h;}
+    var rate=totalInvest>0?(totalComplete/totalInvest*100).toFixed(1):0;
+    // 超时判断：今天已填的项目
+    var todayReports=rpts.filter(function(r){return r.date===todayStr&&r.status==='submitted'}).map(function(r){return r.project});
+    var overdue=allProjects.filter(function(p){return todayReports.indexOf(p)===-1});
+    document.getElementById('kpi_reported').textContent=weekReports.length;
+    document.getElementById('kpi_projects').textContent=projects.size;
+    document.getElementById('kpi_rate').textContent=rate+'%';
+    document.getElementById('kpi_overdue').textContent=overdue.length;
+
+    // 告警列表
+    var alist=document.getElementById('alertList');
+    alist.innerHTML='';
+    if(overdue.length===0){document.getElementById('alertEmpty').style.display='block';document.getElementById('alertCount').textContent='0条';}
+    else{document.getElementById('alertEmpty').style.display='none';document.getElementById('alertCount').textContent=overdue.length+'条';
+        // 找这个项目最近一次上报的日期
+        overdue.forEach(function(p){
+            var lastReport=rpts.filter(function(r){return r.project===p&&r.status==='submitted'}).sort(function(a,b){return b.date.localeCompare(a.date)})[0];
+            var lastDate=lastReport?lastReport.date:'无记录';
+            var daysDiff=lastReport?Math.floor((new Date(todayStr)-new Date(lastDate))/(86400000)):999;
+            var badgeClass=daysDiff>3?'alert-badge':'alert-warn';
+            alist.innerHTML+='<li><div><i class="fa fa-folder" style="color:var(--text-tertiary);margin-right:6px"></i><b>'+p+'</b><div class="stats-mini"><span>上次上报：'+lastDate+'</span><span>已逾期 <b>'+(daysDiff>3?daysDiff+'天':'今天')+'</b></span></div></div><span class="'+badgeClass+'">'+(daysDiff>3?'严重超时':'今日未报')+'</span></li>';
+        });
+    }
+}
+
+// 渲染图表
+function renderCharts(rpts){
+    var sorted=[].concat(rpts).filter(function(r){return r.status==='submitted'}).sort(function(a,b){return a.date.localeCompare(b.date)});
+
+    // 折线图：近7日投资趋势
+    var days=[];var now=new Date();
+    for(var i=6;i>=0;i--){var d=new Date(now);d.setDate(d.getDate()-i);var ds=d.toISOString().slice(0,10);days.push(ds.slice(5))}
+
+    var dailyH={},dailyG={};
+    days.forEach(function(d){var full='2026-'+d;dailyH[full]=null;dailyG[full]=null});
+    // 取每天最新一条
+    sorted.forEach(function(r){dailyH[r.date]=r.h;dailyG[r.date]=r.g});
+
+    var c1=echarts.init(document.getElementById('chart-invest'));
+    c1.setOption({animation:true,tooltip:{trigger:'axis'},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:10},data:['累计投资(H)','新增投资(G)']},xAxis:{type:'category',data:days,axisLabel:{color:'#a0cfff',fontSize:11},axisLine:{lineStyle:{color:'#2b68e0'}}},yAxis:{type:'value',axisLabel:{color:'#a0cfff',fontSize:11},splitLine:{lineStyle:{color:'rgba(43,104,224,0.2)'}}},grid:{left:60,right:10,top:20,bottom:40},series:[
+        {name:'累计投资(H)',type:'line',smooth:true,data:days.map(function(d){return dailyH['2026-'+d]}),lineStyle:{color:'#40c4ff',width:2},areaStyle:{color:'rgba(64,196,255,0.1)'},symbol:'circle',symbolSize:4,itemStyle:{color:'#40c4ff'}},
+        {name:'新增投资(G)',type:'bar',data:days.map(function(d){return dailyG['2026-'+d]}),barWidth:16,itemStyle:{color:'rgba(76,217,100,0.6)',borderRadius:[4,4,0,0]}}
+    ]});
+
+    // 饼图：各项目工程量分布
+    var projMap={};sorted.forEach(function(r){if(!projMap[r.project])projMap[r.project]=0;projMap[r.project]+=r.e});
+    var pieData=[];var colors=['#40c4ff','#4cd964','#ff9500','#7b61ff'];
+    for(var k in projMap)pieData.push({value:projMap[k],name:k});
+    var c2=echarts.init(document.getElementById('chart-pie'));
+    c2.setOption({animation:true,tooltip:{trigger:'item'},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:10}},series:[{type:'pie',radius:['40%','65%'],data:pieData,itemStyle:{color:function(p){return colors[p.dataIndex%colors.length]}},label:{color:'#a0cfff',fontSize:10},animationType:'scale'}]});
+
+    window.addEventListener('resize',function(){c1.resize();c2.resize();});
+}
+
+// 渲染表格
+function renderTable(rpts){
+    var tbody=document.getElementById('reportTbody');
+    var sorted=[].concat(rpts).sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id});
+    tbody.innerHTML='';
+    if(sorted.length===0){document.getElementById('emptyMsg').style.display='block';return;}
+    document.getElementById('emptyMsg').style.display='none';
+    sorted.forEach(function(r){
+        var rate=r.invest_total>0?(r.h/r.invest_total*100).toFixed(1):0;
+        tbody.innerHTML+='<tr data-search="'+r.project+r.person+r.date+'"><td>'+r.date+'</td><td>'+r.project+'</td><td>'+r.person+'</td><td>'+r.d.toFixed(2)+'</td><td>'+r.g.toFixed(2)+'</td><td style="color:#40c4ff;font-weight:600">'+r.h.toFixed(2)+'</td><td>'+(rate>80?'<span style="color:#4cd964">':'<span style="color:#ff9500">')+rate+'%</span></td><td>'+(r.status==='submitted'?'<span class="tag-submitted">已上报</span>':'<span class="tag-draft">草稿</span>')+'</td></tr>';
+    });
+}
+
+function filterTable(){
+    var kw=document.getElementById('searchInput').value.trim().toLowerCase();
+    document.querySelectorAll('#reportTbody tr').forEach(function(tr){tr.style.display=kw?tr.textContent.toLowerCase().indexOf(kw)>-1?'':'none':''});
+}
+
+function showToast(msg,type,duration){
+    duration = duration || 3000;
+    var container=document.getElementById('toastContainer');var t=document.createElement('div');
+    t.className='toast toast-'+(type||'success');
+    t.innerHTML='<i class="fa fa-'+(type==='success'?'check-circle':'info-circle')+'"></i> '+msg;
+    t.style.cssText='padding:10px 20px;border-radius:6px;margin-bottom:8px;background:linear-gradient(135deg,rgba(16,24,56,0.95),rgba(22,41,105,0.95));border:1px solid rgba(43,104,224,0.4);color:#a0cfff;font-size:13px;display:flex;align-items:center;gap:8px;animation:slideIn 0.3s ease';
+    container.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(function(){t.remove()},300)},3000);
+}
+
+setInterval(function(){var n=new Date();var p=function(x){return String(x).padStart(2,'0')};var el=document.getElementById('pageTime');if(el)el.textContent=n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate())+' '+p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds())},1000);
+
+window.addEventListener('DOMContentLoaded',function(){
+    var data=JSON.parse(localStorage.getItem('project_daily_reports')||'[]');
+    if(data.length===0)data=initMockData();
+    calcKPIs(data);renderCharts(data);renderTable(data);
+    setTimeout(initPaginations,300);
+});
+
+// ===== 通用分页 =====
+(function() {
+    var PAGE_SIZE = 10;
+    function initPaginations() {
+        document.querySelectorAll('.card').forEach(function(card) {
+            var table = card.querySelector('.data-table tbody');
+            var pagination = card.querySelector('.pagination');
+            if (!table || !pagination) return;
+            var rows = Array.from(table.querySelectorAll('tr'));
+            if (rows.length === 0) return;
+            var infoSpan = pagination.querySelector('span:first-child');
+            var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+            function renderPage(page) {
+                var start = (page - 1) * PAGE_SIZE;
+                var end = Math.min(start + PAGE_SIZE, rows.length);
+                rows.forEach(function(row, i) { row.style.display = (i >= start && i < end) ? '' : 'none'; });
+                infoSpan.textContent = '共 ' + rows.length + ' 条  第' + (start + 1) + '-' + end + '条';
+                updateBtns(page, totalPages, pagination);
+            }
+            function updateBtns(page, total, pagi) {var btnsDiv = pagi.querySelector('.page-btns'); if (!btnsDiv) return; btnsDiv.innerHTML = '';var prev = document.createElement('div'); prev.className = 'page-btn' + (page <= 1 ? ' disabled' : ''); prev.textContent = '«'; prev.style.cursor = page <= 1 ? 'default' : 'pointer'; prev.style.opacity = page <= 1 ? '0.4' : '1';if (page > 1) prev.onclick = function() { renderPage(page-1); };btnsDiv.appendChild(prev);var startP = Math.max(1, page-2); var endP = Math.min(total, startP+4); if (endP - startP < 4) startP = Math.max(1, endP-4);for (var p = startP; p <= endP; p++) {(function(pp) { var btn = document.createElement('div'); btn.className = 'page-btn' + (pp === page ? ' active' : ''); btn.textContent = pp; btn.onclick = function() { renderPage(pp); }; btnsDiv.appendChild(btn); })(p);}var next = document.createElement('div'); next.className = 'page-btn' + (page >= total ? ' disabled' : ''); next.textContent = '»'; next.style.cursor = page >= total ? 'default' : 'pointer'; next.style.opacity = page >= total ? '0.4' : '1';if (page < total) next.onclick = function() { renderPage(page+1); };btnsDiv.appendChild(next);}
+            renderPage(1);
+        });
+    }
+    window.initPaginations = initPaginations;
+})();
+</script>
+</body>
+</html>

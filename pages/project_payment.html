@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目支付 - 青川县庄子上工业园区智慧园区平台</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+</head>
+<body>
+<script>
+// ===== 主题初始化（从 localStorage 恢复） =====
+(function(){
+    if(localStorage.getItem('ss_theme')==='light'){
+        document.documentElement.classList.add('light-theme');
+    }
+})();
+</script>
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">项目支付 · 加载中...</div></div>
+<script>window.addEventListener('load',()=>{const m=document.getElementById('loadingMask');if(m){m.classList.add('hide');setTimeout(()=>m.style.display='none',500);}});</script>
+<div class="toast-container" id="toastContainer"></div>
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn" title="返回工作台"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>数字化办公 / 项目支付</span></div>
+    </div>
+    <div class="page-header-right"><div id="pageTime" style="font-size:13px;color:var(--text-primary)"></div></div>
+</div>
+<div class="page-body">
+
+<!-- KPI -->
+<div class="kpi-row kpi-cols-5">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-project-diagram"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#40c4ff">12</div><div class="kpi-label">进行中项目</div><div class="kpi-trend" style="color:#40c4ff">3个近截止</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-file-invoice-dollar"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#ff9500">9</div><div class="kpi-label">待审批付款</div><div class="kpi-trend" style="color:#ff9500">需及时处理</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-yen-sign"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#4cd964">186万</div><div class="kpi-label">本月已付款</div><div class="kpi-trend" style="color:#4cd964">6笔</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-coins"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#7b61ff">1,250万</div><div class="kpi-label">年度付款总额</div><div class="kpi-trend" style="color:#a0cfff">完成率62%</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,77,79,0.15);color:#ff4d4f"><i class="fa fa-exclamation-circle"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#ff4d4f">2</div><div class="kpi-label">超期未付款</div><div class="kpi-trend" style="color:#ff4d4f">需立即处理</div></div>
+    </div>
+</div>
+
+<!-- 图表 -->
+<div class="chart-row chart-cols-2-1">
+    <div class="chart-box">
+        <div class="chart-box-title">📈 近6月项目支付金额趋势</div>
+        <div id="chart-pay-trend" style="height:240px;"></div>
+    </div>
+    <div class="chart-box">
+        <div class="chart-box-title">🥧 项目类型分布</div>
+        <div id="chart-pay-type" style="height:240px;"></div>
+    </div>
+</div>
+
+<!-- 查询 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><div class="card-title-icon" style="background:rgba(64,196,255,0.2);color:#40c4ff"><i class="fa fa-search"></i></div>付款查询</div>
+        <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+            <button class="btn btn-success" data-action="add"><i class="fa fa-plus"></i> 新增付款申请</button>
+            <button class="btn btn-default"><i class="fa fa-download"></i> 导出</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="form-row">
+            <div class="form-item"><div class="form-label">项目名称</div><input class="form-control" placeholder="请输入项目名称..."></div>
+            <div class="form-item"><div class="form-label">收款单位</div><input class="form-control" placeholder="请输入收款单位..."></div>
+            <div class="form-item"><div class="form-label">项目类型</div>
+                <select class="form-control"><option>全部类型</option><option>系统建设</option><option>设备采购</option><option>服务外包</option><option>基础设施</option></select>
+            </div>
+            <div class="form-item"><div class="form-label">申请日期</div><input class="form-control" type="date"></div>
+            <div class="form-item"><div class="form-label">审批状态</div>
+                <select class="form-control"><option>全部状态</option><option>待审批</option><option>审批中</option><option>已批准</option><option>已打款</option><option>已拒绝</option></select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 列表 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><div class="card-title-icon" style="background:rgba(64,196,255,0.2);color:#40c4ff">💳</div>项目付款列表</div>
+        <span style="font-size:12px;color:var(--text-tertiary)">共 68 条</span>
+    </div>
+    <div class="card-body" style="padding:0">
+        <table class="data-table">
+            <thead><tr>
+                <th style="width:38px;text-align:center"><input type="checkbox" id="__cb_all" style="cursor:pointer"></th>
+                <th>申请编号</th><th>项目名称</th><th>类型</th><th>收款单位</th><th>金额(万元)</th><th>付款节点</th><th>申请日期</th><th>审批流</th><th>状态</th><th>操作</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>ZF-2026-0023</td><td>智慧监管平台升级</td><td>系统建设</td><td>成都科技有限公司</td><td>45</td><td>里程碑3-验收款</td><td>2026-03-15</td><td>3级审批</td><td><span class="status-tag status-stopped">待审批</span></td><td><button class="btn btn-primary" style="padding:4px 10px;font-size:12px">审批</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>ZF-2026-0022</td><td>GPS终端设备采购</td><td>设备采购</td><td>北京华为终端有限公司</td><td>28.6</td><td>首付款50%</td><td>2026-03-12</td><td>2级审批</td><td><span class="status-tag status-stopped">审批中</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>ZF-2026-0020</td><td>数据运维服务</td><td>服务外包</td><td>四川云计算股份公司</td><td>12</td><td>季度服务费</td><td>2026-03-08</td><td>2级审批</td><td><span class="status-tag status-running">已打款</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>ZF-2026-0018</td><td>机房扩容改造</td><td>基础设施</td><td>成都基建建设公司</td><td>58</td><td>工程款80%</td><td>2026-02-28</td><td>3级审批</td><td><span class="status-tag status-running">已批准</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>ZF-2025-0098</td><td>安全等级保护测评</td><td>服务外包</td><td>四川信安测评机构</td><td>8.5</td><td>全额付款</td><td>2026-01-15</td><td>2级审批</td><td><span class="status-tag status-closed">已拒绝</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination"><span>共 68 条记录</span><div class="page-btns"></div></div>
+</div>
+
+</div>
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+    const months = ['10月','11月','12月','1月','2月','3月'];
+    const c1 = echarts.init(document.getElementById('chart-pay-trend'));
+    c1.setOption({animation:true,tooltip:{trigger:'axis',formatter:'{b}: {c}万元'},xAxis:{type:'category',data:months,axisLabel:{color:'#a0cfff',fontSize:11},axisLine:{lineStyle:{color:'#2b68e0'}}},yAxis:{type:'value',axisLabel:{color:'#a0cfff',fontSize:10,formatter:'{value}万'},splitLine:{lineStyle:{color:'rgba(43,104,224,0.2)'}}},grid:{left:50,right:15,top:20,bottom:30},series:[{type:'bar',data:[120,180,95,220,156,186],itemStyle:{color:p=>p.dataIndex===5?'#40c4ff':'rgba(64,196,255,0.5)',borderRadius:[4,4,0,0]},name:'付款金额'}]});
+    const c2 = echarts.init(document.getElementById('chart-pay-type'));
+    c2.setOption({animation:true,tooltip:{trigger:'item'},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:10}},series:[{type:'pie',radius:['40%','65%'],data:[{value:580,name:'系统建设'},{value:320,name:'设备采购'},{value:245,name:'服务外包'},{value:105,name:'基础设施'}],itemStyle:{color:p=>['#40c4ff','#7b61ff','#4cd964','#ff9500'][p.dataIndex]},label:{color:'#a0cfff',fontSize:10},animationType:'scale'}]});
+});
+</script>
+<script>
+// ===== ECharts 浅色主题动态适配 =====
+(function() {
+    function getChartThemeOpts(isLight) {
+        return {
+            axisLabelColor: isLight ? '#4a6880' : '#a0cfff',
+            splitLineColor: isLight ? 'rgba(100,150,220,0.15)' : 'rgba(43,104,224,0.2)',
+            legendColor:    isLight ? '#4a6880' : '#a0cfff',
+            tooltipBg:      isLight ? '#fff' : 'rgba(10,16,36,0.95)',
+            tooltipBorder:  isLight ? 'rgba(100,150,220,0.4)' : 'rgba(43,104,224,0.5)',
+            tooltipColor:   isLight ? '#1a2a4a' : '#e0f0ff',
+        };
+    }
+    function applyChartTheme(isLight) {
+        if (typeof echarts === 'undefined') return;
+        var opts = getChartThemeOpts(isLight);
+        document.querySelectorAll('[_echarts_instance_],[data-chart],div[id]').forEach(function(el) {
+            try {
+                var inst = echarts.getInstanceByDom(el);
+                if (!inst) return;
+                var option = inst.getOption();
+                var changed = false;
+                if (option.xAxis) option.xAxis.forEach(function(ax) {
+                    if (ax.axisLabel) { ax.axisLabel.color = opts.axisLabelColor; changed=true; }
+                    if (ax.axisLine && ax.axisLine.lineStyle) { ax.axisLine.lineStyle.color = opts.splitLineColor; changed=true; }
+                });
+                if (option.yAxis) option.yAxis.forEach(function(ax) {
+                    if (ax.axisLabel) { ax.axisLabel.color = opts.axisLabelColor; changed=true; }
+                    if (ax.splitLine && ax.splitLine.lineStyle) { ax.splitLine.lineStyle.color = opts.splitLineColor; changed=true; }
+                });
+                if (option.legend) option.legend.forEach(function(lg) {
+                    if (lg.textStyle) { lg.textStyle.color = opts.legendColor; changed=true; }
+                });
+                if (option.series) option.series.forEach(function(s) {
+                    if (s.label && s.label.color) { s.label.color = opts.axisLabelColor; changed=true; }
+                });
+                if (option.tooltip) option.tooltip.forEach(function(tp) {
+                    tp.backgroundColor = opts.tooltipBg;
+                    tp.borderColor = opts.tooltipBorder;
+                    if (tp.textStyle) tp.textStyle.color = opts.tooltipColor;
+                    changed=true;
+                });
+                if (changed) inst.setOption(option, false);
+            } catch(e) {}
+        });
+    }
+    window.addEventListener('load', function() {
+        var isLight = document.documentElement.classList.contains('light-theme');
+        if (isLight) setTimeout(function() { applyChartTheme(true); }, 300);
+    });
+    window._applyChartTheme = applyChartTheme;
+})();
+</script>
+<script>
+// ===== 初始化时同步菜单颜色 =====
+(function() {
+    var isLt = document.documentElement.classList.contains('light-theme');
+    function syncMenuColors(isLight) {
+        document.querySelectorAll('.menu-item').forEach(function(item) {
+            if (item.classList.contains('active')) {
+                item.style.color = isLight ? '#1677ff' : '#40c4ff';
+                item.style.background = isLight ? 'rgba(22,119,255,0.08)' : 'rgba(64,196,255,0.1)';
+            } else {
+                item.style.color = isLight ? '#4a6880' : '#a0cfff';
+                item.style.background = '';
+            }
+        });
+        var panel = document.getElementById('panelContent');
+        if (panel) panel.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+        var menuBox = document.getElementById('menuItems');
+        if (menuBox) menuBox.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+        var sideBar = menuBox ? menuBox.closest('[style*="border-radius:8px"]') : null;
+        if (sideBar) {
+            sideBar.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+            sideBar.style.borderColor = isLight ? 'rgba(100,150,220,0.35)' : 'rgba(43,104,224,0.4)';
+        }
+    }
+    if (isLt) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { syncMenuColors(true); });
+        } else { syncMenuColors(true); }
+    }
+    window._syncMenuColors = syncMenuColors;
+})();
+
+// ===== 深度内联样式主题同步 =====
+(function() {
+    var DARK_BG = ['linear-gradient(135deg,#101838','linear-gradient(135deg, #101838',
+        'linear-gradient(135deg,#0d1a3a','linear-gradient(135deg, #0d1a3a',
+        'rgba(10,20,50','rgba(10,16,36','rgba(16,24,56','#101838','#0a1024','#162969','#0d1b3e'];
+    var DARK_CLR = ['color:#a0cfff','color: #a0cfff','color:#40c4ff','color: #40c4ff','color:#80bfff','color: #80bfff'];
+    function applyInlineTheme(isLight) {
+        if (!isLight) return;
+        document.querySelectorAll('[style]').forEach(function(el) {
+            var s = el.getAttribute('style') || '';
+            if (el.closest('.page-header') || el.closest('.leaflet-container')) return;
+            var hasDarkBg  = DARK_BG.some(function(p){return s.includes(p);});
+            var hasDarkClr = DARK_CLR.some(function(p){return s.includes(p);});
+            if (hasDarkBg) {
+                if (s.includes('rgba(10,20,50')||s.includes('rgba(10,16,36')||s.includes('rgba(16,24,56')) {
+                    var tag = el.tagName.toLowerCase();
+                    if (tag==='input'||tag==='select'||tag==='textarea') {
+                        el.style.background='#fff'; el.style.color='#1a2a4a'; el.style.borderColor='rgba(100,150,220,0.5)';
+                    } else { el.style.background='rgba(255,255,255,0.85)'; }
+                } else if (s.includes('#101838')||s.includes('linear-gradient(135deg,#101838')||s.includes('linear-gradient(135deg, #101838')) {
+                    el.style.background='linear-gradient(135deg,#fff,#f5f8ff)';
+                    el.style.borderColor='rgba(100,150,220,0.35)';
+                } else if (s.includes('linear-gradient(135deg,#0d1a3a')||s.includes('linear-gradient(135deg, #0d1a3a')) {
+                    el.style.background='#f0f6ff';
+                }
+            }
+            if (hasDarkClr) {
+                if (s.includes('color:#a0cfff')||s.includes('color: #a0cfff')) el.style.color='#4a6880';
+                else if (s.includes('color:#40c4ff')||s.includes('color: #40c4ff')) el.style.color='#1677ff';
+                else if (s.includes('color:#80bfff')||s.includes('color: #80bfff')) el.style.color='#5a7a9a';
+            }
+        });
+        document.querySelectorAll('.notice-switch,.config-row,.param-row').forEach(function(el){
+            el.style.borderColor='rgba(100,150,220,0.2)';
+        });
+    }
+    window._applyInlineTheme = applyInlineTheme;
+    var isLt = document.documentElement.classList.contains('light-theme');
+    if (isLt) {
+        if (document.readyState==='loading') {
+            document.addEventListener('DOMContentLoaded', function(){applyInlineTheme(true);});
+        } else { setTimeout(function(){applyInlineTheme(true);},50); }
+    }
+})();
+</script>
+<script src="common.js?v=20260315"></script>
+</body>
+</html>

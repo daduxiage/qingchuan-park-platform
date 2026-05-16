@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>三方接入 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+    <link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script defer src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="/pages/tracker.js"></script>
+    <style>
+.chart-row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px}
+.status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.status-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:16px;display:flex;align-items:center;gap:12px;transition:all .3s}
+.status-card .sc-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.status-card .sc-body{flex:1;min-width:0}
+.status-card .sc-value{font-size:22px;font-weight:700;line-height:1.2}
+.status-card .sc-label{font-size:11px;color:var(--text-tertiary);margin-top:2px}
+.status-card .sc-spark{width:60px;height:30px;flex-shrink:0}
+.tag-active{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-warning{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-error{background:rgba(255,77,79,0.12);color:#ff4d4f;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.filter-row .form-control{min-width:120px;width:auto;flex:0 0 auto}
+.data-table td{white-space:nowrap}
+.export-options{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.export-option{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--split-color);border-radius:8px;cursor:pointer;transition:all .2s;background:transparent}
+.export-option:hover{border-color:#40c4ff;background:rgba(64,196,255,0.06)}
+.export-option.selected{border-color:#40c4ff;background:rgba(64,196,255,0.1)}
+.export-option-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.export-option-icon.excel{background:rgba(76,175,80,0.15);color:#4caf50}
+.export-option-icon.pdf{background:rgba(244,67,54,0.15);color:#f44336}
+.export-option-icon.word{background:rgba(33,150,243,0.15);color:#2196f3}
+.export-option-body{flex:1}
+.export-option-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.export-option-desc{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+.export-option-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--split-color);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.export-option.selected .export-option-check{border-color:#40c4ff;background:#40c4ff}
+.export-option.selected .export-option-check::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+@media(max-width:900px){.status-grid{grid-template-columns:repeat(2,1fr)}.chart-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">三方接入 · 加载中...</div></div>
+<div class="page-header"><div class="page-header-left"><a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a><div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>三方接入</span></div></div><div class="page-header-right"></div></div>
+<div class="page-body">
+
+<!-- 实时趋势+实时请求速率 -->
+<div class="chart-row">
+    <div class="chart-box"><div class="chart-box-title">实时接入调用趋势</div><div id="chartTrend" class="chart-canvas" style="height:280px;"></div></div>
+    <div class="chart-box"><div class="chart-box-title">实时请求速率 (RPS)</div><div id="chartRPS" class="chart-canvas" style="height:280px;"></div></div>
+</div>
+
+<!-- 接口状态卡片 -->
+<div class="status-grid" id="statusGrid"></div>
+
+<!-- 接口列表 -->
+<div class="card">
+    <div class="card-header"><div class="card-title"><i class="fa fa-plug" style="color:#40c4ff"></i> 接口列表</div>
+        <div class="card-toolbar"><div class="toolbar-actions">
+            <button class="btn btn-default" onclick="resetFilters()">重置</button>
+            <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+            <button class="btn btn-success" onclick="openExportModal()"><i class="fa fa-download"></i> 导出</button>
+        </div></div>
+    </div>
+    <div class="card-body">
+        <div class="filter-row">
+            <input class="form-control" placeholder="搜索接口..." id="fKeyword">
+            <select class="form-control" id="fType"><option value="">全部类型</option></select>
+            <input class="form-control" type="date" id="fDate" title="接入时间">
+        </div>
+        <div class="table-wrap"><table class="data-table" id="apiTable">
+            <thead><tr>
+                <th style="width:110px">单号</th><th>接口名称</th><th>接口地址</th><th style="width:100px">接入时间</th>
+                <th>认证方式</th><th style="width:75px">有效性</th><th style="width:170px">操作</th>
+            </tr></thead><tbody id="apiTbody"></tbody></table></div>
+        <div class="pagination"><span>共 0 条</span><div class="page-btns"></div></div>
+    </div>
+</div>
+
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="detailModal"><div class="modal" style="width:560px"><div class="modal-header"><span class="modal-title"><i class="fa fa-info-circle" style="color:#7b61ff;margin-right:6px"></i>接口详情</span><div class="modal-close" onclick="closeDetailModal()">×</div></div><div class="modal-body" id="detailBody" style="padding:20px 24px;font-size:14px;line-height:1.8"></div><div class="modal-footer"><button class="btn btn-default" onclick="closeDetailModal()">关闭</button></div></div></div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal"><div class="modal" style="width:440px"><div class="modal-header"><span class="modal-title"><i class="fa fa-download" style="color:#40c4ff;margin-right:6px"></i>导出数据</span><div class="modal-close" onclick="closeExportModal()">×</div></div><div class="modal-body"><div class="export-options"><div class="export-option selected" onclick="selectExport(this,'excel')"><div class="export-option-icon excel"><i class="fa fa-file-excel"></i></div><div class="export-option-body"><div class="export-option-title">Excel</div><div class="export-option-desc">.xlsx</div></div><div class="export-option-check"></div></div><div class="export-option" onclick="selectExport(this,'pdf')"><div class="export-option-icon pdf"><i class="fa fa-file-pdf"></i></div><div class="export-option-body"><div class="export-option-title">PDF</div><div class="export-option-desc">.pdf</div></div><div class="export-option-check"></div></div><div class="export-option" onclick="selectExport(this,'word')"><div class="export-option-icon word"><i class="fa fa-file-word"></i></div><div class="export-option-body"><div class="export-option-title">Word</div><div class="export-option-desc">.doc</div></div><div class="export-option-check"></div></div></div></div><div class="modal-footer"><button class="btn btn-default" onclick="closeExportModal()">取消</button><button class="btn btn-primary" onclick="doExport()"><i class="fa fa-download"></i> 导出</button></div></div></div>
+
+<script src="/pages/common.js"></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+var apis=[], filtered=[], PAGE_SIZE=15, exportFormat='excel';
+var _chart1=null,_chart2=null,_trendData=[],_rpsData=[],_timer=null;
+function genSN(){return 'API'+new Date().getFullYear()+String(Math.floor(Math.random()*9000+1000));}
+
+function seedData(){
+    if(apis.length)return;
+    var items=[
+        {name:'MySQL主数据库',url:'jdbc:mysql://192.168.100.10:3306/park_db',time:'2024-06-15',auth:'JDBC/root',health:'正常',type:'关系型数据库'},
+        {name:'Oracle ERP',url:'jdbc:oracle:thin:@10.0.1.50:1521/ERP',time:'2024-08-20',auth:'JDBC/erp_admin',health:'正常',type:'关系型数据库'},
+        {name:'MongoDB日志库',url:'mongodb://10.0.2.30:27017/logs',time:'2024-09-10',auth:'SCRAM/mongo_user',health:'正常',type:'NoSQL数据库'},
+        {name:'Redis缓存',url:'redis://10.0.2.40:6379/0',time:'2024-11-05',auth:'AuthToken/redis_token',health:'告警',type:'NoSQL数据库'},
+        {name:'ES搜索服务',url:'http://10.0.3.20:9200/',time:'2025-01-15',auth:'APIKey/es_key_2025',health:'正常',type:'NoSQL数据库'},
+        {name:'阿里云OSS文件',url:'https://oss-cn-chengdu.aliyuncs.com/park-data/',time:'2025-02-20',auth:'AccessKey/LTAI5txxx',health:'正常',type:'文件型数据'},
+        {name:'SFTP报表同步',url:'sftp://10.0.4.10:22/reports/',time:'2025-03-01',auth:'密钥对/finance_rsa',health:'正常',type:'文件型数据'},
+        {name:'钉钉开放平台',url:'https://oapi.dingtalk.com/',time:'2025-03-15',auth:'AppKey/dingxxx',health:'正常',type:'Web API'},
+        {name:'企业微信',url:'https://qyapi.weixin.qq.com/',time:'2025-04-01',auth:'CorpID/Secret',health:'正常',type:'Web API'},
+        {name:'Kafka消息队列',url:'kafka://10.0.5.10:9092/park-events',time:'2025-04-20',auth:'SASL/kafka_user',health:'告警',type:'消息队列'},
+        {name:'RabbitMQ任务',url:'amqp://10.0.5.20:5672/park_tasks',time:'2025-05-10',auth:'AMQP/mqtt_user',health:'正常',type:'消息队列'},
+        {name:'IoT设备网关-MQTT',url:'mqtt://10.0.6.10:1883/devices',time:'2025-06-01',auth:'ClientCert/iot_gateway',health:'正常',type:'IoT设备数据'},
+    ];
+    items.forEach(function(it,i){
+        apis.push({sn:'API2025'+String(i+1).padStart(4,'0'),name:it.name,url:it.url,time:it.time,auth:it.auth,health:it.health,type:it.type,id:i});
+    });
+    filtered=apis.map(function(_,i){return i;});
+}
+
+function healthTag(s){return s==='正常'?'<span class="tag-active">正常</span>':s==='告警'?'<span class="tag-warning">告警</span>':'<span class="tag-error">异常</span>';}
+
+// ===== 实时状态卡片 =====
+function initStatusCards(){
+    var grid=document.getElementById('statusGrid');
+    var cards=[
+        {icon:'fa-exclamation-triangle',cls:'rgba(255,77,79,0.15)',color:'#ff4d4f',label:'服务异常',id:'scAlert',value:'0'},
+        {icon:'fa-tachometer-alt',cls:'rgba(64,196,255,0.15)',color:'#40c4ff',label:'实时请求速率',id:'scRPS',value:'0 req/s'},
+        {icon:'fa-clock',cls:'rgba(76,217,100,0.15)',color:'#4cd964',label:'实时响应时间',id:'scLatency',value:'0 ms'},
+        {icon:'fa-chart-bar',cls:'rgba(123,97,255,0.15)',color:'#7b61ff',label:'累计调用',id:'scTotal',value:'0'},
+        {icon:'fa-cloud-upload-alt',cls:'rgba(0,194,184,0.15)',color:'#00c2b8',label:'API传输总量',id:'scData',value:'0 MB'},
+        {icon:'fa-bug',cls:'rgba(255,149,0,0.15)',color:'#ff9500',label:'错误数',id:'scError',value:'0'},
+        {icon:'fa-stream',cls:'rgba(255,126,179,0.15)',color:'#ff7eb3',label:'实时消息队列',id:'scMQ',value:'0 msg/s'},
+        {icon:'fa-layer-group',cls:'rgba(100,200,255,0.15)',color:'#64c8ff',label:'队列中',id:'scQueued',value:'0'},
+    ];
+    cards.forEach(function(c){
+        var d=document.createElement('div');d.className='status-card';
+        d.innerHTML='<div class="sc-icon" style="background:'+c.cls+';color:'+c.color+'"><i class="fa '+c.icon+'"></i></div><div class="sc-body"><div class="sc-value" style="color:'+c.color+'" id="'+c.id+'">'+c.value+'</div><div class="sc-label">'+c.label+'</div></div>';
+        grid.appendChild(d);
+    });
+}
+
+function updateStatusCards(){
+    var rps=Math.floor(Math.random()*500+800);
+    var latency=Math.floor(Math.random()*40+15);
+    var total=Math.floor(Math.random()*50000+120000);
+    var data=Math.floor(Math.random()*100+50);
+    var errs=Math.floor(Math.random()*8);
+    var mq=Math.floor(Math.random()*300+200);
+    var queued=Math.floor(Math.random()*50+10);
+    var alert=errs>5?1:0;
+    setVal('scAlert',String(alert));setVal('scRPS',rps+' req/s');setVal('scLatency',latency+' ms');
+    setVal('scTotal',total.toLocaleString());setVal('scData',data+' GB');setVal('scError',String(errs));
+    setVal('scMQ',mq+' msg/s');setVal('scQueued',String(queued));
+}
+function setVal(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+
+// ===== ECharts =====
+function initCharts(){
+    if(typeof echarts==='undefined'){setTimeout(initCharts,300);return;}
+    var tc=getCssVar('--text-primary');
+    // 初始化30个数据点
+    for(var i=0;i<30;i++){_trendData.push(Math.floor(Math.random()*600+400));_rpsData.push(Math.floor(Math.random()*300+500));}
+
+    _chart1=echarts.init(document.getElementById('chartTrend'));
+    _chart2=echarts.init(document.getElementById('chartRPS'));
+    updateCharts(tc);
+}
+
+function updateCharts(tc){
+    tc=tc||getCssVar('--text-primary');
+    var now=new Date();var times=[];
+    for(var i=29;i>=0;i--){var t=new Date(now.getTime()-(now.getTime()%5000)-i*5000);times.push(String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')+':'+String(t.getSeconds()).padStart(2,'0'));}
+
+    _chart1.setOption({tooltip:{trigger:'axis'},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:11}},xAxis:{type:'category',data:times,axisLabel:{color:tc,fontSize:9,rotate:30},axisLine:{lineStyle:{color:'#40c4ff'}}},yAxis:{axisLabel:{color:tc,fontSize:10},splitLine:{lineStyle:{color:'rgba(64,196,255,0.15)'}}},grid:{left:42,right:10,top:10,bottom:38},series:[{name:'调用量',type:'line',smooth:true,data:_trendData,lineStyle:{color:'#40c4ff',width:2},areaStyle:{color:'rgba(64,196,255,0.12)'},symbol:'none'}]});
+
+    _chart2.setOption({tooltip:{trigger:'axis'},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:11}},xAxis:{type:'category',data:times,axisLabel:{color:tc,fontSize:9,rotate:30},axisLine:{lineStyle:{color:'#4cd964'}}},yAxis:{axisLabel:{color:tc,fontSize:10},splitLine:{lineStyle:{color:'rgba(76,217,100,0.15)'}}},grid:{left:42,right:10,top:10,bottom:38},series:[{name:'RPS',type:'line',smooth:true,data:_rpsData,lineStyle:{color:'#4cd964',width:2},areaStyle:{color:'rgba(76,217,100,0.1)'},symbol:'none'}]});
+}
+
+function startRealtime(){
+    _timer=setInterval(function(){
+        _trendData.push(Math.floor(Math.random()*400+300));
+        _rpsData.push(Math.floor(Math.random()*200+400));
+        if(_trendData.length>30){_trendData.shift();_rpsData.shift();}
+        updateCharts();updateStatusCards();
+    },5000);
+}
+
+// ===== 表格 =====
+function renderTable(){
+    var tbody=document.getElementById('apiTbody'),frag=document.createDocumentFragment();
+    filtered.forEach(function(idx){
+        var b=apis[idx],tr=document.createElement('tr');
+        tr.innerHTML='<td>'+b.sn+'</td><td><b>'+b.name+'</b></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-family:monospace">'+b.url+'</td><td>'+b.time+'</td><td style="font-size:12px">'+b.auth+'</td><td>'+healthTag(b.health)+'</td><td></td>';
+        var tdA=tr.lastChild;
+        addBtn(tdA,'详情',idx,function(i){showDetail(i);});
+        addBtn(tdA,'编辑',idx,function(i){showDetail(i);});
+        addBtn(tdA,'删除',idx,function(i){var n=apis[i].name;if(confirm('确定删除接口「'+n+'」吗？')){apis.splice(i,1);filtered=apis.map(function(_,i2){return i2;});renderTable();showToast('已删除','success');}},true);
+        frag.appendChild(tr);
+    });
+    tbody.innerHTML='';tbody.appendChild(frag);
+    if(typeof initPagination==='function')initPagination();
+}
+function addBtn(parent,text,idx,fn,isDanger){
+    if(parent.children.length)parent.appendChild(document.createTextNode(' '));
+    var btn=document.createElement('button');btn.className='btn btn-'+(isDanger?'danger':'default');btn.style.cssText='padding:3px 8px;font-size:11px';
+    btn.textContent=text;btn.dataset.deleteInited='1';btn.setAttribute('onclick','('+fn.toString()+')('+idx+')');parent.appendChild(btn);
+}
+
+function showDetail(i){
+    var b=apis[i];if(!b){showToast('数据加载失败','warning');return;}
+    var body=document.getElementById('detailBody');
+    body.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px">'+
+        '<div><b style="color:var(--text-secondary)">单号：</b>'+b.sn+'</div>'+
+        '<div><b style="color:var(--text-secondary)">接口名称：</b>'+b.name+'</div>'+
+        '<div><b style="color:var(--text-secondary)">接入类型：</b>'+b.type+'</div>'+
+        '<div><b style="color:var(--text-secondary)">有效性：</b>'+healthTag(b.health)+'</div>'+
+        '<div><b style="color:var(--text-secondary)">接入时间：</b>'+b.time+'</div>'+
+        '<div><b style="color:var(--text-secondary)">认证方式：</b>'+b.auth+'</div>'+
+        '</div>'+
+        '<div style="margin-top:14px"><b style="color:var(--text-secondary)">接口地址：</b></div>'+
+        '<div style="margin-top:6px;padding:12px;background:rgba(64,196,255,0.06);border-radius:6px;line-height:1.7;font-size:12px;border-left:3px solid #40c4ff;font-family:monospace;word-break:break-all">'+b.url+'</div>';
+    document.getElementById('detailModal').classList.add('show');
+}
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('show');}
+
+// 筛选
+function filterTable(){
+    var kw=(document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var ft=document.getElementById('fType').value.trim();
+    var fd=document.getElementById('fDate').value;
+    filtered=[];apis.forEach(function(a,i){var t=(a.sn+' '+a.name+' '+a.url+' '+a.type+' '+a.auth).toLowerCase();if((!kw||t.indexOf(kw)>-1)&&(!ft||a.type===ft)&&(!fd||a.time>=fd))filtered.push(i);});
+    renderTable();
+}
+function resetFilters(){['fKeyword','fType','fDate'].forEach(function(id){document.getElementById(id).value='';});filtered=apis.map(function(_,i){return i;});renderTable();showToast('筛选已重置','info');}
+
+var initPagination=(function(){return function(){
+    document.querySelectorAll('.card').forEach(function(card){
+        var table=card.querySelector('.data-table tbody'),pagi=card.querySelector('.pagination');if(!table||!pagi)return;
+        var rows=Array.from(table.querySelectorAll('tr'));if(!rows.length)return;
+        var info=pagi.querySelector('span:first-child'),tp=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+        function rp(p){var s=(p-1)*PAGE_SIZE,e=Math.min(s+PAGE_SIZE,rows.length);rows.forEach(function(r,i){r.style.display=(i>=s&&i<e)?'':'none';});info.textContent='共 '+rows.length+' 条  第'+(s+1)+'-'+e+'条';ub(p,tp,pagi);}
+        function ub(p,t,pgi){var bd=pgi.querySelector('.page-btns');if(!bd)return;bd.innerHTML='';var prev=document.createElement('div');prev.className='page-btn'+(p<=1?' disabled':'');prev.textContent='\u00AB';if(p>1)prev.onclick=function(){rp(p-1);};bd.appendChild(prev);var sp=Math.max(1,p-2),ep=Math.min(t,sp+4);if(ep-sp<4)sp=Math.max(1,ep-4);for(var pp=sp;pp<=ep;pp++){(function(pp){var btn=document.createElement('div');btn.className='page-btn'+(pp===p?' active':'');btn.textContent=pp;btn.onclick=function(){rp(pp);};bd.appendChild(btn);})(pp);}var next=document.createElement('div');next.className='page-btn'+(p>=t?' disabled':'');next.textContent='\u00BB';if(p<t)next.onclick=function(){rp(p+1);};bd.appendChild(next);}
+        rp(1);
+    });
+};})();
+
+function openExportModal(){document.getElementById('exportModal').classList.add('show');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('show');}
+function selectExport(el,fmt){exportFormat=fmt;document.querySelectorAll('.export-option').forEach(function(o){o.classList.remove('selected');});el.classList.add('selected');}
+function doExport(){
+    var data=apis.map(function(b){return{单号:b.sn,接口名称:b.name,接口地址:b.url,接入时间:b.time,认证方式:b.auth,有效性:b.health,类型:b.type};});
+    var fn='三方接入_'+new Date().toISOString().slice(0,10);
+    try{
+        if(exportFormat==='excel'){var ws=XLSX.utils.json_to_sheet(data);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'接口');XLSX.writeFile(wb,fn+'.xlsx');}
+        else if(exportFormat==='pdf'){var w=window.open('','_blank');w.document.write('<html><head><meta charset="utf-8"><title>接口</title><style>body{font-family:"Microsoft YaHei",sans-serif;padding:20px;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:5px}th{background:#40c4ff;color:#fff}</style></head><body><h2>接口列表</h2><table><thead><tr><th>单号</th><th>名称</th><th>类型</th><th>有效性</th></tr></thead><tbody>');data.forEach(function(r){w.document.write('<tr><td>'+r['单号']+'</td><td>'+r['接口名称']+'</td><td>'+r['类型']+'</td><td>'+r['有效性']+'</td></tr>');});w.document.write('</tbody></table></body></html>');w.document.close();setTimeout(function(){w.print();setTimeout(function(){w.close();},500);},300);}
+        else if(exportFormat==='word'){var html='<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body><h2>接口列表</h2><table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:11px;width:100%"><tr style="background:#40c4ff;color:#fff"><th>单号</th><th>名称</th><th>类型</th><th>有效性</th></tr>';data.forEach(function(r){html+='<tr><td>'+r['单号']+'</td><td>'+r['接口名称']+'</td><td>'+r['类型']+'</td><td>'+r['有效性']+'</td></tr>';});html+='</table></body></html>';var blob=new Blob(['\uFEFF'+html],{type:'application/msword'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn+'.doc';document.body.appendChild(a);a.click();a.remove();}
+        showToast('导出成功','success');
+    }catch(e){showToast('导出失败:'+e.message,'warning');}
+    closeExportModal();
+}
+
+window.addEventListener('DOMContentLoaded',function(){
+    seedData();initStatusCards();updateStatusCards();initCharts();startRealtime();
+    document.querySelector('.btn-search').addEventListener('click',filterTable);
+    renderTable();
+});
+window.addEventListener('pagehide',function(){if(_timer)clearInterval(_timer);if(_chart1){_chart1.dispose();_chart1=null;}if(_chart2){_chart2.dispose();_chart2=null;}});
+</script>
+</body>
+</html>

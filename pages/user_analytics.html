@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>用户分析 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+    <link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script defer src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="/pages/tracker.js"></script>
+    <style>
+.tag-login{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-logout{background:rgba(255,77,79,0.12);color:#ff4d4f;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-page{background:rgba(64,196,255,0.12);color:#40c4ff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-click{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+html.light-theme .tag-login{background:rgba(82,196,26,0.08);color:#389e0d}
+html.light-theme .tag-logout{background:rgba(255,77,79,0.08);color:#cf1322}
+html.light-theme .tag-page{background:rgba(22,119,255,0.08);color:#1677ff}
+html.light-theme .tag-click{background:rgba(250,140,22,0.08);color:#d46b08}
+.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.filter-row .form-control{min-width:120px;width:auto;flex:0 0 auto}
+.filter-row select.form-control{text-align:center;text-align-last:center;appearance:none;-webkit-appearance:none;background:#0a1024 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23a0cfff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:32px}
+.filter-row select.form-control option{text-align:center;direction:ltr}
+.data-table td{white-space:nowrap}
+.data-table td .detail-cell{display:inline-block;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.export-options{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.export-option{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--split-color);border-radius:8px;cursor:pointer;transition:all .2s;background:transparent}
+.export-option:hover{border-color:#40c4ff;background:rgba(64,196,255,0.06)}
+.export-option.selected{border-color:#40c4ff;background:rgba(64,196,255,0.1)}
+.export-option-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.export-option-icon.excel{background:rgba(76,175,80,0.15);color:#4caf50}
+.export-option-icon.pdf{background:rgba(244,67,54,0.15);color:#f44336}
+.export-option-icon.word{background:rgba(33,150,243,0.15);color:#2196f3}
+.export-option-body{flex:1}
+.export-option-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.export-option-desc{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+.export-option-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--split-color);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.export-option.selected .export-option-check{border-color:#40c4ff;background:#40c4ff}
+.export-option.selected .export-option-check::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">用户分析 · 加载中...</div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>数据中心 / 用户分析</span></div>
+    </div>
+    <div class="page-header-right"></div>
+</div>
+
+<div class="page-body">
+
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-users"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#40c4ff" id="kpiTotal">0</div>
+            <div class="kpi-label">总操作事件数</div>
+            <div class="kpi-trend" style="color:#40c4ff">全平台追踪</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-sign-in-alt"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#4cd964" id="kpiLogin">0</div>
+            <div class="kpi-label">登录次数</div>
+            <div class="kpi-trend" style="color:#4cd964" id="kpiLoginTrend"></div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-mouse-pointer"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#7b61ff" id="kpiClick">0</div>
+            <div class="kpi-label">模块点击数</div>
+            <div class="kpi-trend" style="color:#7b61ff">本月活跃模块</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(0,194,184,0.15);color:#00c2b8"><i class="fa fa-globe"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#00c2b8" id="kpiUnique">0</div>
+            <div class="kpi-label">活跃用户数</div>
+            <div class="kpi-trend" style="color:#00c2b8">近14天统计</div>
+        </div>
+    </div>
+</div>
+
+<div class="chart-row chart-cols-2-1">
+    <div class="chart-box"><div class="chart-box-title">登录用户趋势（近14天）</div><div id="chartLine" class="chart-canvas" style="height:300px;"></div></div>
+    <div class="chart-box"><div class="chart-box-title">用户活跃分布</div><div id="chartPie" class="chart-canvas" style="height:300px;"></div></div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa fa-list-alt" style="color:#40c4ff"></i> 操作事件列表</div>
+        <div class="card-toolbar">
+            <div class="toolbar-actions">
+                <button class="btn btn-default" onclick="resetFilters()">重置</button>
+                <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+                <button class="btn btn-success" onclick="openExportModal()"><i class="fa fa-download"></i> 导出</button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="filter-row">
+            <input class="form-control" placeholder="搜索用户/事件..." id="fKeyword">
+            <select class="form-control" id="fUser"><option value="">全部用户</option></select>
+            <select class="form-control" id="fEvent"><option value="">全部事件类型</option></select>
+            <input class="form-control" type="date" id="fDate" title="操作时间">
+        </div>
+        <div class="table-wrap">
+            <table class="data-table" id="eventTable">
+                <thead><tr>
+                    <th style="width:38px;text-align:center"><input type="checkbox" id="__cb_all" style="cursor:pointer" title="全选/反选"></th>
+                    <th style="width:140px">操作时间</th>
+                    <th style="width:80px">用户名</th>
+                    <th style="width:120px">登录IP</th>
+                    <th>事件类型</th>
+                    <th style="width:80px">操作</th>
+                </tr></thead>
+                <tbody id="eventTbody"></tbody>
+            </table>
+        </div>
+        <div class="pagination"><span>共 0 条</span><div class="page-btns"></div></div>
+    </div>
+</div>
+
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal">
+    <div class="modal" style="width:440px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-download" style="color:#40c4ff;margin-right:6px"></i>导出事件数据</span>
+            <div class="modal-close" onclick="closeExportModal()">×</div>
+        </div>
+        <div class="modal-body">
+            <div class="export-options">
+                <div class="export-option selected" onclick="selectExportFormat(this,'excel')" data-format="excel">
+                    <div class="export-option-icon excel"><i class="fa fa-file-excel"></i></div>
+                    <div class="export-option-body"><div class="export-option-title">Excel 文件</div><div class="export-option-desc">导出为 .xlsx 格式</div></div>
+                    <div class="export-option-check"></div>
+                </div>
+                <div class="export-option" onclick="selectExportFormat(this,'pdf')" data-format="pdf">
+                    <div class="export-option-icon pdf"><i class="fa fa-file-pdf"></i></div>
+                    <div class="export-option-body"><div class="export-option-title">PDF 文件</div><div class="export-option-desc">导出为 .pdf 格式</div></div>
+                    <div class="export-option-check"></div>
+                </div>
+                <div class="export-option" onclick="selectExportFormat(this,'word')" data-format="word">
+                    <div class="export-option-icon word"><i class="fa fa-file-word"></i></div>
+                    <div class="export-option-body"><div class="export-option-title">Word 文件</div><div class="export-option-desc">导出为 .doc 格式</div></div>
+                    <div class="export-option-check"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeExportModal()">取消</button>
+            <button class="btn btn-primary" onclick="doExport()"><i class="fa fa-download"></i> 导出</button>
+        </div>
+    </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal" style="width:520px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-info-circle" style="color:#40c4ff;margin-right:6px"></i>事件详情</span>
+            <div class="modal-close" onclick="closeDetailModal()">×</div>
+        </div>
+        <div class="modal-body" id="detailBody" style="padding:20px 24px;font-size:14px;line-height:1.8"></div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeDetailModal()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<script src="/pages/common.js"></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+function showToast(msg,type,duration){
+    duration = duration || 3000;
+    var container=document.getElementById('toastContainer');var t=document.createElement('div');
+    t.style.cssText='padding:10px 20px;border-radius:6px;margin-bottom:8px;background:linear-gradient(135deg,rgba(16,24,56,0.95),rgba(22,41,105,0.95));border:1px solid rgba(43,104,224,0.4);color:#a0cfff;font-size:13px;display:flex;align-items:center;gap:8px;animation:slideIn 0.3s ease';
+    t.innerHTML='<i class="fa fa-'+(type==='success'?'check-circle':type==='warning'?'exclamation-triangle':'info-circle')+'"></i> '+msg;
+    container.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(function(){t.remove()},300)},duration);
+}
+
+// ========== 数据加载 ==========
+var events = [];
+var filteredEvents = [];
+
+function loadEvents(){
+    _PageTracker.getAllEvents(function(data){
+        events = data;
+        events.sort(function(a,b){ return new Date(b.time) - new Date(a.time); });
+        // 去重
+        var seen = {};
+        for(var i=events.length-1;i>=0;i--){
+            if(!seen[events[i].id]){ seen[events[i].id]=1; }
+            else { events.splice(i,1); }
+        }
+        filteredEvents = events.map(function(_,i){ return i; });
+        renderTable();
+        updateKPIs();
+        initCharts();
+        initFilters();
+    });
+}
+
+function initFilters(){
+    var userSel = document.getElementById('fUser');
+    var users = {};
+    events.forEach(function(e){ if(!users[e.user]){ users[e.user]=1; var o=document.createElement('option'); o.textContent=e.user; userSel.appendChild(o); } });
+}
+
+function eventTag(s){
+    if(s.indexOf('登录')>-1) return '<span class="tag-login">登录平台</span>';
+    if(s.indexOf('登出')>-1) return '<span class="tag-logout">登出平台</span>';
+    if(s.indexOf('页面')>-1) return '<span class="tag-page">页面访问</span>';
+    return '<span class="tag-click">模块点击</span>';
+}
+
+function formatTime(t){
+    var d = new Date(t);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+}
+
+function renderTable(){
+    var tbody = document.getElementById('eventTbody');
+    var frag = document.createDocumentFragment();
+    filteredEvents.forEach(function(idx){
+        var b = events[idx];
+        var tr = document.createElement('tr');
+
+        var td0 = document.createElement('td'); td0.style.textAlign='center';
+        var cb = document.createElement('input'); cb.type='checkbox'; cb.className='row-cb'; cb.style.cursor='pointer';
+        td0.appendChild(cb); tr.appendChild(td0);
+
+        var tdTime = document.createElement('td'); tdTime.style.cssText='font-size:12px;white-space:nowrap'; tdTime.textContent=formatTime(b.time); tr.appendChild(tdTime);
+        var tdUser = document.createElement('td'); tdUser.style.textAlign='center'; tdUser.textContent=b.user; tr.appendChild(tdUser);
+        var tdIP = document.createElement('td'); tdIP.style.cssText='text-align:center;font-size:12px;white-space:nowrap'; tdIP.textContent=b.ip||'--'; tr.appendChild(tdIP);
+        var tdEvt = document.createElement('td'); tdEvt.innerHTML=eventTag(b.event)+' <span style="font-size:12px;color:var(--text-tertiary)">'+b.detail+'</span>'; tr.appendChild(tdEvt);
+
+        var tdA = document.createElement('td');
+        var btnDetail = document.createElement('button'); btnDetail.className='btn btn-default'; btnDetail.style.cssText='padding:3px 8px;font-size:11px';
+        btnDetail.textContent='详情'; btnDetail.dataset.deleteInited='1';
+        btnDetail.setAttribute('onclick','showDetail('+idx+')'); tdA.appendChild(btnDetail);
+        tr.appendChild(tdA);
+        frag.appendChild(tr);
+    });
+    tbody.innerHTML=''; tbody.appendChild(frag);
+    if(typeof initPagination==='function') initPagination();
+}
+
+function showDetail(i){
+    var b = events[i];
+    if(!b){showToast('数据加载失败','warning');return;}
+    var body = document.getElementById('detailBody');
+    if(!body){showToast('弹窗加载失败','warning');return;}
+    body.innerHTML=
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px">'+
+        '<div><b style="color:var(--text-secondary)">事件类型：</b>'+eventTag(b.event)+'</div>'+
+        '<div><b style="color:var(--text-secondary)">用户名：</b>'+b.user+'</div>'+
+        '<div><b style="color:var(--text-secondary)">操作时间：</b>'+formatTime(b.time)+'</div>'+
+        '<div><b style="color:var(--text-secondary)">登录IP：</b>'+(b.ip||'--')+'</div>'+
+        '<div><b style="color:var(--text-secondary)">来源页面：</b>'+(b.page||'--')+'</div>'+
+        '</div>'+
+        '<div style="margin-top:14px"><b style="color:var(--text-secondary)">事件详情：</b></div>'+
+        '<div style="margin-top:6px;padding:12px;background:rgba(64,196,255,0.06);border-radius:6px;line-height:1.7;font-size:13px;border-left:3px solid #40c4ff">'+(b.detail||'--')+'</div>'+
+        '<div style="margin-top:10px;font-size:11px;color:var(--text-tertiary)">设备信息: '+(b.ua||'--')+'</div>';
+    document.getElementById('detailModal').classList.add('show');
+}
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('show');}
+
+function filterTable(){
+    var fKeyword = (document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var fUser = document.getElementById('fUser').value.replace(/[ ]/g,'').trim();
+    var fEvent = document.getElementById('fEvent').value.replace(/[ ]/g,'').trim();
+    var fDate = document.getElementById('fDate').value;
+    filteredEvents = [];
+    for(var i=0;i<events.length;i++){
+        var b = events[i];
+        var t = [b.user,b.event,b.detail,b.time].join(' ').toLowerCase();
+        if((!fKeyword||t.indexOf(fKeyword)>-1)&&(!fUser||b.user.indexOf(fUser)>-1)&&(!fEvent||b.event.indexOf(fEvent)>-1)&&(!fDate||b.time.indexOf(fDate)>-1)){
+            filteredEvents.push(i);
+        }
+    }
+    renderTable();
+}
+
+function resetFilters(){
+    ['fKeyword','fUser','fEvent','fDate'].forEach(function(id){document.getElementById(id).value='';});
+    filteredEvents = events.map(function(_,i){return i;});
+    renderTable();
+    showToast('筛选条件已重置','info');
+}
+
+function updateKPIs(){
+    document.getElementById('kpiTotal').textContent = events.length;
+    var loginCount = events.filter(function(e){return e.event.indexOf('登录')>-1}).length;
+    document.getElementById('kpiLogin').textContent = loginCount;
+    var clickCount = events.filter(function(e){return e.event==='模块点击'}).length;
+    document.getElementById('kpiClick').textContent = clickCount;
+    var users = {}; events.forEach(function(e){users[e.user]=1;});
+    document.getElementById('kpiUnique').textContent = Object.keys(users).length;
+}
+
+// ========== ECharts ==========
+var _chart1=null,_chart2=null,_rzFn=null;
+function getCssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||'#a0cfff';}
+function initCharts(){
+    if(typeof echarts==='undefined'){setTimeout(initCharts,300);return;}
+    if(_chart1) { try{_chart1.dispose()}catch(e){} }
+
+    var textColor = getCssVar('--text-primary');
+    var isNarrow = window.innerWidth < 900;
+    var gridLeft = isNarrow ? 35 : 42, gridBottom = isNarrow ? 42 : 38, fontSize = isNarrow ? 9 : 11;
+
+    // 近14天登录趋势
+    var days = [], counts = [];
+    var now = new Date();
+    for(var d=13;d>=0;d--){
+        var dt = new Date(now); dt.setDate(dt.getDate()-d);
+        days.push((dt.getMonth()+1)+'-'+dt.getDate());
+        counts.push(0);
+    }
+    events.forEach(function(e){
+        var ed = new Date(e.time);
+        for(var i=0;i<14;i++){
+            var cd = new Date(now); cd.setDate(cd.getDate()-(13-i));
+            if(ed.toDateString()===cd.toDateString() && e.event.indexOf('登录')>-1){ counts[i]++; break; }
+        }
+    });
+
+    _chart1=echarts.init(document.getElementById('chartLine'));
+    document.getElementById('chartLine').style.display = ''; // 确保可见
+    _chart1.setOption({animation:true,tooltip:{trigger:'axis',textStyle:{color:textColor}},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:fontSize},data:['登录用户数']},xAxis:{type:'category',boundaryGap:false,data:days,axisLabel:{color:textColor,fontSize:fontSize},axisLine:{lineStyle:{color:'#40c4ff'}}},yAxis:{type:'value',axisLabel:{color:textColor,fontSize:fontSize},splitLine:{lineStyle:{color:'rgba(64,196,255,0.2)'}}},grid:{left:gridLeft,right:10,top:10,bottom:gridBottom},series:[{name:'登录用户数',type:'line',smooth:true,data:counts,lineStyle:{color:'#40c4ff',width:2},areaStyle:{color:'rgba(64,196,255,0.1)'},symbol:'circle',symbolSize:4,itemStyle:{color:'#40c4ff'}}]});
+
+    // 用户活跃分布饼图
+    var userMap = {};
+    events.forEach(function(e){ userMap[e.user] = (userMap[e.user]||0) + 1; });
+    var pieData = [];
+    for(var u in userMap) pieData.push({value:userMap[u],name:u});
+    if(pieData.length===0) pieData = [{value:1,name:'暂无数据'}];
+
+    _chart2=echarts.init(document.getElementById('chartPie'));
+    _chart2.setOption({animation:true,tooltip:{trigger:'item',textStyle:{color:textColor}},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:fontSize},itemWidth:12,itemHeight:12},series:[{type:'pie',radius:['35%','55%'],center:['50%','45%'],data:pieData,itemStyle:{color:function(p){return['#40c4ff','#4cd964','#7b61ff','#ff9500','#00c2b8','#ff7eb3'][p.dataIndex%6]}},label:{color:textColor,fontSize:fontSize},animationType:'scale'}]});
+
+    _rzFn=function(){
+        var isNarrow = window.innerWidth < 900;
+        var gridLeft = isNarrow ? 35 : 42, gridBottom = isNarrow ? 42 : 38, fontSize = isNarrow ? 9 : 11;
+        _chart1&&_chart1.resize(); _chart2&&_chart2.resize();
+        _chart1&&_chart1.setOption({grid:{left:gridLeft,right:10,top:10,bottom:gridBottom},xAxis:{axisLabel:{fontSize:fontSize}},yAxis:{axisLabel:{fontSize:fontSize}},legend:{textStyle:{fontSize:fontSize}}});
+        _chart2&&_chart2.setOption({legend:{textStyle:{fontSize:fontSize},itemWidth:12,itemHeight:12},series:[{label:{fontSize:fontSize}}]});
+    };
+    window.addEventListener('resize',_rzFn);
+}
+
+window.addEventListener('pagehide',function(){if(_rzFn)window.removeEventListener('resize',_rzFn);if(_chart1){_chart1.dispose();_chart1=null;}if(_chart2){_chart2.dispose();_chart2=null;}});
+window.addEventListener('pageshow',function(e){if(e.persisted&&!_chart1)initCharts();});
+
+// ========== 分页 ==========
+var initPagination=(function(){
+    var PAGE_SIZE=15;
+    return function initPagination(){
+        document.querySelectorAll('.card').forEach(function(card){
+            var table=card.querySelector('.data-table tbody');
+            var pagination=card.querySelector('.pagination');
+            if(!table||!pagination)return;
+            var rows=Array.from(table.querySelectorAll('tr'));
+            if(rows.length===0)return;
+            var infoSpan=pagination.querySelector('span:first-child');
+            var totalPages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+            function renderPage(page){
+                var start=(page-1)*PAGE_SIZE,end=Math.min(start+PAGE_SIZE,rows.length);
+                rows.forEach(function(r,i){r.style.display=(i>=start&&i<end)?'':'none';});
+                infoSpan.textContent='共 '+rows.length+' 条  第'+(start+1)+'-'+end+'条';
+                updateBtns(page,totalPages,pagination);
+            }
+            function updateBtns(page,total,pagi){
+                var bd=pagi.querySelector('.page-btns');if(!bd)return;bd.innerHTML='';
+                var prev=document.createElement('div');prev.className='page-btn'+(page<=1?' disabled':'');prev.textContent='\u00AB';prev.style.cssText='cursor:'+(page<=1?'default':'pointer')+';opacity:'+(page<=1?'0.4':'1');
+                if(page>1)prev.onclick=function(){renderPage(page-1);};bd.appendChild(prev);
+                var sp=Math.max(1,page-2),ep=Math.min(total,sp+4);if(ep-sp<4)sp=Math.max(1,ep-4);
+                for(var p=sp;p<=ep;p++){(function(pp){var btn=document.createElement('div');btn.className='page-btn'+(pp===page?' active':'');btn.textContent=pp;btn.onclick=function(){renderPage(pp);};bd.appendChild(btn);})(p);}
+                var next=document.createElement('div');next.className='page-btn'+(page>=total?' disabled':'');next.textContent='\u00BB';next.style.cssText='cursor:'+(page>=total?'default':'pointer')+';opacity:'+(page>=total?'0.4':'1');
+                if(page<total)next.onclick=function(){renderPage(page+1);};bd.appendChild(next);
+            }
+            renderPage(1);
+        });
+    };
+})();
+
+// ========== 导出 ==========
+var exportFormat='excel';
+function openExportModal(){document.getElementById('exportModal').classList.add('show');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('show');}
+function selectExportFormat(el,fmt){ exportFormat=fmt;document.querySelectorAll('.export-option').forEach(function(o){o.classList.remove('selected');});el.classList.add('selected'); }
+function doExport(){
+    var data = events.map(function(b){return{'操作时间':formatTime(b.time),'用户名':b.user,'登录IP':b.ip||'--','事件类型':b.event,'事件详情':b.detail};});
+    var fname = '用户分析日志_'+new Date().toISOString().slice(0,10);
+    try{
+        if(exportFormat==='excel'){var ws=XLSX.utils.json_to_sheet(data);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'日志');XLSX.writeFile(wb,fname+'.xlsx');}
+        else if(exportFormat==='pdf'){var w=window.open('','_blank');w.document.write('<html><head><meta charset="utf-8"><title>日志</title><style>body{font-family:"Microsoft YaHei",sans-serif;padding:20px}table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #ccc;padding:5px}th{background:#40c4ff;color:#fff}</style></head><body><h2>操作事件日志</h2><table><thead><tr><th>操作时间</th><th>用户名</th><th>登录IP</th><th>事件类型</th><th>事件详情</th></tr></thead><tbody>');data.forEach(function(r){w.document.write('<tr><td>'+r['操作时间']+'</td><td>'+r['用户名']+'</td><td>'+r['登录IP']+'</td><td>'+r['事件类型']+'</td><td>'+r['事件详情']+'</td></tr>');});w.document.write('</tbody></table></body></html>');w.document.close();setTimeout(function(){w.print();setTimeout(function(){w.close();},500);},300);}
+        else if(exportFormat==='word'){var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>日志</title></head><body><h2>操作事件日志</h2><table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:11px;width:100%"><tr style="background:#40c4ff;color:#fff"><th>操作时间</th><th>用户名</th><th>登录IP</th><th>事件类型</th><th>事件详情</th></tr>';data.forEach(function(r){html+='<tr><td>'+r['操作时间']+'</td><td>'+r['用户名']+'</td><td>'+r['登录IP']+'</td><td>'+r['事件类型']+'</td><td>'+r['事件详情']+'</td></tr>';});html+='</table></body></html>';var blob=new Blob(['\uFEFF'+html],{type:'application/msword'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname+'.doc';document.body.appendChild(a);a.click();a.remove();}
+        showToast('导出成功！','success');
+    }catch(e){showToast('导出失败：'+e.message,'warning');}
+    closeExportModal();
+}
+
+// ========== 初始化 ==========
+window.addEventListener('DOMContentLoaded',function(){
+    loadEvents();
+    document.querySelector('.btn-search').addEventListener('click',filterTable);
+});
+</script>
+</body>
+</html>

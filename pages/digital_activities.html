@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字化活动 - 青川县庄子上工业园区智慧园区平台</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        body { background: var(--bg-primary); }
+        .page-hero { background: linear-gradient(135deg, #101838, #162969); border-radius: 12px; padding: 32px; margin-bottom: 24px; border: 1px solid var(--border-color); }
+        .page-hero h1 { font-size: 24px; color: var(--secondary-color-2); margin-bottom: 8px; }
+        .page-hero p { color: var(--text-secondary); font-size: 14px; }
+        .activity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        .activity-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
+        .activity-img { height: 120px; background: linear-gradient(135deg, #2b68e0, #7b61ff); display: flex; align-items: center; justify-content: center; font-size: 40px; }
+        .activity-info { padding: 16px; }
+        .activity-info h4 { font-size: 14px; color: var(--text-primary); margin-bottom: 6px; }
+        .activity-info .activity-meta { font-size: 12px; color: var(--text-tertiary); margin-bottom: 8px; }
+        .activity-info p { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+        .btn-join { background: var(--primary-color); color: #0a1024; border: none; padding: 8px 20px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>运营管理 / 数字化活动</span></div>
+        <div class="header-actions">
+            <button class="btn-icon" onclick="location.href='operations_mgmt.html'"><i class="fas fa-arrow-left"></i></button>
+            <button class="btn-icon" onclick="location.href='../index.html'"><i class="fas fa-home"></i></button>
+        </div>
+    </div>
+    <div class="page-content">
+        <div class="page-hero">
+            <h1>🎉 数字化活动</h1>
+            <p>园区文化活动、体育赛事、节日庆典等线上发布、报名与互动，丰富园区企业文化生活</p>
+        </div>
+        <div class="activity-grid">
+            <div class="activity-card">
+                <div class="activity-img">🏆</div>
+                <div class="activity-info">
+                    <h4>园区企业家沙龙（第四期）</h4>
+                    <div class="activity-meta">📅 2026-04-30 14:00 · 📍 园区综合服务中心</div>
+                    <p>主题：成渝地区双城经济圈产业合作机遇探讨</p>
+                    <button class="btn-join">立即报名</button>
+                </div>
+            </div>
+            <div class="activity-card">
+                <div class="activity-img" style="background: linear-gradient(135deg, #4cd964, #00c2b8);">⚽</div>
+                <div class="activity-info">
+                    <h4>园区篮球友谊赛</h4>
+                    <div class="activity-meta">📅 2026-05-08 09:00 · 📍 园区运动场</div>
+                    <p>园区企业篮球队伍友谊赛，增进企业间交流合作</p>
+                    <button class="btn-join">立即报名</button>
+                </div>
+            </div>
+            <div class="activity-card">
+                <div class="activity-img" style="background: linear-gradient(135deg, #ff9500, #ff4d4f);">🏭</div>
+                <div class="activity-info">
+                    <h4>安全生产知识竞赛</h4>
+                    <div class="activity-meta">📅 2026-05-12 14:00 · 📍 园区广场</div>
+                    <p>安全生产月主题活动，知识问答与实操演练</p>
+                    <button class="btn-join" style="background: rgba(255,255,255,0.1); color: var(--text-secondary); border: 1px solid var(--border-color);">报名已截止</button>
+                </div>
+            </div>
+            <div class="activity-card">
+                <div class="activity-img" style="background: linear-gradient(135deg, #7b61ff, #2b68e0);">🎓</div>
+                <div class="activity-info">
+                    <h4>智慧园区应用培训会</h4>
+                    <div class="activity-meta">📅 2026-05-20 10:00 · 📍 园区会议室</div>
+                    <p>平台功能培训与数字化转型经验分享</p>
+                    <button class="btn-join">立即报名</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="common.js"></script>
+</body>
+</html>

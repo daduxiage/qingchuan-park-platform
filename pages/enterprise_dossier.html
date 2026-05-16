@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业档案 - 青川县庄子上工业园区智慧园区平台</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Microsoft YaHei', sans-serif; margin: 0; padding: 0; background: #f5f7fa; }
+        .page-wrapper { display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e8ecf1; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #e8ecf1; display: flex; align-items: center; gap: 10px; }
+        .sidebar-logo { font-size: 18px; color: #1677ff; }
+        .sidebar-subtitle { font-size: 12px; color: #999; }
+        .sidebar-nav { padding: 15px 0; }
+        .nav-item { padding: 12px 20px; color: #333; cursor: pointer; display: flex; align-items: center; gap: 10px; border-left: 3px solid transparent; transition: all 0.3s; }
+        .nav-item:hover { background: #f0f7ff; color: #1677ff; }
+        .nav-item.active { background: #e6f4ff; color: #1677ff; border-left-color: #1677ff; }
+        .nav-item i { width: 20px; text-align: center; }
+        .nav-item-sub { padding-left: 50px; font-size: 13px; }
+        .main-content { flex: 1; margin-left: 220px; padding: 20px; }
+        .page-header { background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666; }
+        .breadcrumb a { color: #1677ff; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid #d9d9d9; background: #fff; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s; }
+        .btn:hover { border-color: #1677ff; color: #1677ff; }
+        .btn-primary { background: #1677ff; color: #fff; border-color: #1677ff; }
+        .content-card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e8ecf1; }
+        .card-title { font-size: 15px; font-weight: bold; color: #333; }
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .filter-select { padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 13px; min-width: 120px; }
+        .filter-input { padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 13px; width: 200px; }
+        .enterprise-table { width: 100%; border-collapse: collapse; }
+        .enterprise-table th, .enterprise-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e8ecf1; }
+        .enterprise-table th { background: #fafafa; font-weight: bold; color: #333; font-size: 13px; }
+        .enterprise-table tr:hover { background: #fafafa; cursor: pointer; }
+        .enterprise-table td { font-size: 13px; color: #666; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-right: 5px; }
+        .tag-primary { background: #e6f4ff; color: #1677ff; }
+        .tag-success { background: #d9f7be; color: #52c41a; }
+        .tag-warning { background: #fff7e6; color: #fa8c16; }
+        .level-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-weight: bold; font-size: 12px; }
+        .level-a { background: #d9f7be; color: #52c41a; }
+        .level-b { background: #e6f4ff; color: #1677ff; }
+        .level-c { background: #fff7e6; color: #fa8c16; }
+        .level-d { background: #fff1f0; color: #ff4d4f; }
+        .pagination { display: flex; justify-content: right; align-items: center; gap: 10px; margin-top: 15px; }
+        .page-btn { padding: 6px 12px; border: 1px solid #d9d9d9; background: #fff; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .page-btn.active { background: #1677ff; color: #fff; border-color: #1677ff; }
+        .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: #fff; padding: 20px; border-radius: 10px; text-align: center; }
+        .stat-num { font-size: 28px; font-weight: bold; color: #1677ff; }
+        .stat-text { font-size: 13px; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🏭</div>
+                <div>
+                    <div class="sidebar-subtitle">智慧园区平台</div>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-item" onclick="location.href='../index.html'"><i class="fa fa-home"></i> 首页概览</div>
+                <div class="nav-item" onclick="location.href='ai_recruit_service.html'"><i class="fa fa-robot"></i> AI招商服务</div>
+                <div class="nav-item" onclick="location.href='digital_sand.html'"><i class="fa fa-cube"></i> 数字沙盘</div>
+                <div class="nav-item" onclick="location.href='ai_recruit.html'"><i class="fa fa-brain"></i> AI智能招商</div>
+                <div class="nav-item" onclick="location.href='industry_chain.html'"><i class="fa fa-project-diagram"></i> 产业链图谱</div>
+                <div class="nav-item" onclick="location.href='target_enterprise.html'"><i class="fa fa-crosshairs"></i> 目标企业挖掘</div>
+                <div class="nav-item" onclick="location.href='investment_project.html'"><i class="fa fa-tasks"></i> 招商项目管理</div>
+                <div class="nav-item" onclick="location.href='recruit_portal.html'"><i class="fa fa-globe"></i> 招商门户</div>
+                <div class="nav-item" onclick="location.href='cloud_exhibit.html'"><i class="fa fa-building"></i> 云展馆/电子名片</div>
+                <div class="nav-item active"><i class="fa fa-folder-open"></i> 企业档案</div>
+                <div class="nav-item" onclick="location.href='safety_monitor.html'"><i class="fa fa-shield-alt"></i> 全域安全监控</div>
+                <div class="nav-item" onclick="location.href='enterprise_service.html'"><i class="fa fa-handshake"></i> 企业服务</div>
+                <div class="nav-item" onclick="location.href='operations_mgmt.html'"><i class="fa fa-cogs"></i> 运营管理</div>
+                <div class="nav-item" onclick="location.href='energy_monitoring.html'"><i class="fa fa-bolt"></i> 能效与运营监测</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="../index.html">首页</a>
+                    <i class="fa fa-angle-right"></i>
+                    <span>企业档案</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn"><i class="fa fa-download"></i> 导出数据</button>
+                    <button class="btn btn-primary"><i class="fa fa-plus"></i> 新增企业</button>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-num">48</div>
+                    <div class="stat-text">入驻企业</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">12</div>
+                    <div class="stat-text">A级企业</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">23</div>
+                    <div class="stat-text">B级企业</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">10</div>
+                    <div class="stat-text">C级企业</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">3</div>
+                    <div class="stat-text">D级企业</div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title">📁 企业档案数据库</div>
+                </div>
+                <div class="filter-bar">
+                    <select class="filter-select">
+                        <option value="">全部行业</option>
+                        <option value="nong">农产品加工</option>
+                        <option value="xin">新能源</option>
+                        <option value="zhineng">智能制造</option>
+                        <option value="wuliu">物流</option>
+                    </select>
+                    <select class="filter-select">
+                        <option value="">企业评级</option>
+                        <option value="a">A级</option>
+                        <option value="b">B级</option>
+                        <option value="c">C级</option>
+                        <option value="d">D级</option>
+                    </select>
+                    <select class="filter-select">
+                        <option value="">入驻状态</option>
+                        <option value="operating">投产运营</option>
+                        <option value="constructing">建设中</option>
+                        <option value="signed">已签约</option>
+                    </select>
+                    <input type="text" class="filter-input" placeholder="搜索企业名称...">
+                    <button class="btn btn-primary"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+                
+                <table class="enterprise-table">
+                    <thead>
+                        <tr>
+                            <th>企业名称</th>
+                            <th>所属行业</th>
+                            <th>入驻时间</th>
+                            <th>评级</th>
+                            <th>亩均税收</th>
+                            <th>用工人数</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>四川蜀茶茶业集团</strong></td>
+                            <td><span class="tag tag-primary">农产品加工</span></td>
+                            <td>2023-03-15</td>
+                            <td><span class="level-badge level-a">A级</span></td>
+                            <td>28.5 万/亩</td>
+                            <td>256 人</td>
+                            <td><a href="#" style="color: #1677ff;">查看详情</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>广元市鑫源新能源科技公司</strong></td>
+                            <td><span class="tag tag-primary">新能源</span></td>
+                            <td>2023-06-20</td>
+                            <td><span class="level-badge level-a">A级</span></td>
+                            <td>35.2 万/亩</td>
+                            <td>128 人</td>
+                            <td><a href="#" style="color: #1677ff;">查看详情</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>青川山珍食品公司</strong></td>
+                            <td><span class="tag tag-primary">农产品加工</span></td>
+                            <td>2022-09-10</td>
+                            <td><span class="level-badge level-b">B级</span></td>
+                            <td>18.6 万/亩</td>
+                            <td>86 人</td>
+                            <td><a href="#" style="color: #1677ff;">查看详情</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>川北农机装备制造公司</strong></td>
+                            <td><span class="tag tag-primary">智能制造</span></td>
+                            <td>2024-01-08</td>
+                            <td><span class="level-badge level-b">B级</span></td>
+                            <td>15.3 万/亩</td>
+                            <td>65 人</td>
+                            <td><a href="#" style="color: #1677ff;">查看详情</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>青川川北路桥物流公司</strong></td>
+                            <td><span class="tag tag-primary">物流</span></td>
+                            <td>2023-11-25</td>
+                            <td><span class="level-badge level-c">C级</span></td>
+                            <td>8.5 万/亩</td>
+                            <td>42 人</td>
+                            <td><a href="#" style="color: #1677ff;">查看详情</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="pagination">
+                    <button class="page-btn">上一页</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

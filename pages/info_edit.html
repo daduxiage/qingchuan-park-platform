@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>信息编辑 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+    <link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="/pages/tracker.js"></script>
+    <style>.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}
+.form-full{grid-column:1/-1}
+.form-group label{display:block;font-size:12px;color:var(--text-tertiary);margin-bottom:5px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-card);color:var(--text-primary);font-size:13px;font-family:inherit}
+.form-group textarea{min-height:100px;resize:vertical}
+@media(max-width:768px){.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">信息编辑 · 加载中...</div></div>
+<div class="page-header"><div class="page-header-left"><a href="#" onclick="history.back()" class="back-btn"><i class="fa fa-arrow-left"></i></a><div class="page-breadcrumb">信息发布管理 / <span id="pageModule">编辑</span></div></div><div class="page-header-right"></div></div>
+<div class="page-body">
+<div class="card"><div class="card-header"><div class="card-title" id="cardTitle"><i class="fa fa-edit" style="color:#40c4ff"></i> 编辑信息</div></div>
+    <div class="card-body"><form class="form-grid" id="editForm"></form>
+        <div style="margin-top:20px;display:flex;gap:12px;justify-content:flex-end">
+            <button type="button" class="btn btn-default" onclick="history.back()">取消</button>
+            <button type="button" class="btn btn-success" onclick="saveDraft()"><i class="fa fa-save"></i> 存草稿</button>
+            <button type="button" class="btn btn-primary" onclick="publishInfo()"><i class="fa fa-paper-plane"></i> 发布</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="/pages/common.js"></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+var module = new URLSearchParams(window.location.search).get('module') || 'employment';
+
+var MODULE_CONFIG = {
+    employment:  {name:'用工信息', fields:[
+        {key:'title',label:'岗位名称',type:'text',placeholder:'如：数控操作工'},
+        {key:'salary',label:'薪资待遇',type:'text',placeholder:'如：6000-8000元/月'},
+        {key:'count',label:'招聘人数',type:'text',placeholder:'如：5人'},
+        {key:'req',label:'岗位要求',type:'textarea',placeholder:'学历、经验、技能等要求'},
+        {key:'contact',label:'联系方式',type:'text',placeholder:'如：张经理 138xxxx8888'},
+        {key:'company',label:'发布企业',type:'text',placeholder:'如：佳兴铝业'},
+    ]},
+    logistics:  {name:'物流供需', fields:[
+        {key:'title',label:'信息标题',type:'text',placeholder:'如：青川→成都货运专线'},
+        {key:'type',label:'供需类型',type:'select',options:['供给','需求']},
+        {key:'route',label:'路线',type:'text',placeholder:'如：青川县庄子上工业园区 → 成都双流'},
+        {key:'cargo',label:'货物类型',type:'text',placeholder:'如：铝材'},
+        {key:'weight',label:'货物重量',type:'text',placeholder:'如：20吨'},
+        {key:'contact',label:'联系方式',type:'text',placeholder:'联系人及电话'},
+    ]},
+    featured:   {name:'特色供需', fields:[
+        {key:'title',label:'信息标题',type:'text',placeholder:'如：铝型材现货供应'},
+        {key:'type',label:'类型',type:'select',options:['供应','求购','合作']},
+        {key:'product',label:'产品名称',type:'text',placeholder:'如：6063铝型材'},
+        {key:'spec',label:'规格参数',type:'text',placeholder:'如：壁厚2.0mm'},
+        {key:'price',label:'价格',type:'text',placeholder:'如：面议 / 21000元/吨'},
+        {key:'contact',label:'联系方式',type:'text',placeholder:'联系人及电话'},
+    ]},
+    policy:     {name:'园区政策', fields:[
+        {key:'title',label:'政策标题',type:'text',placeholder:'如：2026年度科技创新补贴申报通知'},
+        {key:'dept',label:'发文单位',type:'text',placeholder:'如：青川县经信局'},
+        {key:'type',label:'政策类型',type:'select',options:['税收优惠','资金补贴','人才引进','产业扶持','其他']},
+        {key:'deadline',label:'截止日期',type:'text',placeholder:'如：2026-06-30'},
+        {key:'content',label:'政策内容',type:'textarea',placeholder:'政策详细内容和申报条件...'},
+    ]},
+    catering:   {name:'园区餐饮', fields:[
+        {key:'title',label:'餐厅名称',type:'text',placeholder:'如：园区第一食堂'},
+        {key:'type',label:'类型',type:'select',options:['食堂','特色餐厅','快餐','面馆']},
+        {key:'menu',label:'今日菜单',type:'textarea',placeholder:'菜品种类和价格...'},
+        {key:'hours',label:'营业时间',type:'text',placeholder:'如：11:00-13:00, 17:00-19:00'},
+        {key:'location',label:'位置',type:'text',placeholder:'如：A区综合楼一楼'},
+    ]},
+    parking:    {name:'停车服务', fields:[
+        {key:'title',label:'停车场名称',type:'text',placeholder:'如：A区货运停车场'},
+        {key:'capacity',label:'总车位数',type:'text',placeholder:'如：200'},
+        {key:'available',label:'空余车位',type:'text',placeholder:'如：45'},
+        {key:'type',label:'车辆类型',type:'select',options:['货车','客车','小型车','全部']},
+        {key:'fee',label:'收费标准',type:'text',placeholder:'如：货车10元/次'},
+    ]},
+    venue:      {name:'场馆服务', fields:[
+        {key:'title',label:'场馆名称',type:'text',placeholder:'如：园区多功能会议厅'},
+        {key:'capacity',label:'容纳人数',type:'text',placeholder:'如：200人'},
+        {key:'facilities',label:'配套设施',type:'text',placeholder:'如：投影仪、音响、LED屏'},
+        {key:'fee',label:'使用费用',type:'text',placeholder:'如：免费 / 500元/半天'},
+        {key:'contact',label:'预约方式',type:'text',placeholder:'联系人及电话'},
+    ]},
+    activity:   {name:'园区活动', fields:[
+        {key:'title',label:'活动名称',type:'text',placeholder:'如：园区企业家沙龙（第五期）'},
+        {key:'time',label:'活动时间',type:'text',placeholder:'如：2026-05-28 14:00-17:00'},
+        {key:'location',label:'活动地点',type:'text',placeholder:'如：综合服务中心三楼'},
+        {key:'organizer',label:'主办单位',type:'text',placeholder:'如：园区管委会'},
+        {key:'content',label:'活动内容',type:'textarea',placeholder:'活动详细内容和报名方式...'},
+    ]},
+    notice:     {name:'园区公告', fields:[
+        {key:'title',label:'公告标题',type:'text',placeholder:'如：关于开展2026年度安全生产大检查的通知'},
+        {key:'type',label:'公告类型',type:'select',options:['重要通知','例行公告','紧急通知','温馨提示']},
+        {key:'content',label:'公告内容',type:'textarea',placeholder:'公告正文内容...'},
+        {key:'dept',label:'发布单位',type:'text',placeholder:'如：园区管委会办公室'},
+    ]},
+};
+
+var cfg = MODULE_CONFIG[module] || MODULE_CONFIG.employment;
+document.getElementById('pageModule').textContent = cfg.name;
+document.getElementById('cardTitle').innerHTML = '<i class="fa fa-edit" style="color:#40c4ff"></i> 编辑' + cfg.name;
+
+var form = document.getElementById('editForm');
+cfg.fields.forEach(function(f){
+    var div = document.createElement('div');
+    div.className = 'form-group' + (f.type==='textarea'?' form-full':'');
+    div.innerHTML = '<label>'+f.label+'</label>';
+    if(f.type==='textarea'){
+        div.innerHTML += '<textarea id="field_'+f.key+'" placeholder="'+f.placeholder+'"></textarea>';
+    } else if(f.type==='select'){
+        var opts = f.options.map(function(o){return '<option>'+o+'</option>';}).join('');
+        div.innerHTML += '<select id="field_'+f.key+'">'+opts+'</select>';
+    } else {
+        div.innerHTML += '<input id="field_'+f.key+'" type="text" placeholder="'+f.placeholder+'">';
+    }
+    form.appendChild(div);
+});
+
+function collectData(){
+    var data = {};
+    cfg.fields.forEach(function(f){
+        data[f.key] = document.getElementById('field_'+f.key).value.trim();
+    });
+    return data;
+}
+
+function saveDraft(){
+    var data = collectData();
+    if(!data.title && cfg.fields[0]){showToast('请填写'+cfg.fields[0].label,'warning');return;}
+    var logs=JSON.parse(localStorage.getItem('__info_drafts')||'{}');
+    logs[module]=data;
+    localStorage.setItem('__info_drafts',JSON.stringify(logs));
+    showToast('草稿已保存','success');
+}
+
+function publishInfo(){
+    var data = collectData();
+    if(!data.title && cfg.fields[0]){showToast('请填写'+cfg.fields[0].label,'warning');return;}
+    var logs=JSON.parse(localStorage.getItem('__info_published')||'{}');
+    if(!logs[module])logs[module]=[];
+    logs[module].push({time:new Date().toISOString(),data:data});
+    localStorage.setItem('__info_published',JSON.stringify(logs));
+    showToast('✅ '+cfg.name+' 发布成功！','success');
+    setTimeout(function(){history.back();},800);
+}
+
+// 恢复草稿
+(function(){
+    var drafts=JSON.parse(localStorage.getItem('__info_drafts')||'{}');
+    var d = drafts[module];
+    if(!d)return;
+    cfg.fields.forEach(function(f){
+        if(d[f.key]){
+            var el = document.getElementById('field_'+f.key);
+            if(el)el.value=d[f.key];
+        }
+    });
+})();
+</script>
+</body>
+</html>

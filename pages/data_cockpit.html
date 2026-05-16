@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>数据中心 - 青川县庄子上工业园区智慧园区平台</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260508"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <style>
+        /* ===== 数据驾驶舱专用样式：全屏三栏大屏 ===== */
+        .cockpit-page {
+            min-height: 100vh;
+            background: #050d1a;
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(0,80,160,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(0,60,140,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 0%, rgba(0,100,200,0.05) 0%, transparent 40%);
+            overflow-x: hidden;
+        }
+
+        /* ── 大屏标题栏 ── */
+        .cockpit-header {
+            height: 64px;
+            background: linear-gradient(180deg, rgba(10,22,48,0.98) 0%, rgba(10,22,48,0.85) 100%);
+            border-bottom: 1px solid rgba(64,196,255,0.2);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 28px;
+            position: relative;
+            z-index: 10;
+        }
+        .cockpit-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 50%; transform: translateX(-50%);
+            width: 400px; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(64,196,255,0.6), transparent);
+        }
+        .header-left {
+            display: flex; align-items: center; gap: 14px;
+        }
+        .header-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, rgba(64,196,255,0.25), rgba(43,104,224,0.3));
+            border: 1px solid rgba(64,196,255,0.4);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: #40c4ff;
+        }
+        .header-title {
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(90deg, #fff, #a0cfff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+        }
+        .header-center {
+            position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .header-main-title {
+            font-size: 24px; font-weight: 800;
+            background: linear-gradient(90deg, #40c4ff, #00e5ff, #40c4ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 8px;
+            text-shadow: 0 0 30px rgba(64,196,255,0.3);
+        }
+        .header-right {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .header-time-box {
+            display: flex; flex-direction: column; align-items: flex-end;
+            gap: 1px;
+        }
+        .header-date { font-size: 11px; color: rgba(160,207,255,0.55); letter-spacing: 1px; }
+        .header-clock { font-size: 15px; color: rgba(160,207,255,0.85); font-weight: 600; letter-spacing: 2px; font-family: 'Microsoft YaHei', sans-serif; }
+
+        /* ── 三栏主体 ── */
+        .cockpit-body {
+            display: grid;
+            grid-template-columns: 340px 1fr 340px;
+            gap: 16px;
+            padding: 16px 20px;
+            min-height: calc(100vh - 64px);
+        }
+
+        /* ── 面板通用 ── */
+        .dc-panel {
+            background: linear-gradient(165deg, rgba(10,22,48,0.92), rgba(16,35,70,0.88));
+            border: 1px solid rgba(64,196,255,0.15);
+            border-radius: 10px;
+            padding: 14px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+        .dc-panel:hover {
+            border-color: rgba(64,196,255,0.35);
+        }
+        .dc-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(64,196,255,0.5), transparent);
+            border-radius: 10px 10px 0 0;
+        }
+        /* 四角装饰线 */
+        .dc-panel::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 14px; height: 14px;
+            border-top: 2px solid rgba(64,196,255,0.5);
+            border-left: 2px solid rgba(64,196,255,0.5);
+            border-radius: 10px 0 0 0;
+        }
+
+        .panel-title {
+            font-size: 13px; font-weight: 600;
+            color: #a0cfff;
+            margin-bottom: 12px;
+            display: flex; align-items: center; gap: 7px;
+            padding-left: 4px;
+        }
+        .panel-title i {
+            color: #40c4ff; font-size: 13px;
+        }
+        .panel-title::after {
+            content: '';
+            flex: 1; height: 1px;
+            background: linear-gradient(90deg, rgba(64,196,255,0.25), transparent);
+            margin-left: 8px;
+        }
+
+        /* 左侧列 */
+        .left-col { display: flex; flex-direction: column; gap: 14px; }
+
+        /* 中央区域 */
+        .center-col {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        /* 中央雷达区 */
+        .center-radar-zone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 420px;
+        }
+        #centerRadarChart {
+            width: 100%; height: 100%;
+        }
+        /* 雷达周围指标环 */
+        .radar-metrics-ring {
+            position: absolute;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        .metric-bubble {
+            position: absolute;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 2px;
+            transform: translate(-50%, -50%);
+        }
+        .metric-bubble .metric-label {
+            font-size: 11px; color: rgba(160,207,255,0.7);
+            white-space: nowrap;
+        }
+        .metric-bubble .metric-value {
+            font-size: 18px; font-weight: 700;
+            color: #40c4ff;
+            text-shadow: 0 0 10px rgba(64,196,255,0.4);
+        }
+        .metric-bubble .metric-unit {
+            font-size: 10px; color: rgba(160,207,255,0.45);
+        }
+
+        /* 底部KPI条 */
+        .bottom-kpi-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+        }
+        .mini-kpi-card {
+            background: linear-gradient(135deg, rgba(10,22,48,0.9), rgba(16,35,70,0.85));
+            border: 1px solid rgba(64,196,255,0.12);
+            border-radius: 8px;
+            padding: 12px 10px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .mini-kpi-card:hover {
+            border-color: rgba(64,196,255,0.4);
+            box-shadow: 0 0 15px rgba(64,196,255,0.1);
+            transform: translateY(-2px);
+        }
+        .mini-kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: var(--kpi-accent, #40c4ff);
+            opacity: 0.6;
+        }
+        .mk-val {
+            font-size: 22px; font-weight: 800;
+            color: var(--kpi-accent, #40c4ff);
+            line-height: 1;
+            text-shadow: 0 0 12px rgba(64,196,255,0.3);
+        }
+        .mk-lbl {
+            font-size: 11px; color: rgba(160,207,255,0.55);
+            margin-top: 4px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .mk-trend {
+            font-size: 10px; margin-top: 2px;
+        }
+        .trend-up-c { color: #4cd964; }
+        .trend-down-c { color: #ff4d4f; }
+
+        /* 右侧列 */
+        .right-col { display: flex; flex-direction: column; gap: 14px; }
+
+        /* 图表高度控制 */
+        .chart-area-sm { height: 220px; }
+        .chart-area-md { height: 260px; }
+        .chart-area-lg { height: 300px; }
+        .chart-area-xl { height: 380px; }
+
+        /* 数字卡片行（惠企政策）*/
+        .policy-cards-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .policy-num-card {
+            background: rgba(10,22,48,0.6);
+            border: 1px solid rgba(64,196,255,0.1);
+            border-radius: 6px;
+            padding: 10px 6px;
+            text-align: center;
+        }
+        .pnc-val {
+            font-size: 20px; font-weight: 800;
+            color: var(--pn-color, #40c4ff);
+            line-height: 1;
+        }
+        .pnc-lbl {
+            font-size: 10px; color: rgba(160,207,255,0.5); margin-top: 4px;
+        }
+
+        /* 扫描线动画 */
+        @keyframes scanLine {
+            0% { transform: translateY(-100%); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(400%); opacity: 0; }
+        }
+        .scan-line {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(64,196,255,0.4), transparent);
+            animation: scanLine 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        /* 脉冲点 */
+        @keyframes pulseDot {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(64,196,255,0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(64,196,255,0); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 1400px) {
+            .cockpit-body { grid-template-columns: 300px 1fr 300px; gap: 12px; padding: 12px 16px; }
+        }
+        @media (max-width: 1100px) {
+            .cockpit-body { grid-template-columns: 1fr; gap: 12px; }
+            .center-radar-zone { min-height: 350px; }
+            .bottom-kpi-row { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* 浅色主题覆盖 */
+        html.light-theme .cockpit-page {
+            background: #e8f0fa;
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(22,119,255,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(22,119,255,0.04) 0%, transparent 50%);
+        }
+        html.light-theme .dc-panel {
+            background: linear-gradient(165deg, rgba(255,255,255,0.95), rgba(245,248,255,0.92));
+            border-color: rgba(100,150,220,0.25);
+        }
+        html.light-theme .panel-title { color: #4a6880; }
+        html.light-theme .panel-title i { color: #1677ff; }
+        html.light-theme .panel-title::after { background: linear-gradient(90deg, rgba(22,119,255,0.2), transparent); }
+        html.light-theme .mini-kpi-card {
+            background: linear-gradient(135deg, #fff, #f5f8ff);
+            border-color: rgba(100,150,220,0.2);
+        }
+        html.light-theme .mk-lbl { color: #4a6880; }
+        html.light-theme .policy-num-card {
+            background: rgba(245,248,255,0.9);
+            border-color: rgba(100,150,220,0.15);
+        }
+        html.light-theme .pnc-lbl { color: #4a6880; }
+        html.light-theme .metric-bubble .metric-label { color: #4a6880; }
+        html.light-theme .metric-bubble .metric-unit { color: #8ca0b8; }
+    </style>
+</head>
+<body class="cockpit-page">
+<script>
+// ===== 主题初始化 =====
+(function(){
+    if(localStorage.getItem('ss_theme')==='light'){
+        document.documentElement.classList.add('light-theme');
+    }
+})();
+</script>
+
+<!-- ══════════════ 标题栏 ══════════════ -->
+<div class="cockpit-header">
+    <div class="header-left">
+        <a href="../index.html" class="back-btn" title="返回工作台" style="text-decoration:none;">
+            <i class="fa fa-home"></i>
+        </a>
+        <div class="header-logo"><i class="fa fa-industry"></i></div>
+        <div class="header-title">智慧园区</div>
+    </div>
+    <div class="header-center">
+        <div class="header-main-title">园区数据驾驶舱</div>
+    </div>
+    <div class="header-right">
+        <div class="header-time-box">
+            <div class="header-date" id="headerDate"></div>
+            <div class="header-clock" id="headerClock"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════ 三栏主体 ══════════════ -->
+<div class="cockpit-body">
+
+<!-- ═════════ 左侧面板 ═════════ -->
+<div class="left-col">
+
+    <!-- 产业协作柱状图 -->
+    <div class="dc-panel" style="flex:1">
+        <div class="scan-line"></div>
+        <div class="panel-title"><i class="fa fa-handshake"></i> 产业协作</div>
+        <div id="chart-industry" class="chart-area-lg" style="width:100%"></div>
+    </div>
+
+    <!-- 惠企政策 -->
+    <div class="dc-panel" style="flex:1.2">
+        <div class="scan-line"></div>
+        <div class="panel-title"><i class="fa fa-file-alt"></i> 惠企政策</div>
+        <!-- 三个数字卡片 -->
+        <div class="policy-cards-row">
+            <div class="policy-num-card" style="--pn-color:#40c4ff">
+                <div class="pnc-val">128</div>
+                <div class="pnc-lbl">政策总数</div>
+            </div>
+            <div class="policy-num-card" style="--pn-color:#4cd964">
+                <div class="pnc-val">46</div>
+                <div class="pnc-lbl">已兑现</div>
+            </div>
+            <div class="policy-num-card" style="--pn-color:#ff9500">
+                <div class="pnc-val">23</div>
+                <div class="pnc-lbl">待申报</div>
+            </div>
+        </div>
+        <!-- 双轴图表 -->
+        <div id="chart-policy" class="chart-area-sm" style="width:100%"></div>
+    </div>
+
+</div><!-- /左 -->
+
+<!-- ═════════ 中央面板 ═════════ -->
+<div class="center-col">
+
+    <!-- 中央雷达图 + KPI -->
+    <div class="dc-panel" style="flex:1;display:flex;flex-direction:column">
+        <div class="scan-line"></div>
+        <div class="panel-title" style="justify-content:center"><i class="fa fa-crosshairs"></i> 园区核心指标</div>
+        <div class="center-radar-zone">
+            <div id="centerRadarChart"></div>
+        </div>
+    </div>
+
+    <!-- 底部KPI条 -->
+    <div class="bottom-kpi-row">
+        <div class="mini-kpi-card" style="--kpi-accent:#40c4ff">
+            <div class="mk-val">178</div>
+            <div class="mk-lbl">今日运输车次</div>
+            <div class="mk-trend trend-up-c">↑ +12</div>
+        </div>
+        <div class="mini-kpi-card" style="--kpi-accent:#4cd964">
+            <div class="mk-val">3,847</div>
+            <div class="mk-lbl">今日收储量(吨)</div>
+            <div class="mk-trend trend-up-c">↑ 12.3%</div>
+        </div>
+        <div class="mini-kpi-card" style="--kpi-accent:#7b61ff">
+            <div class="mk-val">312</div>
+            <div class="mk-lbl">在册合规车辆</div>
+            <div class="mk-trend trend-up-c">↑ 97%</div>
+        </div>
+        <div class="mini-kpi-card" style="--kpi-accent:#ff4d4f">
+            <div class="mk-val">17</div>
+            <div class="mk-lbl">今日预警</div>
+            <div class="mk-trend trend-down-c">↓ -5</div>
+        </div>
+        <div class="mini-kpi-card" style="--kpi-accent:#ff9500">
+            <div class="mk-val">533</div>
+            <div class="mk-lbl">本月销售(万)</div>
+            <div class="mk-trend trend-up-c">↑ 8.9%</div>
+        </div>
+        <div class="mini-kpi-card" style="--kpi-accent:#00c2b8">
+            <div class="mk-val">5</div>
+            <div class="mk-lbl">活跃采矿点</div>
+            <div class="mk-trend trend-up-c">↑ 正常</div>
+        </div>
+    </div>
+
+</div><!-- /中 -->
+
+<!-- ═════════ 右侧面板 ═════════ -->
+<div class="right-col">
+
+    <!-- 服务类型环形图 -->
+    <div class="dc-panel" style="flex:1">
+        <div class="scan-line"></div>
+        <div class="panel-title"><i class="fa fa-concierge-bell"></i> 服务类型</div>
+        <div id="chart-service-type" class="chart-area-md" style="width:100%"></div>
+    </div>
+
+    <!-- 服务状态环形图 -->
+    <div class="dc-panel" style="flex:1">
+        <div class="scan-line"></div>
+        <div class="panel-title"><i class="fa fa-tasks"></i> 服务状态</div>
+        <div id="chart-service-status" class="chart-area-md" style="width:100%"></div>
+    </div>
+
+    <!-- 行业监控堆叠柱状图 -->
+    <div class="dc-panel" style="flex:1.2">
+        <div class="scan-line"></div>
+        <div class="panel-title"><i class="fa fa-chart-bar"></i> 行业监控</div>
+        <div id="chart-industry-monitor" class="chart-area-lg" style="width:100%"></div>
+    </div>
+
+</div><!-- /右 -->
+
+</div><!-- /cockpit-body -->
+
+<script>
+// ===== 时钟 =====
+(function tick() {
+    var now = new Date();
+    var weeks = ['周日','周一','周二','周三','周四','周五','周六'];
+    var dateEl = document.getElementById('headerDate');
+    var clockEl = document.getElementById('headerClock');
+    if(dateEl) dateEl.textContent = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+weeks[now.getDay()];
+    if(clockEl) clockEl.textContent = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+    setTimeout(tick, 1000);
+})();
+
+// ===== ECharts 初始化 =====
+window.addEventListener('load', function() {
+
+    // ---- 全局配色 ----
+    var colors = ['#40c4ff','#4cd964','#7b61ff','#ff9500','#ff4d4f','#00c2b8','#ffc107','#e040fb'];
+
+    // ---- 通用 tooltip & 文字色 ----
+    function isLight() { return document.documentElement.classList.contains('light-theme'); }
+    var txtColor = '#a0cfff';
+    var subColor = 'rgba(160,207,255,0.55)';
+    var splitColor = 'rgba(43,104,224,0.18)';
+    var tooltipBg = 'rgba(10,16,36,0.95)';
+
+    // ═════════ 1. 产业协作 - 分组横向柱状图 ═════════
+    var cIndustry = echarts.init(document.getElementById('chart-industry'));
+    cIndustry.setOption({
+        animation: true,
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            backgroundColor: tooltipBg,
+            borderColor: 'rgba(64,196,255,0.3)',
+            textStyle: { color: '#e0f0ff', fontSize: 11 }
+        },
+        legend: {
+            data: ['协同企业数','合作项目数'],
+            top: 0,
+            textStyle: { color: subColor, fontSize: 10 },
+            itemWidth: 12, itemHeight: 8,
+            itemGap: 14
+        },
+        grid: { left: 8, right: 16, top: 28, bottom: 6, containLabel: true },
+        xAxis: {
+            type: 'value',
+            axisLabel: { color: subColor, fontSize: 10 },
+            axisLine: { lineStyle: { color: 'rgba(43,104,224,0.3)' } },
+            splitLine: { lineStyle: { color: splitColor } }
+        },
+        yAxis: {
+            type: 'category',
+            data: ['竹木加工','建材生产','食品饮料','机械制造','新材料','商贸物流'],
+            axisLabel: { color: txtColor, fontSize: 11 },
+            axisLine: { lineStyle: { color: 'rgba(43,104,224,0.3)' } },
+            axisTick: { show: false }
+        },
+        series: [
+            {
+                name: '协同企业数',
+                type: 'bar',
+                barWidth: 10,
+                data: [42, 38, 35, 28, 22, 18],
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                        { offset: 0, color: 'rgba(64,196,255,0.3)' },
+                        { offset: 1, color: 'rgba(64,196,255,0.85)' }
+                    ]),
+                    borderRadius: [0, 3, 3, 0]
+                }
+            },
+            {
+                name: '合作项目数',
+                type: 'bar',
+                barWidth: 10,
+                data: [28, 25, 21, 18, 15, 12],
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                        { offset: 0, color: 'rgba(76,217,100,0.3)' },
+                        { offset: 1, color: 'rgba(76,217,100,0.85)' }
+                    ]),
+                    borderRadius: [0, 3, 3, 0]
+                }
+            }
+        ]
+    });
+
+    // ═════════ 2. 惠企政策 - 双轴组合图 ═════════
+    var cPolicy = echarts.init(document.getElementById('chart-policy'));
+    cPolicy.setOption({
+        animation: true,
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: tooltipBg,
+            borderColor: 'rgba(64,196,255,0.3)',
+            textStyle: { color: '#e0f0ff', fontSize: 11 }
+        },
+        legend: {
+            data: ['发布数','申报金额(万)'],
+            bottom: 0,
+            textStyle: { color: subColor, fontSize: 10 },
+            itemWidth: 12, itemHeight: 8,
+            itemGap: 14
+        },
+        grid: { left: 8, right: 32, top: 8, bottom: 22, containLabel: true },
+        xAxis: {
+            type: 'category',
+            data: ['1月','2月','3月','4月','5月','6月'],
+            axisLabel: { color: subColor, fontSize: 10 },
+            axisLine: { lineStyle: { color: 'rgba(43,104,224,0.3)' } }
+        },
+        yAxis: [
+            {
+                type: 'value',
+                name: '',
+                axisLabel: { color: subColor, fontSize: 9 },
+                splitLine: { lineStyle: { color: splitColor } },
+                axisLine: { show: false }
+            },
+            {
+                type: 'value',
+                name: '',
+                axisLabel: { color: subColor, fontSize: 9, formatter: '{value}万' },
+                splitLine: { show: false },
+                axisLine: { show: false }
+            }
+        ],
+        series: [
+            {
+                name: '发布数',
+                type: 'bar',
+                barWidth: 14,
+                data: [18, 22, 15, 28, 20, 25],
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(64,196,255,0.75)' },
+                        { offset: 1, color: 'rgba(64,196,255,0.2)' }
+                    ]),
+                    borderRadius: [3, 3, 0, 0]
+                }
+            },
+            {
+                name: '申报金额(万)',
+                type: 'line',
+                yAxisIndex: 1,
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 5,
+                data: [320, 480, 290, 610, 420, 550],
+                lineStyle: { color: '#ff9500', width: 2 },
+                itemStyle: { color: '#ff9500' },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(255,149,0,0.25)' },
+                        { offset: 1, color: 'rgba(255,149,0,0)' }
+                    ])
+                }
+            }
+        ]
+    });
+
+    // ═════════ 3. 中央雷达图 ═════════
+    var cRadar = echarts.init(document.getElementById('centerRadarChart'));
+    cRadar.setOption({
+        animation: true,
+        animationDuration: 2000,
+        animationEasing: 'elasticOut',
+        tooltip: {
+            trigger: 'item',
+            backgroundColor: tooltipBg,
+            borderColor: 'rgba(64,196,255,0.3)',
+            textStyle: { color: '#e0f0ff', fontSize: 12 }
+        },
+        radar: {
+            indicator: [
+                { name: '扩能搬迁', max: 10 },
+                { name: '政策扶持', max: 10 },
+                { name: '配套需求', max: 10 },
+                { name: '技术改造', max: 10 },
+                { name: '融资需求', max: 10 },
+                { name: '人才引进', max: 10 },
+                { name: '市场拓展', max: 10 },
+                { name: '安全环保', max: 10 }
+            ],
+            shape: 'polygon',
+            radius: '62%',
+            center: ['50%', '50%'],
+            startAngle: 90,
+            splitNumber: 4,
+            axisName: {
+                color: txtColor,
+                fontSize: 11,
+                fontWeight: 500
+            },
+            splitArea: {
+                areaStyle: {
+                    color: [
+                        'rgba(64,196,255,0.03)', 'rgba(64,196,255,0.06)',
+                        'rgba(64,196,255,0.09)', 'rgba(64,196,255,0.12)'
+                    ]
+                }
+            },
+            axisLine: { lineStyle: { color: 'rgba(64,196,255,0.2)' } },
+            splitLine: { lineStyle: { color: 'rgba(64,196,255,0.18)' } }
+        },
+        series: [{
+            type: 'radar',
+            data: [{
+                value: [8, 7, 6, 7, 5, 6, 8, 7],
+                name: '综合指数',
+                symbol: 'circle',
+                symbolSize: 6,
+                lineStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 1, 1, [
+                        { offset: 0, color: '#40c4ff' },
+                        { offset: 1, color: '#00e5ff' }
+                    ]),
+                    width: 2,
+                    shadowColor: 'rgba(64,196,255,0.4)',
+                    shadowBlur: 8
+                },
+                areaStyle: {
+                    color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
+                        { offset: 0, color: 'rgba(64,196,255,0.35)' },
+                        { offset: 1, color: 'rgba(0,180,220,0.05)' }
+                    ])
+                },
+                itemStyle: {
+                    color: '#40c4ff',
+                    borderColor: '#fff',
+                    borderWidth: 1.5,
+                    shadowColor: 'rgba(64,196,255,0.6)',
+                    shadowBlur: 6
+                }
+            }]
+        }],
+        graphic: []
+    });
+
+    // 在雷达图周围添加外围指标标签气泡
+    var radarMetrics = [
+        { label: '扩能搬迁', value: '2', unit: '项', angle: -90, dist: 0.78 },
+        { label: '政策扶持', value: '2', unit: '项', angle: -52, dist: 0.78 },
+        { label: '配套需求', value: '1', unit: '项', angle: -15, dist: 0.78 },
+        { label: '技术改造', value: '3', unit: '项', angle: 22, dist: 0.78 },
+        { label: '融资需求', value: '4', unit: '项', angle: 58, dist: 0.78 },
+        { label: '人才引进', value: '1', unit: '项', angle: 95, dist: 0.78 },
+        { label: '市场拓展', value: '3', unit: '项', angle: 130, dist: 0.78 },
+        { label: '安全环保', value: '2', unit: '项', angle: 167, dist: 0.78 }
+    ];
+
+    // 延迟添加 graphic 元素，等 radar 渲染完成
+    setTimeout(function() {
+        var chartDom = cRadar.getDom();
+        var w = chartDom.clientWidth;
+        var h = chartDom.clientHeight;
+        var cx = w / 2, cy = h / 2;
+        var rBase = Math.min(w, h) * 0.31;
+
+        radarMetrics.forEach(function(m, idx) {
+            var rad = m.angle * Math.PI / 180;
+            var x = cx + Math.cos(rad) * rBase * m.dist;
+            var y = cy + Math.sin(rad) * rBase * m.dist;
+
+            var bubble = document.createElement('div');
+            bubble.className = 'metric-bubble';
+            bubble.style.left = x + 'px';
+            bubble.style.top = y + 'px';
+            bubble.innerHTML =
+                '<span class="metric-label">' + m.label + '</span>' +
+                '<span class="metric-value">' + m.value + '</span>' +
+                '<span class="metric-unit">' + m.unit + '</span>';
+            chartDom.querySelector('.center-radar-zone') ||
+            chartDom.appendChild(bubble);
+        });
+    }, 500);
+
+    // ═════════ 4. 服务类型 - 环形图 ═════════
+    var cSvcType = echarts.init(document.getElementById('chart-service-type'));
+    cSvcType.setOption({
+        animation: true,
+        tooltip: {
+            trigger: 'item',
+            formatter: '{b}: {c} ({d}%)',
+            backgroundColor: tooltipBg,
+            borderColor: 'rgba(64,196,255,0.3)',
+            textStyle: { color: '#e0f0ff', fontSize: 11 }
+        },
+        legend: {
+            orient: 'vertical',
+            right: 10,
+            top: 'center',
+            textStyle: { color: subColor, fontSize: 10 },
+            itemWidth: 10, itemHeight: 8,
+            itemGap: 10,
+            formatter: function(name) {
+                var map = {'政策咨询':'政策咨询','金融服务':'金融服务','法律援助':'法律援助','技术支持':'技术支持','人才服务':'人才服务'};
+                return name;
+            }
+        },
+        series: [{
+            type: 'pie',
+            radius: ['42%', '68%'],
+            center: ['38%', '52%'],
+            avoidLabelOverlap: true,
+            itemStyle: {
+                borderRadius: 4,
+                borderColor: 'rgba(10,16,36,0.6)',
+                borderWidth: 2
+            },
+            label: { show: false },
+            emphasis: {
+                label: { show: true, fontSize: 12, fontWeight: 'bold', color: '#fff' },
+                itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' }
+            },
+            data: [
+                { value: 86, name: '政策咨询', itemStyle: { color: '#40c4ff' } },
+                { value: 54, name: '金融服务', itemStyle: { color: '#4cd964' } },
+                { value: 38, name: '法律援助', itemStyle: { color: '#7b61ff' } },
+                { value: 42, name: '技术支持', itemStyle: { color: '#ff9500' } },
+                { value: 28, name: '人才服务', itemStyle: { color: '#00c2b8' } }
+            ],
+            animationType: 'scale',
+            animationEasing: 'elasticOut'
+        }]
+    });
+
+    // ═════════ 5. 服务状态 - 环形图 ═════════
+    var cSvcStatus = echarts.init(document.getElementById('chart-service-status'));
+    cSvcStatus.setOption({
+        animation: true,
+        tooltip: {
+            trigger: 'item',
+            formatter: '{b}: {c} ({d}%)',
+            backgroundColor: tooltipBg,
+            borderColor: 'rgba(64,196,255,0.3)',
+            textStyle: { color: '#e0f0ff', fontSize: 11 }
+        },
+        legend: {
+            orient: 'vertical',
+            right: 10,
+            top: 'center',
+            textStyle: { color: subColor, fontSize: 10 },
+            itemWidth: 10, itemHeight: 8,
+            itemGap: 10
+        },
+        series: [{
+            type: 'pie',
+            radius: ['42%', '68%'],
+            center: ['38%', '52%'],
+            avoidLabelOverlap: true,
+            itemStyle: {
+                borderRadius: 4,
+                borderColor: 'rgba(10,16,36,0.6)',
+                borderWidth: 2
+            },
+            label: { show: false },
+            emphasis: {
+                label: { show: true, fontSize: 12, fontWeight: 'bold', color: '#fff' },
+                itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' }
+            },
+            data: [
+                { value: 156, name: '已完成', itemStyle: { color: '#4cd964' } },
+                { value: 48, name: '处理中', itemStyle: { color: '#40c4ff' } },
+                { value: 18, name: '待受理', itemStyle: { color: '#ff9500' } },
+                { value: 6, name: '已驳回', itemStyle: { color: '#ff4d4f' } }
+            ],
+            animationType: 'scale',
+            animationEasing: 'elasticOut'
+        }]
+    });
+
+    // ═════════ 6. 行业监控 - 堆叠柱状图 ═════════
+    var cMonitor = echarts.init(document.getElementById('chart-industry-monitor'));
+    cMonitor.setOption({
+        animation: true,
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            backgroundColor: tooltipBg,
+            borderColor: 'rgba(64,196,255,0.3)',
+            textStyle: { color: '#e0f0ff', fontSize: 11 }
+        },
+        legend: {
+            data: ['正常','预警','异常'],
+            top: 0,
+            textStyle: { color: subColor, fontSize: 10 },
+            itemWidth: 12, itemHeight: 8,
+            itemGap: 14
+        },
+        grid: { left: 10, right: 10, top: 28, bottom: 6, containLabel: true },
+        xAxis: {
+            type: 'category',
+            data: ['建材','食品','机械','物流','能源','化工'],
+            axisLabel: { color: subColor, fontSize: 10, interval: 0 },
+            axisLine: { lineStyle: { color: 'rgba(43,104,224,0.3)' } }
+        },
+        yAxis: {
+            type: 'value',
+            axisLabel: { color: subColor, fontSize: 10 },
+            axisLine: { show: false },
+            splitLine: { lineStyle: { color: splitColor } }
+        },
+        series: [
+            {
+                name: '正常',
+                type: 'bar',
+                stack: 'total',
+                barWidth: 24,
+                data: [42, 38, 35, 28, 22, 18],
+                itemStyle: { color: 'rgba(76,217,100,0.75)', borderRadius: [0,0,0,0] }
+            },
+            {
+                name: '预警',
+                type: 'bar',
+                stack: 'total',
+                barWidth: 24,
+                data: [8, 6, 9, 5, 7, 4],
+                itemStyle: { color: 'rgba(255,149,0,0.75)' }
+            },
+            {
+                name: '异常',
+                type: 'bar',
+                stack: 'total',
+                barWidth: 24,
+                data: [2, 3, 1, 2, 1, 2],
+                itemStyle: { color: 'rgba(255,77,79,0.75)', borderRadius: [3, 3, 0, 0] }
+            }
+        ]
+    });
+
+    // ---- 响应式调整 ----
+    window.addEventListener('resize', function() {
+        cIndustry.resize();
+        cPolicy.resize();
+        cRadar.resize();
+        cSvcType.resize();
+        cSvcStatus.resize();
+        cMonitor.resize();
+    });
+
+});
+</script>
+
+<!-- Toast 容器 -->
+<div class="toast-container" id="toastContainer"></div>
+<script src="common.js"></script>
+</body>
+</html>

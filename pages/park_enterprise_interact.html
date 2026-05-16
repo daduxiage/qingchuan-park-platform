@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>园企交互 · 佳兴铝业 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+.tag-pending{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-ongoing{background:rgba(64,196,255,0.12);color:#40c4ff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-done{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+html.light-theme .tag-pending{background:rgba(250,140,22,0.08);color:#d46b08}
+html.light-theme .tag-ongoing{background:rgba(22,119,255,0.08);color:#1677ff}
+html.light-theme .tag-done{background:rgba(82,196,26,0.08);color:#389e0d}
+.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.filter-row .form-control{min-width:120px;width:auto;flex:0 0 auto}
+.filter-row select.form-control{text-align:center;text-align-last:center;appearance:none;-webkit-appearance:none;background:#0a1024 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23a0cfff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:32px}
+.filter-row select.form-control option{text-align:center;direction:ltr}
+.data-table td{white-space:nowrap}
+.data-table td .detail-cell{display:inline-block;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.export-options{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.export-option{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--split-color);border-radius:8px;cursor:pointer;transition:all .2s;background:transparent}
+.export-option:hover{border-color:#40c4ff;background:rgba(64,196,255,0.06)}
+.export-option.selected{border-color:#40c4ff;background:rgba(64,196,255,0.1)}
+.export-option-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.export-option-icon.excel{background:rgba(76,175,80,0.15);color:#4caf50}
+.export-option-icon.pdf{background:rgba(244,67,54,0.15);color:#f44336}
+.export-option-icon.word{background:rgba(33,150,243,0.15);color:#2196f3}
+.export-option-body{flex:1}
+.export-option-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.export-option-desc{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+.export-option-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--split-color);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.export-option.selected .export-option-check{border-color:#40c4ff;background:#40c4ff}
+.export-option.selected .export-option-check::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">加载中...</div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区 · 佳兴铝业 / <span>园企交互</span></div>
+    </div>
+    <div class="page-header-right"></div>
+</div>
+
+<div class="page-body">
+
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-clipboard-list"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#7b61ff">86</div>
+            <div class="kpi-label">本月待办事项数</div>
+            <div class="kpi-trend" style="color:#7b61ff">↑ 较上月+12.8%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-clock"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#ff9500">23</div>
+            <div class="kpi-label">待填写/进行中</div>
+            <div class="kpi-trend" style="color:#ff9500">占比 26.7%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-check-circle"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#4cd964">63</div>
+            <div class="kpi-label">已上报完成</div>
+            <div class="kpi-trend" style="color:#4cd964">完成率 73.3%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-building"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#40c4ff">6</div>
+            <div class="kpi-label">涉及事项类型</div>
+            <div class="kpi-trend" style="color:#40c4ff">覆盖全部6类事项</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa fa-tasks" style="color:#7b61ff"></i> 待办事项列表</div>
+        <div class="card-toolbar">
+            <div class="toolbar-actions">
+                <button class="btn btn-default" onclick="resetFilters()">重置</button>
+                <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+                <button class="btn btn-success" onclick="openExportModal()"><i class="fa fa-download"></i> 导出</button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="filter-row">
+            <input class="form-control" placeholder="搜索单号/事项..." id="fKeyword">
+            <select class="form-control" id="fType"><option value="">全部事项类型</option></select>
+            <select class="form-control" id="fStatus"><option value="">全部状态</option><option>待填写</option><option>进行中</option><option>已上报</option></select>
+            <input class="form-control" type="date" id="fDate" title="截止时间">
+        </div>
+        <div class="table-wrap">
+            <table class="data-table" id="todoTable">
+                <thead><tr>
+                    <th style="width:38px;text-align:center"><input type="checkbox" id="__cb_all" style="cursor:pointer" title="全选/反选"></th>
+                    <th>单号</th>
+                    <th>事项</th>
+                    <th style="width:80px">接收单位</th>
+                    <th style="width:110px">截止时间</th>
+                    <th>详情说明</th>
+                    <th style="width:80px">状态</th>
+                    <th style="width:160px">操作</th>
+                </tr></thead>
+                <tbody id="todoTbody"></tbody>
+            </table>
+        </div>
+        <div class="pagination"><span>共 12 条</span><div class="page-btns"></div></div>
+    </div>
+</div>
+
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal">
+    <div class="modal" style="width:440px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-download" style="color:#7b61ff;margin-right:6px"></i>导出待办事项数据</span>
+            <div class="modal-close" onclick="closeExportModal()">×</div>
+        </div>
+        <div class="modal-body">
+            <div class="export-options">
+                <div class="export-option selected" onclick="selectExportFormat(this,'excel')" data-format="excel">
+                    <div class="export-option-icon excel"><i class="fa fa-file-excel"></i></div>
+                    <div class="export-option-body">
+                        <div class="export-option-title">Excel 文件</div>
+                        <div class="export-option-desc">导出为 .xlsx 格式，可用 Excel 打开编辑</div>
+                    </div>
+                    <div class="export-option-check"></div>
+                </div>
+                <div class="export-option" onclick="selectExportFormat(this,'pdf')" data-format="pdf">
+                    <div class="export-option-icon pdf"><i class="fa fa-file-pdf"></i></div>
+                    <div class="export-option-body">
+                        <div class="export-option-title">PDF 文件</div>
+                        <div class="export-option-desc">导出为 .pdf 格式，适合打印和分享</div>
+                    </div>
+                    <div class="export-option-check"></div>
+                </div>
+                <div class="export-option" onclick="selectExportFormat(this,'word')" data-format="word">
+                    <div class="export-option-icon word"><i class="fa fa-file-word"></i></div>
+                    <div class="export-option-body">
+                        <div class="export-option-title">Word 文件</div>
+                        <div class="export-option-desc">导出为 .doc 格式，可用 Word 打开编辑</div>
+                    </div>
+                    <div class="export-option-check"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeExportModal()">取消</button>
+            <button class="btn btn-primary" onclick="doExport()"><i class="fa fa-download"></i> 导出</button>
+        </div>
+    </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal" style="width:560px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-info-circle" style="color:#7b61ff;margin-right:6px"></i>待办事项详情</span>
+            <div class="modal-close" onclick="closeDetailModal()">×</div>
+        </div>
+        <div class="modal-body" id="detailBody" style="padding:20px 24px;font-size:14px;line-height:1.8"></div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeDetailModal()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 确认弹窗（立即填报/提交回执共用） -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal" style="width:480px">
+        <div class="modal-header">
+            <span class="modal-title" id="confirmTitle"><i class="fa fa-question-circle" style="color:#7b61ff;margin-right:6px"></i>操作确认</span>
+            <div class="modal-close" onclick="closeConfirmModal()">×</div>
+        </div>
+        <div class="modal-body" id="confirmBody" style="padding:20px 24px;font-size:14px;line-height:1.8"></div>
+        <div class="modal-footer" id="confirmFooter"></div>
+    </div>
+</div>
+
+<script src="/pages/common.js">
+<script src="/pages/tracker.js"></script></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+function showToast(msg,type,duration){
+    duration = duration || 3000;
+    var container=document.getElementById('toastContainer');var t=document.createElement('div');
+    t.style.cssText='padding:10px 20px;border-radius:6px;margin-bottom:8px;background:linear-gradient(135deg,rgba(16,24,56,0.95),rgba(22,41,105,0.95));border:1px solid rgba(43,104,224,0.4);color:#a0cfff;font-size:13px;display:flex;align-items:center;gap:8px;animation:slideIn 0.3s ease';
+    t.innerHTML='<i class="fa fa-'+(type==='success'?'check-circle':type==='warning'?'exclamation-triangle':'info-circle')+'"></i> '+msg;
+    container.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(function(){t.remove()},300)},duration);
+}
+
+// ========== 单号生成方法 ==========
+var snCounter = 12;
+function generateSN(){
+    snCounter++;
+    var d = new Date();
+    var y = d.getFullYear();
+    var m = String(d.getMonth()+1).padStart(2,'0');
+    var dd = String(d.getDate()).padStart(2,'0');
+    var seq = String(snCounter).padStart(3,'0');
+    return 'HQ'+y+m+dd+seq;
+}
+
+// ========== 待办事项数据 ==========
+var todos = [
+    {sn:'HQ20260501001',item:'安全生产大检查自查表',type:'数据填报',typeName:'各类数据填报',deadline:'2026-05-15',status:'进行中',desc:'根据园区管委会统一部署，请佳兴铝业对照《安全生产检查清单》逐项自查，如实填写企业安全生产自查表（含消防设施、电气安全、机械设备、危化品存储等8大类36项），完成后在线提交。本次检查结果将纳入企业年度安全生产考核评分。'},
+    {sn:'HQ20260502002',item:'园区营商环境满意度调查',type:'调查',typeName:'各类调查',deadline:'2026-05-10',status:'已上报',desc:'园区管委会委托第三方机构开展上半年营商环境满意度调查，涵盖政务服务效率、基础设施配套、政策兑现力度、人才服务等6个维度。请企业负责人或行政主管如实填写，结果匿名统计。佳兴铝业已于5月8日完成填报。'},
+    {sn:'HQ20260503003',item:'五一假期安全生产部署会议',type:'会议',typeName:'各类会议',deadline:'2026-05-05',status:'已上报',desc:'园区管委会定于4月29日14:00在综合服务中心三楼多功能厅召开五一假期安全生产部署会议。请佳兴铝业安全生产负责人务必参加，会议将布置假期值班巡查、消防检查、应急处置等重点工作。已提交参会回执，陈伟代表参加。'},
+    {sn:'HQ20260504004',item:'成渝双城经济圈产业对接会参展意向',type:'通知',typeName:'各类通知',deadline:'2026-05-18',status:'进行中',desc:'接上级通知，成渝地区双城经济圈产业合作对接会将于5月25日在成都举行。园区拟组织铝精深加工等三类企业组团参加，展位费用由园区统一承担。请佳兴铝业于5月18日前反馈参展意向及拟展出产品信息（铝型材/铝合金制品等）。'},
+    {sn:'HQ20260505005',item:'第二季度用水用电预计数据填报',type:'数据填报',typeName:'各类数据填报',deadline:'2026-05-20',status:'待填写',desc:'根据园区能耗管理要求，请佳兴铝业在5月20日前提交第二季度（4-6月）用水用电预计数据，包括月预估用电量(kWh)、月预估用水量(m³)、峰值时段用电比例等。数据将用于园区电力调度及供水保障方案制定，逾期未提交将影响下季度用能配额。'},
+    {sn:'HQ20260506006',item:'企业智能化改造需求摸底问卷',type:'问卷',typeName:'各类问卷',deadline:'2026-05-12',status:'已上报',desc:'园区管委会拟推进企业智能化改造专项扶持计划，现开展前期需求摸底。问卷涵盖自动化设备现状、信息化系统使用情况、未来3年技改规划、资金预算及政策诉求等内容。佳兴铝业已完成填报，拟申报二期生产线自动化改造项目。'},
+    {sn:'HQ20260507007',item:'园区LOGO及视觉形象方案投票',type:'投票',typeName:'各类投票',deadline:'2026-05-14',status:'进行中',desc:'经前期征集与初选，现有3套园区LOGO及视觉形象方案进入最终投票阶段。方案A：科技蓝+生态绿，突出智慧与绿色；方案B：工业灰+活力橙，突出产业与创新；方案C：庄重蓝+金色，突出品牌与品质。每家入驻企业限投1票，请佳兴铝业在5月14日前完成投票。'},
+    {sn:'HQ20260508008',item:'企业人才需求调研问卷',type:'问卷',typeName:'各类问卷',deadline:'2026-05-25',status:'待填写',desc:'为进一步精准匹配园区企业人才需求，特开展本次人才需求调研。请佳兴铝业填写现有人员结构、未来6个月招聘计划（岗位/人数/学历要求/薪资范围）、技能培训需求等。数据将用于园区秋季专场招聘会岗位匹配及校企合作定向培养计划。'},
+    {sn:'HQ20260509009',item:'企业安全生产经验交流会',type:'会议',typeName:'各类会议',deadline:'2026-05-16',status:'进行中',desc:'园区定于5月20日9:00在综合服务中心举办企业安全生产经验交流会，邀请2025年度安全生产优秀企业代表分享管理经验。同时安排现场观摩阜成新材智能化安全监控系统。请佳兴铝业安全生产负责人陈伟参加，在5月16日前回复参会情况。'},
+    {sn:'HQ20260510010',item:'做好雨季防汛工作的通知',type:'通知',typeName:'各类通知',deadline:'2026-05-08',status:'已上报',desc:'接气象部门预警，预计5月中下旬将有持续强降雨天气。请佳兴铝业立即开展防汛自查，重点排查厂房天沟排水、铝锭库房防水、低洼区域防洪沙袋等。园区已成立防汛应急指挥部（联系电话：0839-72XXX01），24小时值班。佳兴铝业已完成自查并上报。'},
+    {sn:'HQ20260511011',item:'企业数字化水平自评调查',type:'调查',typeName:'各类调查',deadline:'2026-05-22',status:'待填写',desc:'按照智慧园区建设要求，对园区企业数字化水平进行摸底。调查涵盖数字化基础设施、生产自动化程度、信息化管理软件使用、数据互联互通水平、网络安全防护等5大维度。请佳兴铝业信息部门负责人或指定专人填写，自评结果将作为园区数字化升级服务的依据。'},
+    {sn:'HQ20260512012',item:'年度优秀企业评选投票',type:'投票',typeName:'各类投票',deadline:'2026-05-30',status:'待填写',desc:'2026年度园区优秀企业评选正式启动，设「安全生产标杆」「科技创新先锋」「环保达标模范」「最具成长力企业」四个奖项。每家入驻企业可对每个奖项投1票（可自荐），佳兴铝业可竞选「最具成长力企业」奖项，请在5月30日前完成在线投票。'}
+];
+
+var filteredTodos = Array.from({length: todos.length}, function(_, i) { return i; });
+
+function initFilters(){
+    var sel=document.getElementById('fType');var seen={};
+    todos.forEach(function(b){if(!seen[b.typeName]){seen[b.typeName]=1;var opt=document.createElement('option');opt.textContent=b.typeName;sel.appendChild(opt);}});
+}
+
+function statusTag(s){
+    if(s==='待填写') return '<span class="tag-pending">待填写</span>';
+    if(s==='进行中') return '<span class="tag-ongoing">进行中</span>';
+    return '<span class="tag-done">已上报</span>';
+}
+
+function renderTable(){
+    var tbody=document.getElementById('todoTbody');
+    var frag=document.createDocumentFragment();
+    filteredTodos.forEach(function(idx){
+        var b=todos[idx];
+        var tr=document.createElement('tr');
+
+        var td0=document.createElement('td');
+        td0.style.textAlign='center';
+        var cb=document.createElement('input');
+        cb.type='checkbox';cb.className='row-cb';cb.style.cursor='pointer';cb.setAttribute('data-idx',idx);
+        td0.appendChild(cb);tr.appendChild(td0);
+
+        var tdSn=document.createElement('td');tdSn.textContent=b.sn;tr.appendChild(tdSn);
+
+        var tdItem=document.createElement('td');
+        var sp=document.createElement('span');sp.className='detail-cell';sp.textContent=b.item;sp.title=b.item;tdItem.appendChild(sp);tr.appendChild(tdItem);
+
+        var tdUnit=document.createElement('td');tdUnit.style.textAlign='center';tdUnit.textContent='佳兴铝业';tr.appendChild(tdUnit);
+
+        var tdDl=document.createElement('td');tdDl.style.cssText='font-size:12px;white-space:nowrap';tdDl.textContent=b.deadline;tr.appendChild(tdDl);
+
+        var tdDesc=document.createElement('td');
+        var spDesc=document.createElement('span');spDesc.className='detail-cell';spDesc.textContent=b.desc||'--';spDesc.title=b.desc||'--';tdDesc.appendChild(spDesc);tr.appendChild(tdDesc);
+
+        var tdSt=document.createElement('td');tdSt.style.textAlign='center';tdSt.innerHTML=statusTag(b.status);tr.appendChild(tdSt);
+
+        var tdA=document.createElement('td');
+        var btnDetail=document.createElement('button');btnDetail.className='btn btn-default';btnDetail.style.cssText='padding:3px 8px;font-size:11px';
+        btnDetail.textContent='详情';btnDetail.setAttribute('data-idx',idx);
+        btnDetail.dataset.deleteInited='1';
+        btnDetail.setAttribute('onclick','_showDetail(event,'+idx+')');tdA.appendChild(btnDetail);
+
+        if(b.status==='待填写'){
+            tdA.appendChild(document.createTextNode(' '));
+            var btnFill=document.createElement('button');btnFill.className='btn btn-primary';btnFill.style.cssText='padding:3px 8px;font-size:11px';            btnFill.textContent='立即填报';btnFill.setAttribute('data-idx',idx);
+            btnFill.dataset.deleteInited='1';
+            btnFill.setAttribute('onclick','_startFill(event,'+idx+')');tdA.appendChild(btnFill);
+        }else if(b.status==='进行中'){
+            tdA.appendChild(document.createTextNode(' '));
+            var btnReport=document.createElement('button');btnReport.className='btn btn-warning';btnReport.style.cssText='padding:3px 8px;font-size:11px';btnReport.textContent='提交回执';btnReport.setAttribute('data-idx',idx);
+            btnReport.dataset.deleteInited='1';
+            btnReport.setAttribute('onclick','_submitReport(event,'+idx+')');tdA.appendChild(btnReport);
+        }
+        tr.appendChild(tdA);
+        frag.appendChild(tr);
+    });
+    tbody.innerHTML='';
+    tbody.appendChild(frag);
+    if(typeof initPagination==='function') initPagination();
+}
+
+function _showDetail(e,i){e.stopPropagation();showDetail(i);return false;} function _startFill(e,i){e.stopPropagation();startFill(i);return false;} function _submitReport(e,i){e.stopPropagation();submitReport(i);return false;}
+
+function showDetail(i){
+    var b=todos[i];
+    if(!b){showToast('数据加载失败，请刷新页面','warning');return;}
+    var body=document.getElementById('detailBody');
+    if(!body){showToast('弹窗加载失败，请刷新页面','warning');return;}
+    body.innerHTML=
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px">'+
+        '<div><b style="color:var(--text-secondary)">单号：</b>'+b.sn+'</div>'+
+        '<div><b style="color:var(--text-secondary)">接收单位：</b>佳兴铝业</div>'+
+        '<div><b style="color:var(--text-secondary)">事项：</b>'+b.item+'</div>'+
+        '<div><b style="color:var(--text-secondary)">事项类型：</b>'+b.typeName+'</div>'+
+        '<div><b style="color:var(--text-secondary)">截止时间：</b>'+b.deadline+'</div>'+
+        '<div><b style="color:var(--text-secondary)">状态：</b>'+statusTag(b.status)+'</div>'+
+        '</div>'+
+        '<div style="margin-top:14px"><b style="color:var(--text-secondary)">详情说明：</b></div>'+
+        '<div style="margin-top:6px;padding:12px;background:rgba(123,97,255,0.06);border-radius:6px;line-height:1.7;font-size:13px;border-left:3px solid #7b61ff">'+b.desc+'</div>';
+    document.getElementById('detailModal').classList.add('show');
+}
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('show');}
+
+function startFill(i){
+    var b=todos[i];
+    var body=document.getElementById('confirmBody');
+    body.innerHTML='<p>您即将对以下事项进行<b>立即填报</b>：</p>'+
+        '<div style="margin:12px 0;padding:12px;background:rgba(123,97,255,0.06);border-radius:8px;border-left:3px solid #7b61ff;font-size:13px">'+
+        '<div><b>单号：</b>'+b.sn+'</div><div><b>事项：</b>'+b.item+'</div><div><b>截止时间：</b>'+b.deadline+'</div></div>'+
+        '<p style="color:var(--text-tertiary);font-size:12px">点击确认后将进入填报页面，请确保在规定时间内完成填写。</p>';
+    document.getElementById('confirmTitle').innerHTML='<i class="fa fa-edit" style="color:#ff9500;margin-right:6px"></i>立即填报确认';
+    var footer=document.getElementById('confirmFooter');
+    footer.innerHTML='<button class="btn btn-default" onclick="closeConfirmModal()">取消</button><button class="btn btn-primary" id="__cfBtn">确认填报</button>';
+    document.getElementById('__cfBtn').onclick=function(){
+        todos[i].status='进行中';
+        renderTable();
+        closeConfirmModal();
+        showToast('已进入「'+b.item+'」填报页面，请尽快完成填写','success');
+    };
+    document.getElementById('confirmModal').classList.add('show');
+}
+
+function submitReport(i){
+    var b=todos[i];
+    var body=document.getElementById('confirmBody');
+    body.innerHTML='<p>您即将对以下事项<b>提交回执</b>：</p>'+
+        '<div style="margin:12px 0;padding:12px;background:rgba(123,97,255,0.06);border-radius:8px;border-left:3px solid #7b61ff;font-size:13px">'+
+        '<div><b>单号：</b>'+b.sn+'</div><div><b>事项：</b>'+b.item+'</div><div><b>截止时间：</b>'+b.deadline+'</div></div>'+
+        '<p style="color:var(--text-tertiary);font-size:12px">提交后将上报至园区管委会，确认提交？</p>';
+    document.getElementById('confirmTitle').innerHTML='<i class="fa fa-paper-plane" style="color:#7b61ff;margin-right:6px"></i>提交回执确认';
+    var footer=document.getElementById('confirmFooter');
+    footer.innerHTML='<button class="btn btn-default" onclick="closeConfirmModal()">取消</button><button class="btn btn-warning" id="__cfBtn">确认提交</button>';
+    document.getElementById('__cfBtn').onclick=function(){
+        todos[i].status='已上报';
+        renderTable();
+        closeConfirmModal();
+        showToast('「'+b.item+'」回执已提交成功','success');
+    };
+    document.getElementById('confirmModal').classList.add('show');
+}
+function closeConfirmModal(){document.getElementById('confirmModal').classList.remove('show');}
+
+function filterTable(){
+    var fKeyword=(document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var fType=document.getElementById('fType').value.replace(/[ ]/g,'').trim();
+    var fStatus=document.getElementById('fStatus').value.replace(/[ ]/g,'').trim();
+    var fDate=document.getElementById('fDate').value;
+    filteredTodos = [];
+    for(var i=0;i<todos.length;i++){
+        var b=todos[i];
+        var t=[b.sn,b.item,b.typeName,b.deadline,b.status,b.desc].join(' ').toLowerCase();
+        if((!fKeyword||t.indexOf(fKeyword)>-1)&&(!fType||t.indexOf(fType)>-1)&&(!fStatus||t.indexOf(fStatus)>-1)&&(!fDate||t.indexOf(fDate)>-1)){
+            filteredTodos.push(i);
+        }
+    }
+    renderTable();
+}
+
+function resetFilters(){
+    ['fKeyword','fType','fStatus','fDate'].forEach(function(id){document.getElementById(id).value='';});
+    filteredTodos = Array.from({length: todos.length}, function(_, i) { return i; });
+    renderTable();
+    showToast('筛选条件已重置','info');
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+    initFilters();
+    document.querySelectorAll('.filter-row select option').forEach(function(opt){
+        var t=opt.textContent.trim();if(t) opt.textContent='　　'+t+'　　';
+    });
+    var searchBtn=document.querySelector('.btn-search');
+    if(searchBtn) searchBtn.addEventListener('click',filterTable);
+    renderTable();
+});
+
+// ========== 分页 ==========
+var initPagination=(function(){
+    var PAGE_SIZE=10;
+    return function initPagination(){
+        document.querySelectorAll('.card').forEach(function(card){
+            var table=card.querySelector('.data-table tbody');
+            var pagination=card.querySelector('.pagination');
+            if(!table||!pagination)return;
+            var rows=Array.from(table.querySelectorAll('tr'));
+            if(rows.length===0)return;
+            var infoSpan=pagination.querySelector('span:first-child');
+            var totalPages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+            function renderPage(page){
+                var start=(page-1)*PAGE_SIZE,end=Math.min(start+PAGE_SIZE,rows.length);
+                rows.forEach(function(r,i){r.style.display=(i>=start&&i<end)?'':'none';});
+                infoSpan.textContent='共 '+rows.length+' 条  第'+(start+1)+'-'+end+'条';
+                updateBtns(page,totalPages,pagination);
+            }
+            function updateBtns(page,total,pagi){
+                var bd=pagi.querySelector('.page-btns');if(!bd)return;bd.innerHTML='';
+                var prev=document.createElement('div');prev.className='page-btn'+(page<=1?' disabled':'');prev.textContent='\u00AB';prev.style.cssText='cursor:'+(page<=1?'default':'pointer')+';opacity:'+(page<=1?'0.4':'1');
+                if(page>1)prev.onclick=function(){renderPage(page-1);};bd.appendChild(prev);
+                var sp=Math.max(1,page-2),ep=Math.min(total,sp+4);if(ep-sp<4)sp=Math.max(1,ep-4);
+                for(var p=sp;p<=ep;p++){(function(pp){var btn=document.createElement('div');btn.className='page-btn'+(pp===page?' active':'');btn.textContent=pp;btn.onclick=function(){renderPage(pp);};bd.appendChild(btn);})(p);}
+                var next=document.createElement('div');next.className='page-btn'+(page>=total?' disabled':'');next.textContent='\u00BB';next.style.cssText='cursor:'+(page>=total?'default':'pointer')+';opacity:'+(page>=total?'0.4':'1');
+                if(page<total)next.onclick=function(){renderPage(page+1);};bd.appendChild(next);
+            }
+            renderPage(1);
+        });
+    };
+})();
+
+// ========== 导出功能 ==========
+var exportFormat='excel';
+function openExportModal(){document.getElementById('exportModal').classList.add('show');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('show');}
+function selectExportFormat(el,fmt){
+    exportFormat=fmt;
+    document.querySelectorAll('.export-option').forEach(function(o){o.classList.remove('selected');});
+    el.classList.add('selected');
+}
+function doExport(){
+    var data=todos.map(function(b){return{
+        '单号':b.sn,'事项':b.item,'接收单位':'佳兴铝业','截止时间':b.deadline,'状态':b.status,'详情说明':b.desc
+    };});
+    var el=document.getElementById('exportModal');
+    el.querySelector('.modal-footer button:last-child').textContent='导出中...';
+    el.querySelector('.modal-footer button:last-child').disabled=true;
+    _loadLibs(function(){
+        _execExport(data);
+        el.querySelector('.modal-footer button:last-child').textContent='导出';
+        el.querySelector('.modal-footer button:last-child').disabled=false;
+    });
+}
+
+function _loadLibs(cb){
+    var loaded=0,total=2;
+    function check(){loaded++;if(loaded>=total)cb();}
+    if(typeof XLSX!=='undefined'){check();}else{var s=document.createElement('script');s.src='https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js';s.onload=check;document.head.appendChild(s);}
+    if(typeof jspdf!=='undefined'){check();}else{var s2=document.createElement('script');s2.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';s2.onload=check;document.head.appendChild(s2);}
+}
+
+function _execExport(data){
+    try{
+        if(exportFormat==='excel'){
+            var ws=XLSX.utils.json_to_sheet(data);
+            var wb=XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb,ws,'待办事项');
+            XLSX.writeFile(wb,'园企交互待办_'+new Date().toISOString().slice(0,10)+'.xlsx');
+        }else if(exportFormat==='pdf'){
+            var w=window.open('','_blank');
+            w.document.write('<html><head><meta charset="utf-8"><title>园企交互待办</title>');
+            w.document.write('<style>body{font-family:"Microsoft YaHei",sans-serif;padding:20px}table{border-collapse:collapse;width:100%;font-size:12px}th,td{border:1px solid #ccc;padding:6px}th{background:#7b61ff;color:#fff;position:sticky;top:0}</style>');
+            w.document.write('</head><body>');
+            w.document.write('<h2>待办事项列表</h2>');
+            w.document.write('<table><thead><tr><th>单号</th><th>事项</th><th>接收单位</th><th>截止时间</th><th>详情说明</th><th>状态</th></tr></thead><tbody>');
+            data.forEach(function(r){w.document.write('<tr><td>'+r['单号']+'</td><td>'+r['事项']+'</td><td>佳兴铝业</td><td>'+r['截止时间']+'</td><td style="max-width:150px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+r['详情说明']+'</td><td>'+r['状态']+'</td></tr>');});
+            w.document.write('</tbody></table></body></html>');
+            w.document.close();
+            setTimeout(function(){w.print();setTimeout(function(){w.close();},500);},300);
+        }else if(exportFormat==='word'){
+            var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>园企交互待办</title></head><body>';
+            html+='<h2>待办事项列表</h2><table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:12px;width:100%">';
+            html+='<tr style="background:#7b61ff;color:#fff"><th>单号</th><th>事项</th><th>接收单位</th><th>截止时间</th><th>详情说明</th><th>状态</th></tr>';
+            data.forEach(function(r){html+='<tr><td>'+r['单号']+'</td><td>'+r['事项']+'</td><td>佳兴铝业</td><td>'+r['截止时间']+'</td><td>'+r['详情说明']+'</td><td>'+r['状态']+'</td></tr>';});
+            html+='</table></body></html>';
+            var blob=new Blob(['\uFEFF'+html],{type:'application/msword'});
+            var url=URL.createObjectURL(blob);
+            var a=document.createElement('a');a.href=url;a.download='园企交互待办_'+new Date().toISOString().slice(0,10)+'.doc';
+            document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+        }
+        showToast('导出成功！格式：'+exportFormat,'success');
+    }catch(e){showToast('导出失败：'+e.message,'warning');}
+    closeExportModal();
+}
+</script>
+</body>
+</html>

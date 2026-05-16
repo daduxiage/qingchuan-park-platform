@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>特色供需 · 青川庄子上智慧工业园</title>
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+:root{--c-dk:#1B4332;--c-mid:#40916C;--c-light:#D8F3DC;--c-text:#2d3748;--c-sub:#718096;--sidebar-w:200px;--top-h:64px;--sub-h:40px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f5f5;color:var(--c-text);font-family:"Microsoft YaHei","微软雅黑",sans-serif;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+.top-nav{flex-shrink:0;background:var(--c-dk);height:var(--top-h);display:flex;align-items:center;padding:0 32px;border-bottom:2px solid var(--c-mid)}
+.top-nav-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:#fff;text-decoration:none}
+.top-nav-logo svg{width:34px;height:34px}
+.top-nav-menu{display:flex;gap:32px;margin-left:48px;list-style:none}
+.top-nav-menu a{color:rgba(255,255,255,.65);text-decoration:none;font-size:14px;padding:8px 0;border-bottom:2px solid transparent;transition:.2s}
+.top-nav-menu a:hover,.top-nav-menu a.active{color:#fff;border-bottom-color:var(--c-mid)}
+.top-nav-right{margin-left:auto;display:flex;align-items:center;gap:16px}
+.top-nav-right a{color:rgba(255,255,255,.65);font-size:13px;text-decoration:none}
+.top-nav-right .btn-login{background:var(--c-mid);color:#fff;padding:6px 20px;border-radius:20px;font-weight:600;font-size:13px;border:none;cursor:pointer}
+.sub-header{flex-shrink:0;background:#fff;height:var(--sub-h);display:flex;align-items:center;padding:0 32px;border-bottom:1px solid #e8e8e8}
+.sub-header a{color:var(--c-mid);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:6px;font-weight:500}
+.sub-header .sep{color:#ccc;margin:0 6px;font-size:12px}
+.main-wrap{flex:1;display:flex;min-height:0}
+.sidebar{width:var(--sidebar-w);background:#fff;border-right:1px solid #e0e0e0;overflow-y:auto;flex-shrink:0;padding-top:20px}
+.side-btn{display:flex;align-items:center;gap:10px;padding:12px 20px;cursor:pointer;transition:.15s;border-left:3px solid transparent;font-size:13px;color:var(--c-text)}
+.side-btn:hover{background:#f0faf5}
+.side-btn.active{background:rgba(64,145,108,.08);border-left-color:var(--c-mid);color:var(--c-dk);font-weight:600}
+.side-btn .sb-num{font-size:11px;color:var(--c-sub);margin-left:auto}
+.content{flex:1;padding:20px 24px 0;display:flex;flex-direction:column}
+.panel-body{flex:1;overflow-y:auto;min-height:0}
+.pro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:1200px){.pro-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.pro-grid{grid-template-columns:1fr}}
+/* 产品卡片样式 */
+.fp-card{border-radius:14px;padding:24px 20px;text-decoration:none;display:flex;flex-direction:column;transition:.2s;border:1px solid transparent}
+.fp-card:hover{border-color:rgba(255,255,255,.3);transform:translateY(-3px)}
+.fp-card .fp-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:26px}
+.fp-card h4{font-size:16px;font-weight:700;margin-bottom:4px;color:#fff}
+.fp-card .fp-company{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.fp-card .fp-company .fp-phone{font-size:11px;color:rgba(255,255,255,.5);direction:rtl}
+.fp-card p{font-size:12px;line-height:1.6;color:rgba(255,255,255,.75);flex:1}
+.fp-card .fp-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1)}
+.fp-card .fp-tag{display:inline-block;font-size:10px;padding:3px 10px;border-radius:10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.7)}
+.fp-card .fp-price{font-size:12px;color:rgba(255,255,255,.5)}
+.filter-bar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;flex-shrink:0}
+.filter-bar input,.filter-bar select{padding:8px 14px;border:1px solid #d0d0d0;border-radius:8px;font-size:13px;outline:none;background:#fff}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--c-mid);box-shadow:0 0 0 3px rgba(64,145,108,.06)}
+.filter-bar input{width:180px}.filter-bar select{min-width:110px}
+.filter-bar .result-count{font-size:12px;color:var(--c-sub);margin-left:auto}
+.btn-reset{padding:8px 16px;border:1px solid #d0d0d0;border-radius:8px;background:#fff;font-size:13px;cursor:pointer;color:var(--c-sub)}
+.pagination{display:flex;justify-content:center;align-items:center;gap:6px;padding:10px 0 20px;flex-shrink:0}
+.page-btn{width:32px;height:32px;border-radius:6px;border:1px solid #d0d0d0;background:#fff;cursor:pointer;font-size:12px}
+.page-btn.active{background:var(--c-dk);color:#fff;border-color:var(--c-dk)}
+.page-btn.disabled{opacity:.3;cursor:default}
+.page-info{font-size:12px;color:var(--c-sub);padding:0 6px}
+.page-footer{flex-shrink:0;background:var(--c-dk);padding:28px 32px 16px}
+.footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:36px}
+.fcol h5{color:var(--c-light);font-size:14px;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.1)}
+.fcol p,.fcol a{color:rgba(255,255,255,.6);font-size:13px;line-height:2;text-decoration:none;display:block}
+.fcol a:hover{color:#fff}
+.footer-bot{max-width:1200px;margin:20px auto 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);text-align:center;color:rgba(255,255,255,.4);font-size:12px}
+</style>
+</head>
+<body>
+<div class="top-nav">
+    <a href="info_publish.html" class="top-nav-logo">
+        <svg viewBox="0 0 34 34"><rect width="34" height="34" rx="8" fill="#40916C"/><rect x="8" y="18" width="8" height="10" rx="2" fill="#fff"/><rect x="18" y="10" width="8" height="18" rx="2" fill="#fff" opacity=".6"/></svg>
+        青川庄子上智慧工业园
+    </a>
+    <ul class="top-nav-menu">
+        <li><a href="info_publish.html">首页</a></li>
+        <li><a href="employment_detail.html">用工信息</a></li>
+        <li><a href="logistics_supply.html">物流供需</a></li>
+        <li><a href="featured_supply.html" class="active">特色供需</a></li>
+        <li><a href="policy_detail.html">园区政策</a></li>
+        <li><a href="catering.html">园区餐饮</a></li>
+        <li><a href="parking_detail.html">停车服务</a></li>
+        <li><a href="venue_service.html">场馆服务</a></li>
+        <li><a href="activities_detail.html">园区活动</a></li>
+        <li><a href="notice_detail.html">园区公告</a></li>
+    </ul>
+    <div class="top-nav-right"><a href="../login.html">登录</a><a href="#" class="btn-login">注册</a></div>
+</div>
+<div class="sub-header">
+    <a href="info_publish.html"><i class="fa fa-arrow-left"></i> 返回信息发布</a>
+    <span class="sep">/</span>
+    <span style="font-size:12px;color:var(--c-sub)">特色供需</span>
+</div>
+<div class="main-wrap">
+    <div class="sidebar" id="sidebar">
+        <div class="side-btn active" data-filter="all">全部<span class="sb-num">18</span></div>
+        <div class="side-btn" data-filter="山珍">山珍菌菇<span class="sb-num">5</span></div>
+        <div class="side-btn" data-filter="茶叶">茶叶饮品<span class="sb-num">3</span></div>
+        <div class="side-btn" data-filter="水产">水产特产<span class="sb-num">2</span></div>
+        <div class="side-btn" data-filter="粮油">粮油干货<span class="sb-num">4</span></div>
+        <div class="side-btn" data-filter="蜂蜜">蜂蜜养生<span class="sb-num">2</span></div>
+        <div class="side-btn" data-filter="加工">加工产品<span class="sb-num">2</span></div>
+    </div>
+    <div class="content">
+        <div class="filter-bar">
+            <input type="text" id="fKeyword" placeholder="搜索产品名称..." oninput="applyFilter()">
+            <select id="fCat" onchange="applyFilter()"><option value="">全部类别</option><option value="山珍">山珍菌菇</option><option value="茶叶">茶叶饮品</option><option value="水产">水产特产</option><option value="粮油">粮油干货</option><option value="蜂蜜">蜂蜜养生</option><option value="加工">加工产品</option></select>
+            <span class="result-count" id="resultCount"></span>
+        </div>
+        <div class="panel-body"><div class="pro-grid" id="proGrid"></div></div>
+        <div class="pagination" id="pagination"></div>
+    </div>
+</div>
+<footer class="page-footer">
+    <div class="footer-inner">
+        <div class="fcol"><h5>联系我们</h5><p>青川县庄子上工业园区管委会</p><p>地址：四川省广元市青川县竹园镇</p><p>电话：0839-xxxxxxx</p><p>邮箱：park@zhuangzishang.gov.cn</p><p>工作时间：周一至周五 8:30-17:30</p></div>
+        <div class="fcol"><h5>快速链接</h5><a href="../index.html">智慧园区</a></div>
+        <div class="fcol"><h5>关于平台</h5><p>青川县庄子上工业园区智慧园区平台，为园区企业提供一站式信息发布与综合服务。</p></div>
+    </div>
+    <div class="footer-bot">Copyright &copy; 2026 青川县庄子上工业园区管委会 All Rights Reserved | 蜀ICP备XXXXXXXX号-1 | 技术支持：青迅科技</div>
+</footer>
+<script>
+var products = [
+    {cat:'山珍',contact:'张主任',phone:'13856785678',emoji:'🍄',name:'青川黑木耳',company:'青川山珍食品公司',desc:'国家地理标志产品，肉质厚实、口感爽脆，年产量超5000吨，远销海内外。',tag:'国家地理标志',price:'¥68/kg',bg:'#1a1a2e,#16213e'},
+    {cat:'山珍',contact:'李经理',phone:'13923452345',emoji:'🌿',name:'青川天麻',company:'秦岭中药材合作社',desc:'秦岭山脉野生天麻主产区，个头大、药效足，年产优质天麻200+吨。',tag:'道地药材',price:'¥180/kg',bg:'#2d3436,#636e72'},
+    {cat:'山珍',contact:'王厂长',phone:'13778907890',emoji:'🎍',name:'青川竹荪',company:'青川山珍食品公司',desc:'野生竹荪珍品，菌香浓郁、营养丰富，被誉为"山珍之王"。',tag:'山珍之王',price:'¥120/kg',bg:'#1B4332,#2d6a4f'},
+    {cat:'山珍',contact:'陈总',phone:'13643214321',emoji:'🍄',name:'羊肚菌',company:'高山菌菇示范基地',desc:'青川高山羊肚菌示范基地培育，菌香独特、口感极佳，供不应求。',tag:'珍稀菌类',price:'¥320/kg',bg:'#5d4037,#8d6e63'},
+    {cat:'山珍',contact:'刘师傅',phone:'13587658765',emoji:'🍄',name:'松茸',company:'青川野山菌合作社',desc:'高山松茸品质上乘，香气浓郁，鲜食或干制均为佳品。',tag:'野生珍品',price:'¥280/kg',bg:'#4e342e,#795548'},
+    {cat:'茶叶',contact:'赵农艺师',phone:'15134563456',emoji:'🍵',name:'七佛贡茶',company:'七佛贡茶有限公司',desc:'唐代贡茶传承，海拔800-1200米高山茶园，茶香馥郁、回甘悠长。',tag:'历史名茶',price:'¥260/斤',bg:'#4a3728,#6f4e37'},
+    {cat:'茶叶',contact:'周场长',phone:'18789018901',emoji:'🍵',name:'青川白茶',company:'青川高山茶业',desc:'珍稀白茶品种，氨基酸含量高，口感鲜爽甘甜。',tag:'高山白茶',price:'¥320/斤',bg:'#3e2723,#5d4037'},
+    {cat:'茶叶',contact:'吴茶师',phone:'13056785678',emoji:'🌱',name:'青川绿茶',company:'青川茶业合作社',desc:'有机种植春茶，条索紧细、色泽翠绿、滋味鲜醇。',tag:'有机绿茶',price:'¥180/斤',bg:'#2e7d32,#4caf50'},
+    {cat:'水产',contact:'钱师傅',phone:'18290129012',emoji:'🐟',name:'白龙湖银鱼',company:'白龙湖水产公司',desc:'白龙湖生态水域野生银鱼，肉质细嫩、营养丰富，国家地理标志产品。',tag:'生态养殖',price:'¥150/kg',bg:'#0c2461,#0a3d62'},
+    {cat:'水产',contact:'孙队长',phone:'13865436543',emoji:'🐟',name:'青竹江娃娃鱼',company:'青竹江生态渔业',desc:'青竹江生态养殖娃娃鱼，肉质细嫩鲜美，富含胶原蛋白。',tag:'特色水产',price:'¥220/kg',bg:'#1a237e,#283593'},
+    {cat:'粮油',contact:'何老板',phone:'13923456789',emoji:'🥜',name:'青川核桃',company:'青川林果合作社',desc:'高山核桃皮薄仁大，出油率高，富含不饱和脂肪酸，年销3000+吨。',tag:'高山特产',price:'¥80/斤',bg:'#343a40,#495057'},
+    {cat:'粮油',contact:'郑厂长',phone:'13789012345',emoji:'🫒',name:'青川橄榄油',company:'大巴山橄榄种植基地',desc:'特级初榨橄榄油，酸度≤0.5%，品质上乘。',tag:'特级初榨',price:'¥168/瓶',bg:'#2e7d32,#4caf50'},
+    {cat:'粮油',contact:'冯主任',phone:'13667891234',emoji:'🌽',name:'高山玉米',company:'青川高山农业合作社',desc:'优质高山糯玉米，香甜软糯，纯天然无公害种植。',tag:'绿色食品',price:'¥30/箱',bg:'#e65100,#ff6f00'},
+    {cat:'粮油',contact:'罗经理',phone:'15987654321',emoji:'🌾',name:'高山大米',company:'青川粮油公司',desc:'青川高山冷水大米，颗粒饱满、口感软糯。',tag:'优质大米',price:'¥48/kg',bg:'#bf360c,#e64a19'},
+    {cat:'蜂蜜',contact:'杨场长',phone:'15012345678',emoji:'🍯',name:'唐家河蜂蜜',company:'唐家河养蜂专业合作社',desc:'唐家河自然保护区蜂蜜，纯天然野生百花蜜，口感醇厚甜润。',tag:'绿色食品',price:'¥98/瓶',bg:'#b8860b,#daa520'},
+    {cat:'蜂蜜',contact:'唐社长',phone:'18654321098',emoji:'🍯',name:'青川百花蜜',company:'青川蜂业公司',desc:'大巴山百花蜜，多种蜜源植物精华，营养价值极高。',tag:'天然蜂蜜',price:'¥78/瓶',bg:'#f57f17,#f9a825'},
+    {cat:'加工',contact:'赖经理',phone:'13890123456',emoji:'🧂',name:'竹笋加工品',company:'青川竹业合作社',desc:'青川高山竹笋加工系列，包括笋干、酸笋、即食笋等。',tag:'加工食品',price:'¥25/袋',bg:'#33691e,#558b2f'},
+    {cat:'加工',contact:'廖总',phone:'13345678901',emoji:'🫘',name:'魔芋制品',company:'青川魔芋加工厂',desc:'优质魔芋精加工制品，低热低脂，健康食品。',tag:'健康食品',price:'¥18/袋',bg:'#4a148c,#6a1b9a'}
+];
+var pageSize = 9;
+function applyFilter(){
+    var kw=(document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var cat=document.querySelector('.side-btn.active')?.getAttribute('data-filter')||'all';
+    var cat2=document.getElementById('fCat').value;
+    var fl=products.filter(function(p){
+        if(cat!=='all' && p.cat!==cat) return false;
+        if(cat2 && p.cat!==cat2) return false;
+        if(kw && p.name.indexOf(kw)===-1 && p.company.indexOf(kw)===-1 && p.tag.indexOf(kw)===-1) return false;
+        return true;
+    });
+    document.getElementById('resultCount').textContent='共'+fl.length+'种产品';
+    var tp=Math.max(1,Math.ceil(fl.length/pageSize));
+    var pn=Math.min(window._cp||1,tp);window._cp=pn;window._tp=tp;
+    var s=(pn-1)*pageSize,e=Math.min(s+pageSize,fl.length);
+    document.getElementById('proGrid').innerHTML=fl.slice(s,e).map(function(p){
+        return '<a href="#" class="fp-card" style="background:linear-gradient(135deg,'+p.bg+')">'+
+            '<div class="fp-icon" style="background:rgba(255,255,255,.1)">'+p.emoji+'</div>'+
+            '<h4>'+p.name+'</h4>'+
+            '<div class="fp-company"><span>'+p.company+'</span><span class="fp-phone">'+p.contact+' '+p.phone+'</span></div>'+
+            '<p>'+p.desc+'</p>'+
+            '<div class="fp-foot">'+
+                '<span class="fp-tag">'+p.tag+'</span>'+
+                '<span class="fp-price">'+p.price+'</span>'+
+            '</div></a>';
+    }).join('');
+    renderP();
+}
+function renderP(){
+    var p=window._cp||1,t=window._tp||1;
+    var h='<button class="page-btn'+(p<=1?' disabled':'')+'" onclick="gp('+(p-1)+')">&laquo;</button>';
+    for(var i=1;i<=t;i++) h+='<button class="page-btn'+(i===p?' active':'')+'" onclick="gp('+i+')">'+i+'</button>';
+    h+='<button class="page-btn'+(p>=t?' disabled':'')+'" onclick="gp('+(p+1)+')">&raquo;</button>';
+    h+='<span class="page-info">第'+p+'/'+t+'页</span>';
+    document.getElementById('pagination').innerHTML=h;
+}
+function gp(p){if(p<1||p>window._tp)return;window._cp=p;applyFilter();}
+document.getElementById('sidebar').addEventListener('click',function(e){
+    var b=e.target.closest('.side-btn');if(!b)return;
+    document.querySelectorAll('.side-btn').forEach(function(x){x.classList.remove('active');});
+    b.classList.add('active');window._cp=1;applyFilter();
+});
+applyFilter();
+</script>
+</body>
+</html>

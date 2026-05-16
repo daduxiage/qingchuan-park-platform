@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>场馆预约 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+.tag-approved{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-pending{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-cancelled{background:rgba(255,77,79,0.12);color:#ff4d4f;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+html.light-theme .tag-approved{background:rgba(82,196,26,0.08);color:#389e0d}
+html.light-theme .tag-pending{background:rgba(250,140,22,0.08);color:#d46b08}
+html.light-theme .tag-cancelled{background:rgba(255,77,79,0.08);color:#cf1322}
+.venue-scroll{overflow-x:auto;padding:6px 0 8px 0;scrollbar-width:thin;scrollbar-color:rgba(43,104,224,0.4) transparent}
+.venue-scroll::-webkit-scrollbar{height:6px}.venue-scroll::-webkit-scrollbar-thumb{background:rgba(43,104,224,0.4);border-radius:3px}
+.venue-cards{display:flex;gap:12px;min-width:max-content}
+.venue-card{flex-shrink:0;padding:18px 16px;border-radius:10px;background:var(--card-bg);border:2px solid var(--card-border);transition:all .3s;cursor:pointer;white-space:nowrap;width:max-content;position:relative;overflow:hidden}
+.venue-card::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 25%,rgba(255,255,255,0.08) 45%,rgba(255,255,255,0.15) 50%,rgba(255,255,255,0.08) 55%,transparent 75%);transform:perspective(200px) rotateY(2deg) translateX(-150%);animation:rippleH 7s ease-in-out infinite;pointer-events:none;z-index:0}
+.venue-card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 25%,rgba(255,255,255,0.06) 45%,rgba(255,255,255,0.12) 50%,rgba(255,255,255,0.06) 55%,transparent 75%);transform:perspective(200px) rotateX(2deg) translateY(-150%);animation:rippleV 9s ease-in-out infinite;pointer-events:none;z-index:0}
+@keyframes rippleH{0%{transform:perspective(200px) rotateY(2deg) translateX(-150%)}50%{transform:perspective(200px) rotateY(2deg) translateX(150%)}100%{transform:perspective(200px) rotateY(2deg) translateX(-150%)}}
+@keyframes rippleV{0%{transform:perspective(200px) rotateX(2deg) translateY(-150%)}50%{transform:perspective(200px) rotateX(2deg) translateY(150%)}100%{transform:perspective(200px) rotateX(2deg) translateY(-150%)}}
+.venue-card>*{position:relative;z-index:1}
+.venue-card:hover{transform:translateY(-2px);z-index:2}
+.venue-card.card-pending{border-color:rgba(255,149,0,0.5);box-shadow:0 0 12px rgba(255,149,0,0.15)}
+.venue-card.card-pending::before{background:linear-gradient(90deg,transparent 25%,rgba(255,149,0,0.1) 45%,rgba(255,180,60,0.2) 50%,rgba(255,149,0,0.1) 55%,transparent 75%)}
+.venue-card.card-pending::after{background:linear-gradient(180deg,transparent 25%,rgba(255,149,0,0.08) 45%,rgba(255,180,60,0.15) 50%,rgba(255,149,0,0.08) 55%,transparent 75%)}
+.venue-card.card-pending:hover{border-color:#ff9500;box-shadow:0 8px 24px rgba(255,149,0,0.3)}
+.venue-card.card-cancelled{border-color:rgba(255,77,79,0.4);box-shadow:0 0 8px rgba(255,77,79,0.1);opacity:0.75}
+.venue-card.card-cancelled::before{background:linear-gradient(90deg,transparent 25%,rgba(255,77,79,0.08) 45%,rgba(255,120,120,0.15) 50%,rgba(255,77,79,0.08) 55%,transparent 75%)}
+.venue-card.card-cancelled::after{background:linear-gradient(180deg,transparent 25%,rgba(255,77,79,0.06) 45%,rgba(255,120,120,0.1) 50%,rgba(255,77,79,0.06) 55%,transparent 75%)}
+.venue-card.card-cancelled .vc-name{text-decoration:line-through;text-decoration-color:rgba(255,77,79,0.5)}
+.venue-card.card-approved{border-color:rgba(76,217,100,0.4);box-shadow:0 0 12px rgba(76,217,100,0.1)}
+.venue-card.card-approved::before{background:linear-gradient(90deg,transparent 25%,rgba(76,217,100,0.1) 45%,rgba(120,240,140,0.2) 50%,rgba(76,217,100,0.1) 55%,transparent 75%)}
+.venue-card.card-approved::after{background:linear-gradient(180deg,transparent 25%,rgba(76,217,100,0.08) 45%,rgba(120,240,140,0.15) 50%,rgba(76,217,100,0.08) 55%,transparent 75%)}
+.venue-card.card-approved:hover{border-color:#4cd964;box-shadow:0 8px 24px rgba(76,217,100,0.25)}
+html.light-theme .venue-card.card-pending{border-color:rgba(250,140,22,0.6)}
+html.light-theme .venue-card.card-cancelled{border-color:rgba(255,77,79,0.5)}
+html.light-theme .venue-card.card-approved{border-color:rgba(82,196,26,0.5)}
+.venue-card .vc-name{font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+.venue-card .vc-time{font-size:12px;color:var(--text-tertiary);margin-bottom:6px;line-height:1.5}
+.venue-card .vc-status{display:inline-block}
+html.light-theme .venue-card{background:#fff;border-color:rgba(100,150,220,0.35)}
+html.light-theme .venue-card .vc-name{color:#1a2a4a}
+.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.filter-row .form-control{min-width:120px;width:auto;flex:0 0 auto}
+.filter-row select.form-control{text-align:center;text-align-last:center;appearance:none;-webkit-appearance:none;background:#0a1024 url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23a0cfff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E\") no-repeat right 14px center;padding-right:32px}
+.filter-row select.form-control option{text-align:center;direction:ltr}
+html.light-theme .filter-row select.form-control{background:#fff url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%234a6880' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E\") no-repeat right 14px center}
+@media(max-width:768px){.venue-card{padding:14px 12px}}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">加载中...</div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>企业服务 / 场馆预约</span></div>
+    </div>
+    <div class="page-header-right"></div>
+</div>
+
+<div class="page-body">
+
+<!-- 已预约场馆卡片 -->
+<div class="card">
+    <div class="card-header"><div class="card-title"><i class="fa fa-calendar-check" style="color:#40c4ff"></i> 已预约场馆</div></div>
+    <div class="card-body">
+        <div class="venue-scroll"><div class="venue-cards" id="venueCards"></div></div>
+    </div>
+</div>
+
+<!-- 场馆预约列表 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa fa-list-alt" style="color:#40c4ff"></i> 场馆预约列表</div>
+        <div class="card-toolbar">
+            <div class="toolbar-actions">
+                <button class="btn btn-default" onclick="resetFilters()">重置</button>
+                <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+                <button class="btn btn-success"><i class="fa fa-download"></i> 导出</button>
+                <button class="btn btn-primary"><i class="fa fa-plus"></i> 新增</button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="filter-row">
+            <input class="form-control" placeholder="搜索单号..." id="fRef">
+            <select class="form-control" id="fVenue"><option value="">全部场馆</option><option>篮球馆</option><option>会议室1</option><option>健身房1</option><option>食堂1包间4</option><option>游泳馆</option></select>
+            <input class="form-control" placeholder="搜索预约人..." id="fBooker">
+            <select class="form-control" id="fStatus"><option value="">全部状态</option><option>已通过</option><option>待审批</option><option>被取消</option></select>
+        </div>
+        <div class="table-wrap">
+            <table class="data-table" id="bookingTable">
+                <thead><tr>
+                    <th style="width:38px;text-align:center"><input type="checkbox" id="__cb_all" style="cursor:pointer" title="全选/反选"></th>
+                    <th style="width:100px">单号</th>
+                    <th>场馆名称</th><th>预约时间段</th><th>预约人数</th><th>预约人</th><th>预约状态</th><th>签到时间</th>
+                    <th style="width:120px">操作</th>
+                </tr></thead>
+                <tbody id="bookingTbody"></tbody>
+            </table>
+        </div>
+        <div class="pagination"><span>共 12 条</span><div class="page-btns"></div></div>
+    </div>
+</div>
+
+</div>
+
+<script src="/pages/common.js">
+<script src="/pages/tracker.js"></script></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+window.clearCacheNow = async function() {
+    var results = [];var preserve = {};
+    ['logged_in','ss_theme'].forEach(function(k) { var v = localStorage.getItem(k); if(v) preserve[k]=v; });
+    var lsCount = localStorage.length;localStorage.clear();
+    Object.keys(preserve).forEach(function(k) { localStorage.setItem(k, preserve[k]); });
+    results.push('localStorage清除'+(lsCount-Object.keys(preserve).length)+'项');
+    if ('caches' in window) {
+        try { var ns = await caches.keys(); for(var i=0;i<ns.length;i++) await caches.delete(ns[i]); results.push('Cache清除'+ns.length+'个'); } catch(e){}
+    }
+    showToast('缓存清除完成！'+results.join(' | '),'warning',3000);
+};
+
+function createConfirmModal(title, content, onConfirm) {
+    var old = document.getElementById('__globalModal');if (old) old.remove();
+    var overlay = document.createElement('div');overlay.id = '__globalModal';overlay.className = 'modal-overlay show';
+    overlay.innerHTML = '<div class="modal" style="width:420px"><div class="modal-header"><span class="modal-title">'+title+'</span><div class="modal-close" onclick="document.getElementById(\'__globalModal\').remove()">×</div></div><div class="modal-body" style="padding:20px 24px;font-size:14px;line-height:1.7">'+content+'</div><div class="modal-footer"><button class="btn btn-default" onclick="document.getElementById(\'__globalModal\').remove()">取消</button><button class="btn btn-primary" id="__confirmBtn">确认</button></div></div>';
+    document.body.appendChild(overlay);
+    document.getElementById('__confirmBtn').onclick = function() {document.getElementById('__globalModal').remove();if (onConfirm) onConfirm();};
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+}
+
+var bookings = [
+    {ref:'BK20260510001',venue:'篮球馆',time:'2026/05/10 19:00 - 2026/05/10 21:00',count:10,booker:'张伟',status:'已通过',signTime:'2026-05-10 19:05'},
+    {ref:'BK20260510002',venue:'会议室1',time:'2026/05/10 14:00 - 2026/05/10 16:00',count:15,booker:'欧阳晨',status:'已通过',signTime:'2026-05-10 14:02'},
+    {ref:'BK20260510003',venue:'健身房1',time:'2026/05/10 18:00 - 2026/05/10 20:00',count:8,booker:'司马安琪',status:'已通过',signTime:null},
+    {ref:'BK20260510004',venue:'食堂1包间4',time:'2026/05/10 12:00 - 2026/05/10 14:00',count:12,booker:'皇甫晓明光',status:'已通过',signTime:'2026-05-10 12:10'},
+    {ref:'BK20260510005',venue:'游泳馆',time:'2026/05/10 15:00 - 2026/05/10 17:00',count:20,booker:'上官慕容云海',status:'已通过',signTime:'2026-05-10 15:08'},
+    {ref:'BK20260510006',venue:'篮球馆',time:'2026/05/11 19:00 - 2026/05/11 21:00',count:14,booker:'诸葛慕容明月欣',status:'待审批',signTime:null},
+    {ref:'BK20260510007',venue:'会议室1',time:'2026/05/11 09:00 - 2026/05/11 11:00',count:25,booker:'端木欧阳晨曦月',status:'待审批',signTime:null},
+    {ref:'BK20260509001',venue:'健身房1',time:'2026/05/09 18:00 - 2026/05/09 20:00',count:6,booker:'刘强',status:'已通过',signTime:'2026-05-09 18:03'},
+    {ref:'BK20260509002',venue:'游泳馆',time:'2026/05/09 14:00 - 2026/05/09 16:00',count:18,booker:'欧阳晨',status:'已通过',signTime:'2026-05-09 14:05'},
+    {ref:'BK20260509003',venue:'食堂1包间4',time:'2026/05/09 12:00 - 2026/05/09 14:00',count:10,booker:'司马安琪',status:'被取消',signTime:null},
+    {ref:'BK20260508001',venue:'篮球馆',time:'2026/05/08 19:00 - 2026/05/08 21:00',count:16,booker:'皇甫晓明光',status:'已通过',signTime:'2026-05-08 19:02'},
+    {ref:'BK20260508002',venue:'会议室1',time:'2026/05/08 15:00 - 2026/05/08 17:00',count:20,booker:'上官慕容云海',status:'已通过',signTime:'2026-05-08 15:01'}
+];
+
+function statusTag(s){
+    if(s==='已通过') return '<span class="tag-approved">已通过</span>';
+    if(s==='待审批') return '<span class="tag-pending">待审批</span>';
+    return '<span class="tag-cancelled">被取消</span>';
+}
+function dash(v){return v||'<span style="color:var(--text-tertiary)">--</span>';}
+
+function renderAll(){
+    renderCards();
+    renderTable();
+    setTimeout(initPaginations,300);
+}
+function renderCards(){
+    var container=document.getElementById('venueCards');
+    var order={'\u5f85\u5ba1\u6279':0,'\u88ab\u53d6\u6d88':1,'\u5df2\u901a\u8fc7':2};
+    var sorted=[].concat(bookings).sort(function(a,b){return(order[a.status]||9)-(order[b.status]||9)});
+    container.innerHTML=sorted.map(function(b){
+        var cls='';
+        if(b.status==='\u5f85\u5ba1\u6279') cls=' card-pending';
+        else if(b.status==='\u88ab\u53d6\u6d88') cls=' card-cancelled';
+        else cls=' card-approved';
+        return '<div class="venue-card'+cls+'"><div class="vc-name">'+b.venue+'</div><div class="vc-time">'+b.time+'</div><div class="vc-status">'+statusTag(b.status)+'</div></div>';
+    }).join('');
+}
+function renderTable(){
+    var tbody=document.getElementById('bookingTbody');
+    tbody.innerHTML=bookings.map(function(b,i){
+        var ops='<button class="btn btn-default" onclick="showDetail('+i+')" style="padding:3px 8px;font-size:11px">详情</button> ';
+        if(b.status!=='被取消') ops+='<button class="btn btn-warning" onclick="cancelBooking('+i+')" style="padding:3px 8px;font-size:11px">取消</button>';
+        return '<tr>'+
+            '<td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer" data-idx="'+i+'"></td>'+
+            '<td><span style="font-family:monospace;font-size:12px">'+b.ref+'</span></td>'+
+            '<td>'+b.venue+'</td><td>'+b.time+'</td><td>'+b.count+'人</td><td>'+b.booker+'</td>'+
+            '<td>'+statusTag(b.status)+'</td><td>'+dash(b.signTime)+'</td>'+
+            '<td>'+ops+'</td></tr>';
+    }).join('');
+}
+function showDetail(i){var b=bookings[i];showToast(b.ref+' 详情\n场馆：'+b.venue+'\n时间：'+b.time+'\n人数：'+b.count+'人\n预约人：'+b.booker+'\n状态：'+b.status,'info')}
+function cancelBooking(i){
+    var b=bookings[i];
+    createConfirmModal('取消预约','确定要取消 <b>'+b.venue+'</b> 的预约吗？<br>单号：'+b.ref,function(){
+        b.status='\u88ab\u53d6\u6d88';renderAll();showToast(b.ref+' \u5df2\u53d6\u6d88','warning');
+    });
+}
+
+function filterTable(){
+    var fRef=(document.getElementById('fRef').value||'').trim().toLowerCase();
+    var fVenue=document.getElementById('fVenue').value.replace(/[\u3000]/g,'').trim();
+    var fBooker=(document.getElementById('fBooker').value||'').trim().toLowerCase();
+    var fStatus=document.getElementById('fStatus').value.replace(/[\u3000]/g,'').trim();
+    document.querySelectorAll('#bookingTbody tr').forEach(function(tr){
+        var t=tr.textContent.toLowerCase();
+        var show=(!fRef||t.indexOf(fRef)>-1)&&(!fVenue||t.indexOf(fVenue)>-1)&&(!fBooker||t.indexOf(fBooker)>-1)&&(!fStatus||t.indexOf(fStatus)>-1);
+        tr.style.display=show?'':'none';
+    });
+}
+function resetFilters(){
+    ['fRef','fVenue','fBooker','fStatus'].forEach(function(id){document.getElementById(id).value='';});
+    document.querySelectorAll('#bookingTbody tr').forEach(function(r){r.style.display='';});
+    showToast('筛选条件已重置','info');
+}
+// 下拉选项居中补位
+document.addEventListener('DOMContentLoaded',function(){
+    document.querySelectorAll('.filter-row select option').forEach(function(opt){
+        var t=opt.textContent.trim();
+        if(t) opt.textContent='\u3000\u3000'+t+'\u3000\u3000';
+    });
+    var searchBtn=document.querySelector('.btn-search');
+    if(searchBtn) searchBtn.addEventListener('click',filterTable);
+});
+
+function showToast(msg,type,duration){
+    duration = duration || 3000;
+    var container=document.getElementById('toastContainer');var t=document.createElement('div');
+    t.style.cssText='padding:10px 20px;border-radius:6px;margin-bottom:8px;background:linear-gradient(135deg,rgba(16,24,56,0.95),rgba(22,41,105,0.95));border:1px solid rgba(43,104,224,0.4);color:#a0cfff;font-size:13px;display:flex;align-items:center;gap:8px;animation:slideIn 0.3s ease';
+    t.innerHTML='<i class="fa fa-'+(type==='success'?'check-circle':type==='warning'?'exclamation-triangle':'info-circle')+'"></i> '+msg;
+    container.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(function(){t.remove()},300)},duration);
+}
+
+setInterval(function(){var n=new Date();var p=function(x){return String(x).padStart(2,'0')};var el=document.getElementById('pageTime');if(el)el.textContent=n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate())+' '+p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds())},1000);
+
+window.addEventListener('DOMContentLoaded',renderAll);
+
+// 分页
+var initPaginations=(function(){
+    var PAGE_SIZE=10;
+    return function initPaginations(){
+        document.querySelectorAll('.card').forEach(function(card){
+            var table=card.querySelector('.data-table tbody');
+            var pagination=card.querySelector('.pagination');
+            if(!table||!pagination)return;
+            var rows=Array.from(table.querySelectorAll('tr'));
+            if(rows.length===0)return;
+            var infoSpan=pagination.querySelector('span:first-child');
+            var totalPages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+            function renderPage(page){
+                var start=(page-1)*PAGE_SIZE,end=Math.min(start+PAGE_SIZE,rows.length);
+                rows.forEach(function(r,i){r.style.display=(i>=start&&i<end)?'':'none';});
+                infoSpan.textContent='共 '+rows.length+' 条  第'+(start+1)+'-'+end+'条';
+                updateBtns(page,totalPages,pagination);
+            }
+            function updateBtns(page,total,pagi){
+                var bd=pagi.querySelector('.page-btns');if(!bd)return;bd.innerHTML='';
+                var prev=document.createElement('div');prev.className='page-btn'+(page<=1?' disabled':'');prev.textContent='«';prev.style.cssText='cursor:'+(page<=1?'default':'pointer')+';opacity:'+(page<=1?'0.4':'1');
+                if(page>1)prev.onclick=function(){renderPage(page-1);};bd.appendChild(prev);
+                var sp=Math.max(1,page-2),ep=Math.min(total,sp+4);if(ep-sp<4)sp=Math.max(1,ep-4);
+                for(var p=sp;p<=ep;p++){(function(pp){var btn=document.createElement('div');btn.className='page-btn'+(pp===page?' active':'');btn.textContent=pp;btn.onclick=function(){renderPage(pp);};bd.appendChild(btn);})(p);}
+                var next=document.createElement('div');next.className='page-btn'+(page>=total?' disabled':'');next.textContent='»';next.style.cssText='cursor:'+(page>=total?'default':'pointer')+';opacity:'+(page>=total?'0.4':'1');
+                if(page<total)next.onclick=function(){renderPage(page+1);};bd.appendChild(next);
+            }
+            renderPage(1);
+        });
+    };
+})();
+</script>
+</body>
+</html>

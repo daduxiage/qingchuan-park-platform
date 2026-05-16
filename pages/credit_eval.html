@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>信用评价 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+    <link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script defer src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="/pages/tracker.js"></script>
+    <style>
+.tag-aaa{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 10px;border-radius:4px;font-size:11px;white-space:nowrap;font-weight:600}
+.tag-aa{background:rgba(64,196,255,0.12);color:#40c4ff;padding:2px 10px;border-radius:4px;font-size:11px;white-space:nowrap;font-weight:600}
+.tag-a{background:rgba(255,193,7,0.12);color:#ffc107;padding:2px 10px;border-radius:4px;font-size:11px;white-space:nowrap;font-weight:600}
+.tag-bbb{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 10px;border-radius:4px;font-size:11px;white-space:nowrap;font-weight:600}
+html.light-theme .tag-aaa{background:rgba(82,196,26,0.08);color:#389e0d}
+html.light-theme .tag-aa{background:rgba(22,119,255,0.08);color:#1677ff}
+html.light-theme .tag-a{background:rgba(212,167,6,0.08);color:#ad8b00}
+html.light-theme .tag-bbb{background:rgba(250,140,22,0.08);color:#d46b08}
+.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.filter-row .form-control{min-width:120px;width:auto;flex:0 0 auto}
+.data-table td{white-space:nowrap}
+.data-table td.ellipsis-cell{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 信用榜单轮播 */
+.rank-scroll-wrap{position:relative;overflow:hidden;margin-bottom:24px}
+.rank-scroll-track{display:flex;transition:transform 0.4s ease;gap:16px}
+.rank-card{min-width:280px;flex-shrink:0;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:20px;text-align:center}
+.rank-card .rc-rank{font-size:13px;color:var(--text-tertiary);margin-bottom:6px}
+.rank-card .rc-score{font-size:42px;font-weight:700;margin-bottom:4px}
+.rank-card .rc-level{font-size:13px;padding:3px 14px;border-radius:20px;display:inline-block;margin-bottom:8px}
+.rank-card .rc-company{font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:4px}
+.rank-card .rc-sub{font-size:12px;color:var(--text-tertiary)}
+.score-green{color:#4cd964}.score-blue{color:#40c4ff}.score-yellow{color:#ffc107}.score-orange{color:#ff9500}
+.lvl-aaa{background:rgba(76,217,100,0.15);color:#4cd964}
+.lvl-aa{background:rgba(64,196,255,0.15);color:#40c4ff}
+.lvl-a{background:rgba(255,193,7,0.15);color:#ffc107}
+.lvl-bbb{background:rgba(255,149,0,0.15);color:#ff9500}
+
+.export-options{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.export-option{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--split-color);border-radius:8px;cursor:pointer;transition:all .2s;background:transparent}
+.export-option:hover{border-color:#40c4ff;background:rgba(64,196,255,0.06)}
+.export-option.selected{border-color:#40c4ff;background:rgba(64,196,255,0.1)}
+.export-option-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.export-option-icon.excel{background:rgba(76,175,80,0.15);color:#4caf50}
+.export-option-icon.pdf{background:rgba(244,67,54,0.15);color:#f44336}
+.export-option-icon.word{background:rgba(33,150,243,0.15);color:#2196f3}
+.export-option-body{flex:1}
+.export-option-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.export-option-desc{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+.export-option-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--split-color);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.export-option.selected .export-option-check{border-color:#40c4ff;background:#40c4ff}
+.export-option.selected .export-option-check::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">信用评价 · 加载中...</div></div>
+
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>运营管理 / 信用评价</span></div>
+    </div>
+    <div class="page-header-right"></div>
+</div>
+
+<div class="page-body">
+
+<!-- 统计卡片 -->
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-building"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#40c4ff" id="kpiTotal">0</div><div class="kpi-label">参评企业</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-star"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#4cd964" id="kpiAAA">0</div><div class="kpi-label">AAA级企业</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,193,7,0.15);color:#ffc107"><i class="fa fa-chart-bar"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#ffc107" id="kpiAvg">0</div><div class="kpi-label">平均综合评分</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-clock"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#7b61ff" id="kpiLatest">--</div><div class="kpi-label">最近评级</div></div>
+    </div>
+</div>
+
+<!-- 信用榜单轮播 -->
+<div class="card"><div class="card-header"><div class="card-title"><i class="fa fa-trophy" style="color:#ffc107"></i> 信用榜单</div></div>
+    <div class="card-body">
+        <div class="rank-scroll-wrap"><div class="rank-scroll-track" id="rankTrack"></div></div>
+    </div>
+</div>
+
+<!-- 信用评分表 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa fa-list-alt" style="color:#40c4ff"></i> 信用评分表</div>
+        <div class="card-toolbar">
+            <div class="toolbar-actions">
+                <button class="btn btn-default" onclick="resetFilters()">重置</button>
+                <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+                <button class="btn btn-success" onclick="openExportModal()"><i class="fa fa-download"></i> 导出</button>
+                <button class="btn btn-primary" onclick="openAddModal()"><i class="fa fa-plus"></i> 新增</button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="filter-row">
+            <input class="form-control" placeholder="搜索企业/单号..." id="fKeyword">
+            <select class="form-control" id="fLevel"><option value="">全部等级</option></select>
+            <input class="form-control" type="date" id="fDate" title="评级时间">
+        </div>
+        <div class="table-wrap">
+            <table class="data-table" id="scoreTable">
+                <thead><tr>
+                    <th style="width:120px">单号</th><th>企业名称</th><th style="width:110px">评级时间</th>
+                    <th style="width:80px">信用等级</th><th style="width:80px">综合评分</th>
+                    <th style="width:80px">合规经营</th><th style="width:80px">安全生产</th>
+                    <th style="width:80px">环境保护</th><th style="width:80px">社会贡献</th>
+                    <th style="width:140px">操作</th>
+                </tr></thead>
+                <tbody id="scoreTbody"></tbody>
+            </table>
+        </div>
+        <div class="pagination"><span>共 0 条</span><div class="page-btns"></div></div>
+    </div>
+</div>
+
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal" style="width:560px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-info-circle" style="color:#7b61ff;margin-right:6px"></i>信用评分详情</span>
+            <div class="modal-close" onclick="closeDetailModal()">×</div>
+        </div>
+        <div class="modal-body" id="detailBody" style="padding:20px 24px;font-size:14px;line-height:1.8"></div>
+        <div class="modal-footer"><button class="btn btn-default" onclick="closeDetailModal()">关闭</button></div>
+    </div>
+</div>
+
+<!-- 新增弹窗 -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal" style="width:480px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-plus-circle" style="color:#40c4ff;margin-right:6px"></i>新增信用评分</span>
+            <div class="modal-close" onclick="closeAddModal()">×</div>
+        </div>
+        <div class="modal-body" id="addBody" style="padding:20px 24px;font-size:14px;line-height:1.8"></div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeAddModal()">取消</button>
+            <button class="btn btn-primary" id="addSubmitBtn">提交</button>
+        </div>
+    </div>
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal">
+    <div class="modal" style="width:440px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-download" style="color:#40c4ff;margin-right:6px"></i>导出数据</span>
+            <div class="modal-close" onclick="closeExportModal()">×</div>
+        </div>
+        <div class="modal-body">
+            <div class="export-options">
+                <div class="export-option selected" onclick="selectExport(this,'excel')"><div class="export-option-icon excel"><i class="fa fa-file-excel"></i></div><div class="export-option-body"><div class="export-option-title">Excel</div><div class="export-option-desc">.xlsx</div></div><div class="export-option-check"></div></div>
+                <div class="export-option" onclick="selectExport(this,'pdf')"><div class="export-option-icon pdf"><i class="fa fa-file-pdf"></i></div><div class="export-option-body"><div class="export-option-title">PDF</div><div class="export-option-desc">.pdf</div></div><div class="export-option-check"></div></div>
+                <div class="export-option" onclick="selectExport(this,'word')"><div class="export-option-icon word"><i class="fa fa-file-word"></i></div><div class="export-option-body"><div class="export-option-title">Word</div><div class="export-option-desc">.doc</div></div><div class="export-option-check"></div></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeExportModal()">取消</button>
+            <button class="btn btn-primary" onclick="doExport()"><i class="fa fa-download"></i> 导出</button>
+        </div>
+    </div>
+</div>
+
+<script src="/pages/common.js"></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+var scores = [], filtered = [];
+var PAGE_SIZE = 15, exportFormat = 'excel';
+var _scrollIdx = 0, _autoTimer = null;
+
+function genSN(){return 'XY'+new Date().getFullYear()+String(Math.floor(Math.random()*9000+1000));}
+function startAutoScroll(){
+    if(_autoTimer) clearInterval(_autoTimer);
+    _autoTimer = setInterval(function(){
+        var maxIdx = Math.max(0, scores.length - 3);
+        if(_scrollIdx >= maxIdx) { _scrollIdx = 0; }
+        else { _scrollIdx++; }
+        var track = document.getElementById('rankTrack');
+        if(track) track.style.transform = 'translateX(-' + (_scrollIdx * 296) + 'px)';
+    }, 3000);
+}
+
+// 种子数据
+function seedData(){
+    if(scores.length) return;
+    var cos = ['佳兴铝业','阜成新材','虹禾晶科技','中能建','星恒青源','九晟新材','华纳实业','新通鑫','广袤新材'];
+    var lvls = ['AAA','AA','A','BBB'];
+    for(var i=0;i<9;i++){
+        var b = Math.floor(Math.random()*25)+75;
+        scores.push({
+            sn:'XY2025'+String(i+1).padStart(4,'0'), company:cos[i],
+            date:'2025-'+(Math.floor(Math.random()*12)+1).toString().padStart(2,'0')+'-'+Math.floor(Math.random()*28+1).toString().padStart(2,'0'),
+            level:lvls[i%4], total:b, law:b-Math.floor(Math.random()*5),
+            safety:b-Math.floor(Math.random()*5), env:b-Math.floor(Math.random()*5), social:b-Math.floor(Math.random()*5)
+        });
+    }
+    updateKPIs();
+    renderRank();
+    filtered = scores.map(function(_,i){return i;});
+}
+
+function levelTag(l){return '<span class="tag-'+l.toLowerCase()+'">'+l+'</span>';}
+
+function updateKPIs(){
+    document.getElementById('kpiTotal').textContent = scores.length;
+    var aaa = scores.filter(function(s){return s.level==='AAA'}).length;
+    document.getElementById('kpiAAA').textContent = aaa;
+    var sum = scores.reduce(function(a,s){return a+s.total;},0);
+    document.getElementById('kpiAvg').textContent = scores.length ? (sum/scores.length).toFixed(1) : '0';
+    document.getElementById('kpiLatest').textContent = scores.length ? scores[scores.length-1].date : '--';
+}
+
+function renderRank(){
+    var track = document.getElementById('rankTrack');
+    var sorted = scores.slice().sort(function(a,b){return b.total-a.total;});
+    var cols = ['score-green','score-blue','score-yellow','score-orange'];
+    var lcls = ['lvl-aaa','lvl-aa','lvl-a','lvl-bbb'];
+    track.innerHTML = '';
+    sorted.forEach(function(s,i){
+        var d=document.createElement('div');d.className='rank-card';
+        d.innerHTML='<div class="rc-score '+cols[i%4]+'">'+s.total+'</div><div class="rc-level '+lcls[i%4]+'">'+s.level+'</div><div class="rc-company">'+s.company+'</div><div class="rc-sub">合规'+s.law+' · 安全'+s.safety+' · 环保'+s.env+' · 贡献'+s.social+'</div>';
+        track.appendChild(d);
+    });
+    _scrollIdx=0; track.style.transform='translateX(0)';
+}
+
+function scrollRank(dir){
+    var track = document.getElementById('rankTrack');
+    var maxIdx = Math.max(0, scores.length - 3);
+    _scrollIdx = Math.max(0, Math.min(maxIdx, _scrollIdx + dir));
+    track.style.transform = 'translateX(-' + (_scrollIdx * 296) + 'px)';
+}
+
+function renderTable(){
+    var tbody = document.getElementById('scoreTbody');
+    var frag = document.createDocumentFragment();
+    filtered.forEach(function(idx){
+        var b=scores[idx], tr=document.createElement('tr');
+        tr.innerHTML='<td>'+b.sn+'</td><td>'+b.company+'</td><td>'+b.date+'</td><td>'+levelTag(b.level)+'</td><td><b>'+b.total+'</b></td><td>'+b.law+'</td><td>'+b.safety+'</td><td>'+b.env+'</td><td>'+b.social+'</td><td></td>';
+        var tdA=tr.lastChild;
+        var btnD=document.createElement('button');btnD.className='btn btn-default';btnD.style.cssText='padding:3px 8px;font-size:11px';btnD.textContent='详情';btnD.dataset.deleteInited='1';
+        btnD.setAttribute('onclick','showDetail('+idx+')');tdA.appendChild(btnD);
+        tdA.appendChild(document.createTextNode(' '));
+        var btnA=document.createElement('button');btnA.className='btn btn-warning';btnA.style.cssText='padding:3px 8px;font-size:11px';btnA.textContent='调整';btnA.dataset.deleteInited='1';
+        btnA.setAttribute('onclick','showDetail('+idx+')');tdA.appendChild(btnA);
+        frag.appendChild(tr);
+    });
+    tbody.innerHTML=''; tbody.appendChild(frag);
+    if(typeof initPagination==='function') initPagination();
+}
+
+function showDetail(i){
+    var b=scores[i];
+    if(!b){showToast('数据加载失败','warning');return;}
+    var body=document.getElementById('detailBody');
+    if(!body){showToast('弹窗加载失败','warning');return;}
+    body.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px">'+
+        '<div><b style="color:var(--text-secondary)">单号：</b>'+b.sn+'</div>'+
+        '<div><b style="color:var(--text-secondary)">企业名称：</b>'+b.company+'</div>'+
+        '<div><b style="color:var(--text-secondary)">评级时间：</b>'+b.date+'</div>'+
+        '<div><b style="color:var(--text-secondary)">信用等级：</b>'+levelTag(b.level)+'</div>'+
+        '<div><b style="color:var(--text-secondary)">综合评分：</b><b style="font-size:18px">'+b.total+'</b></div>'+
+        '</div>'+
+        '<div style="margin-top:14px"><b style="color:var(--text-secondary)">分项评分：</b></div>'+
+        '<div style="margin-top:6px;padding:12px;background:rgba(64,196,255,0.06);border-radius:6px;line-height:1.7;font-size:13px;border-left:3px solid #40c4ff">'+
+        '合规经营：<b>'+b.law+'</b> &nbsp; 安全生产：<b>'+b.safety+'</b> &nbsp; 环境保护：<b>'+b.env+'</b> &nbsp; 社会贡献：<b>'+b.social+'</b>'+
+        '</div>';
+    document.getElementById('detailModal').classList.add('show');
+}
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('show');}
+
+function openAddModal(){
+    document.getElementById('addBody').innerHTML='<div style="display:grid;gap:14px"><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">企业名称</div><input class="form-control" id="addCompany" style="width:100%" placeholder="输入企业名称"></div><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">信用等级</div><select class="form-control" id="addLevel" style="width:100%"><option>AAA</option><option>AA</option><option>A</option><option>BBB</option></select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">综合评分</div><input class="form-control" id="addTotal" type="number" min="0" max="100" style="width:100%"></div><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">评级时间</div><input class="form-control" id="addDate" type="date" style="width:100%"></div></div></div>';
+    document.getElementById('addSubmitBtn').onclick = function(){
+        var c=document.getElementById('addCompany').value.trim(), l=document.getElementById('addLevel').value;
+        var t=parseInt(document.getElementById('addTotal').value)||80, d=document.getElementById('addDate').value||new Date().toISOString().slice(0,10);
+        if(!c){showToast('请输入企业名称','warning');return;}
+        scores.push({sn:genSN(),company:c,date:d,level:l,total:t,law:t-Math.floor(Math.random()*5),safety:t-Math.floor(Math.random()*5),env:t-Math.floor(Math.random()*5),social:t-Math.floor(Math.random()*5)});
+        closeAddModal(); filtered = scores.map(function(_,i){return i;}); updateKPIs(); renderRank(); renderTable();
+        showToast('新增成功','success');
+    };
+    document.getElementById('addModal').classList.add('show');
+}
+function closeAddModal(){document.getElementById('addModal').classList.remove('show');}
+
+// 筛选
+function filterTable(){
+    var kw=(document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var fl=document.getElementById('fLevel').value.trim();
+    var fd=document.getElementById('fDate').value;
+    filtered=[];
+    for(var i=0;i<scores.length;i++){
+        var s=scores[i], t=(s.sn+' '+s.company+' '+s.date+' '+s.level).toLowerCase();
+        if((!kw||t.indexOf(kw)>-1)&&(!fl||s.level===fl)&&(!fd||s.date===fd)) filtered.push(i);
+    }
+    renderTable();
+}
+function resetFilters(){['fKeyword','fLevel','fDate'].forEach(function(id){document.getElementById(id).value='';}); filtered=scores.map(function(_,i){return i;}); renderTable(); showToast('筛选已重置','info');}
+
+// 分页
+var initPagination=(function(){
+    return function(){
+        document.querySelectorAll('.card').forEach(function(card){
+            var table=card.querySelector('.data-table tbody'), pagi=card.querySelector('.pagination');
+            if(!table||!pagi)return;
+            var rows=Array.from(table.querySelectorAll('tr'));
+            if(!rows.length)return;
+            var info=pagi.querySelector('span:first-child'), tp=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+            function rp(p){
+                var s=(p-1)*PAGE_SIZE,e=Math.min(s+PAGE_SIZE,rows.length);
+                rows.forEach(function(r,i){r.style.display=(i>=s&&i<e)?'':'none';});
+                info.textContent='共 '+rows.length+' 条  第'+(s+1)+'-'+e+'条'; ub(p,tp,pagi);
+            }
+            function ub(p,t,pgi){
+                var bd=pgi.querySelector('.page-btns');if(!bd)return;bd.innerHTML='';
+                var prev=document.createElement('div');prev.className='page-btn'+(p<=1?' disabled':'');prev.textContent='\u00AB';if(p>1)prev.onclick=function(){rp(p-1);};bd.appendChild(prev);
+                var sp=Math.max(1,p-2),ep=Math.min(t,sp+4);if(ep-sp<4)sp=Math.max(1,ep-4);
+                for(var pp=sp;pp<=ep;pp++){(function(pp){var btn=document.createElement('div');btn.className='page-btn'+(pp===p?' active':'');btn.textContent=pp;btn.onclick=function(){rp(pp);};bd.appendChild(btn);})(pp);}
+                var next=document.createElement('div');next.className='page-btn'+(p>=t?' disabled':'');next.textContent='\u00BB';if(p<t)next.onclick=function(){rp(p+1);};bd.appendChild(next);
+            }
+            rp(1);
+        });
+    };
+})();
+
+// 导出
+function openExportModal(){document.getElementById('exportModal').classList.add('show');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('show');}
+function selectExport(el,fmt){exportFormat=fmt;document.querySelectorAll('.export-option').forEach(function(o){o.classList.remove('selected');});el.classList.add('selected');}
+function doExport(){
+    var data=scores.map(function(b){return{单号:b.sn,企业名称:b.company,评级时间:b.date,信用等级:b.level,综合评分:b.total,合规经营:b.law,安全生产:b.safety,环境保护:b.env,社会贡献:b.social};});
+    var fn='信用评价_'+new Date().toISOString().slice(0,10);
+    try{
+        if(exportFormat==='excel'){var ws=XLSX.utils.json_to_sheet(data);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'信用评分');XLSX.writeFile(wb,fn+'.xlsx');}
+        else if(exportFormat==='pdf'){var w=window.open('','_blank');w.document.write('<html><head><meta charset="utf-8"><title>信用评分</title><style>body{font-family:"Microsoft YaHei",sans-serif;padding:20px;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:5px}th{background:#40c4ff;color:#fff}</style></head><body><h2>信用评分</h2><table><thead><tr><th>单号</th><th>企业</th><th>等级</th><th>评分</th></tr></thead><tbody>');data.forEach(function(r){w.document.write('<tr><td>'+r['单号']+'</td><td>'+r['企业名称']+'</td><td>'+r['信用等级']+'</td><td>'+r['综合评分']+'</td></tr>');});w.document.write('</tbody></table></body></html>');w.document.close();setTimeout(function(){w.print();setTimeout(function(){w.close();},500);},300);}
+        else if(exportFormat==='word'){var html='<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body><h2>信用评分</h2><table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:11px;width:100%"><tr style="background:#40c4ff;color:#fff"><th>单号</th><th>企业</th><th>等级</th><th>评分</th></tr>';data.forEach(function(r){html+='<tr><td>'+r['单号']+'</td><td>'+r['企业名称']+'</td><td>'+r['信用等级']+'</td><td>'+r['综合评分']+'</td></tr>';});html+='</table></body></html>';var blob=new Blob(['\uFEFF'+html],{type:'application/msword'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn+'.doc';document.body.appendChild(a);a.click();a.remove();}
+        showToast('导出成功','success');
+    }catch(e){showToast('导出失败:'+e.message,'warning');}
+    closeExportModal();
+}
+
+// 初始化
+window.addEventListener('DOMContentLoaded',function(){
+    seedData();
+    document.querySelector('.btn-search').addEventListener('click',filterTable);
+    renderTable();
+    startAutoScroll();
+    // 鼠标悬停暂停，离开恢复
+    var wrap = document.querySelector('.rank-scroll-wrap');
+    if(wrap){
+        wrap.addEventListener('mouseenter',function(){if(_autoTimer)clearInterval(_autoTimer);});
+        wrap.addEventListener('mouseleave',function(){startAutoScroll();});
+    }
+});
+</script>
+</body>
+</html>

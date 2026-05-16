@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>证照管理 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+    <link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script defer src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="/pages/tracker.js"></script>
+    <style>
+.tag-active{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-expiring{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-expired{background:rgba(255,77,79,0.12);color:#ff4d4f;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-revoked{background:rgba(158,158,158,0.12);color:#9e9e9e;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+html.light-theme .tag-active{background:rgba(82,196,26,0.08);color:#389e0d}
+html.light-theme .tag-expiring{background:rgba(250,140,22,0.08);color:#d46b08}
+html.light-theme .tag-expired{background:rgba(255,77,79,0.08);color:#cf1322}
+html.light-theme .tag-revoked{background:rgba(0,0,0,0.06);color:#595959}
+.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.filter-row .form-control{min-width:120px;width:auto;flex:0 0 auto}
+.data-table td{white-space:nowrap}
+.data-table td.license-img-cell{padding:4px;text-align:center;vertical-align:middle}
+.license-thumb{width:36px;height:36px;border-radius:4px;object-fit:cover;cursor:pointer;border:1px solid var(--split-color);transition:all .2s}
+.license-thumb:hover{transform:scale(1.15);z-index:5;border-color:#40c4ff;box-shadow:0 4px 12px rgba(64,196,255,0.4)}
+.license-thumb-placeholder{width:36px;height:36px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;background:var(--bg-card);border:1px solid var(--split-color);color:var(--text-tertiary)}
+
+/* 图片预览（诉求直达同款） */
+.img-preview-overlay{display:none;position:fixed;inset:0;z-index:10000;background:rgba(10,16,56,0.95);flex-direction:column;align-items:center;justify-content:center}
+.img-preview-overlay.show{display:flex}
+.img-preview-box{position:relative;max-width:90vw;max-height:80vh}
+.img-preview-box img{max-width:80vw;max-height:70vh;border-radius:8px;object-fit:contain}
+.img-preview-close{position:absolute;top:-40px;right:0;color:#fff;font-size:28px;cursor:pointer;z-index:1}
+@media(max-width:768px){.img-preview-close{right:10px;top:-50px}}
+.export-options{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.export-option{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--split-color);border-radius:8px;cursor:pointer;transition:all .2s;background:transparent}
+.export-option:hover{border-color:#40c4ff;background:rgba(64,196,255,0.06)}
+.export-option.selected{border-color:#40c4ff;background:rgba(64,196,255,0.1)}
+.export-option-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.export-option-icon.excel{background:rgba(76,175,80,0.15);color:#4caf50}
+.export-option-icon.pdf{background:rgba(244,67,54,0.15);color:#f44336}
+.export-option-icon.word{background:rgba(33,150,243,0.15);color:#2196f3}
+.export-option-body{flex:1}
+.export-option-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.export-option-desc{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+.export-option-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--split-color);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.export-option.selected .export-option-check{border-color:#40c4ff;background:#40c4ff}
+.export-option.selected .export-option-check::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">证照管理 · 加载中...</div></div>
+
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>运营管理 / 证照管理</span></div>
+    </div>
+    <div class="page-header-right"></div>
+</div>
+
+<div class="page-body">
+
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-file-alt"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#40c4ff" id="kpiTotal">0</div><div class="kpi-label">证照总数</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-check-circle"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#4cd964" id="kpiActive">0</div><div class="kpi-label">有效证照</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-exclamation-triangle"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#ff9500" id="kpiExpiring">0</div><div class="kpi-label">即将过期</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,77,79,0.15);color:#ff4d4f"><i class="fa fa-ban"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#ff4d4f" id="kpiRevoked">0</div><div class="kpi-label">已吊销</div></div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa fa-id-card" style="color:#40c4ff"></i> 证照列表</div>
+        <div class="card-toolbar">
+            <div class="toolbar-actions">
+                <button class="btn btn-default" onclick="resetFilters()">重置</button>
+                <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+                <button class="btn btn-success" onclick="openExportModal()"><i class="fa fa-download"></i> 导出</button>
+                <button class="btn btn-primary" onclick="openAddModal()"><i class="fa fa-plus"></i> 新增</button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="filter-row">
+            <input class="form-control" placeholder="搜索证照/单号..." id="fKeyword">
+            <select class="form-control" id="fStatus"><option value="">全部状态</option></select>
+            <input class="form-control" type="date" id="fDate" title="有效期">
+        </div>
+        <div class="table-wrap">
+            <table class="data-table" id="licTable">
+                <thead><tr>
+                    <th style="width:110px">单号</th><th>证照名称</th><th>公司名称</th><th style="width:70px">状态</th>
+                    <th style="width:100px">有效期</th><th style="width:60px">照片</th>
+                    <th style="width:100px">录入时间</th><th style="width:70px">录入人</th>
+                    <th>证照事件</th><th style="width:210px">操作</th>
+                </tr></thead>
+                <tbody id="licTbody"></tbody>
+            </table>
+        </div>
+        <div class="pagination"><span>共 0 条</span><div class="page-btns"></div></div>
+    </div>
+</div>
+
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal" style="width:580px">
+        <div class="modal-header"><span class="modal-title"><i class="fa fa-info-circle" style="color:#7b61ff;margin-right:6px"></i>证照详情</span><div class="modal-close" onclick="closeDetailModal()">×</div></div>
+        <div class="modal-body" id="detailBody" style="padding:20px 24px;font-size:14px;line-height:1.8"></div>
+        <div class="modal-footer"><button class="btn btn-default" onclick="closeDetailModal()">关闭</button></div>
+    </div>
+</div>
+
+<!-- 操作日志弹窗 -->
+<div class="modal-overlay" id="logModal">
+    <div class="modal" style="width:500px">
+        <div class="modal-header"><span class="modal-title"><i class="fa fa-history" style="color:#40c4ff;margin-right:6px"></i>操作日志</span><div class="modal-close" onclick="closeLogModal()">×</div></div>
+        <div class="modal-body" style="padding:20px 24px;font-size:13px;line-height:1.8;max-height:400px;overflow-y:auto" id="logBody"></div>
+        <div class="modal-footer"><button class="btn btn-default" onclick="closeLogModal()">关闭</button></div>
+    </div>
+</div>
+
+<!-- 新增弹窗 -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal" style="width:480px">
+        <div class="modal-header"><span class="modal-title"><i class="fa fa-plus-circle" style="color:#40c4ff;margin-right:6px"></i>新增证照</span><div class="modal-close" onclick="closeAddModal()">×</div></div>
+        <div class="modal-body" id="addBody" style="padding:20px 24px;font-size:14px"></div>
+        <div class="modal-footer"><button class="btn btn-default" onclick="closeAddModal()">取消</button><button class="btn btn-primary" id="addSubmitBtn">提交</button></div>
+    </div>
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal">
+    <div class="modal" style="width:440px">
+        <div class="modal-header"><span class="modal-title"><i class="fa fa-download" style="color:#40c4ff;margin-right:6px"></i>导出数据</span><div class="modal-close" onclick="closeExportModal()">×</div></div>
+        <div class="modal-body">
+            <div class="export-options">
+                <div class="export-option selected" onclick="selectExport(this,'excel')"><div class="export-option-icon excel"><i class="fa fa-file-excel"></i></div><div class="export-option-body"><div class="export-option-title">Excel</div><div class="export-option-desc">.xlsx</div></div><div class="export-option-check"></div></div>
+                <div class="export-option" onclick="selectExport(this,'pdf')"><div class="export-option-icon pdf"><i class="fa fa-file-pdf"></i></div><div class="export-option-body"><div class="export-option-title">PDF</div><div class="export-option-desc">.pdf</div></div><div class="export-option-check"></div></div>
+                <div class="export-option" onclick="selectExport(this,'word')"><div class="export-option-icon word"><i class="fa fa-file-word"></i></div><div class="export-option-body"><div class="export-option-title">Word</div><div class="export-option-desc">.doc</div></div><div class="export-option-check"></div></div>
+            </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-default" onclick="closeExportModal()">取消</button><button class="btn btn-primary" onclick="doExport()"><i class="fa fa-download"></i> 导出</button></div>
+    </div>
+</div>
+
+<!-- 图片预览 -->
+<div class="img-preview-overlay" id="imgPreview" onclick="closeImgPreview()">
+    <div class="img-preview-box" onclick="event.stopPropagation()">
+        <div class="img-preview-close" onclick="closeImgPreview()">×</div>
+        <img id="previewImg" src="" alt="">
+    </div>
+</div>
+
+<script src="/pages/common.js"></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+function previewImg(src){document.getElementById('previewImg').src=src;document.getElementById('imgPreview').classList.add('show');}
+function closeImgPreview(){document.getElementById('imgPreview').classList.remove('show');}
+
+var licenses=[], filtered=[], PAGE_SIZE=15, exportFormat='excel';
+function genSN(){return 'ZZ'+new Date().getFullYear()+String(Math.floor(Math.random()*9000+1000));}
+
+// 种子数据
+function seedData(){
+    if(licenses.length)return;
+    var items=[
+        {name:'营业执照',status:'有效',date:'2028-06-30',person:'管理员',event:'正常有效',img:'lic_img_business',company:'佳兴铝业'},
+        {name:'排污许可证',status:'有效',date:'2027-12-31',person:'管理员',event:'正常有效',img:'ic_env',company:'佳兴铝业'},
+        {name:'安全生产许可证',status:'即将过期',date:'2026-06-15',person:'管理员',event:'距过期30天',img:'lic_img_safety',company:'佳兴铝业'},
+        {name:'食品经营许可证',status:'有效',date:'2029-03-20',person:'管理员',event:'2025年地址变更',img:'ic_food',company:'阜成新材'},
+        {name:'消防验收合格证',status:'有效',date:'2030-01-01',person:'管理员',event:'正常有效',img:'ic_fire',company:'虹禾晶科技'},
+        {name:'特种设备使用登记证',status:'即将过期',date:'2026-05-30',person:'管理员',event:'距过期15天',img:'ic_equip',company:'中能建'},
+        {name:'环评批复文件',status:'被吊销',date:'2025-12-31',person:'管理员',event:'2025年被吊销，已重新申请',img:'ic_eia',company:'星恒青源'},
+        {name:'危险化学品经营许可证',status:'有效',date:'2027-09-15',person:'管理员',event:'2024年经营范围变更',img:'ic_chem',company:'九晟新材'},
+        {name:'取水许可证',status:'有效',date:'2028-08-01',person:'管理员',event:'正常有效',img:'ic_water',company:'华纳实业'},
+    ];
+    items.forEach(function(it,i){
+        var t=new Date();t.setDate(t.getDate()-Math.floor(Math.random()*365));
+        licenses.push({
+            sn:'ZZ2025'+String(i+1).padStart(4,'0'), name:it.name, company:it.company, status:it.status,
+            expire:it.date, img:it.img, entry: t.toISOString().slice(0,10),
+            person:it.person, event:it.event, id:i
+        });
+    });
+    updateKPIs();
+    filtered=licenses.map(function(_,i){return i;});
+}
+
+function statusTag(s){
+    if(s==='有效')return '<span class="tag-active">有效</span>';
+    if(s==='即将过期')return '<span class="tag-expiring">即将过期</span>';
+    if(s==='被吊销')return '<span class="tag-revoked">被吊销</span>';
+    return '<span class="tag-expired">'+s+'</span>';
+}
+
+var IMG_MAP = {
+    lic_img_business:'lic_img_business.png', lic_img_safety:'lic_img_safety.png',
+    ic_env:'🌿', ic_food:'🍽', ic_fire:'🔥', ic_equip:'⚙', ic_eia:'📄', ic_chem:'🧪', ic_water:'💧'
+};
+
+function licenseImg(b){
+    if(IMG_MAP[b.img] && IMG_MAP[b.img].indexOf('.png')>0) return '<img class="license-thumb" src="/pages/'+IMG_MAP[b.img]+'" title="'+b.name+'" onclick="previewImg(\'/pages/'+IMG_MAP[b.img]+'\')">';
+    return '<span class="license-thumb-placeholder" title="证照图标">'+IMG_MAP[b.img]+'</span>';
+}
+
+function updateKPIs(){
+    document.getElementById('kpiTotal').textContent=licenses.length;
+    document.getElementById('kpiActive').textContent=licenses.filter(function(l){return l.status==='有效'}).length;
+    document.getElementById('kpiExpiring').textContent=licenses.filter(function(l){return l.status==='即将过期'}).length;
+    document.getElementById('kpiRevoked').textContent=licenses.filter(function(l){return l.status==='被吊销'}).length;
+}
+
+function renderTable(){
+    var tbody=document.getElementById('licTbody'), frag=document.createDocumentFragment();
+    filtered.forEach(function(idx){
+        var b=licenses[idx], tr=document.createElement('tr');
+        tr.innerHTML='<td>'+b.sn+'</td><td><b>'+b.name+'</b></td><td>'+(b.company||'--')+'</td><td>'+statusTag(b.status)+'</td><td>'+b.expire+'</td><td class="license-img-cell">'+licenseImg(b)+'</td><td>'+b.entry+'</td><td>'+b.person+'</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+b.event+'</td><td></td>';
+        var tdA=tr.lastChild;
+        addBtn(tdA,'详情',idx,function(i){showDetail(i);});
+        addBtn(tdA,'操作日志',idx,function(i){showLog(i);});
+        addBtn(tdA,'调整',idx,function(i){showDetail(i);});
+        addBtn(tdA,'删除',idx,function(i){if(confirm('确定删除证照 '+licenses[i].name+' 吗？')){licenses.splice(i,1);filtered=licenses.map(function(_,i2){return i2;});updateKPIs();renderTable();showToast('已删除','success');}},true);
+        frag.appendChild(tr);
+    });
+    tbody.innerHTML='';tbody.appendChild(frag);
+    if(typeof initPagination==='function')initPagination();
+}
+function addBtn(parent,text,idx,fn,isDanger){
+    if(parent.children.length)parent.appendChild(document.createTextNode(' '));
+    var btn=document.createElement('button');btn.className='btn btn-'+(isDanger?'danger':'default');btn.style.cssText='padding:3px 8px;font-size:11px';
+    btn.textContent=text;btn.dataset.deleteInited='1';
+    btn.setAttribute('onclick','('+fn.toString()+')('+idx+')');parent.appendChild(btn);
+}
+
+function showDetail(i){
+    var b=licenses[i];if(!b){showToast('数据加载失败','warning');return;}
+    var body=document.getElementById('detailBody');
+    body.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px">'+
+        '<div><b style="color:var(--text-secondary)">单号：</b>'+b.sn+'</div>'+
+        '<div><b style="color:var(--text-secondary)">公司名称：</b>'+(b.company||'--')+'</div>'+
+        '<div><b style="color:var(--text-secondary)">证照名称：</b>'+b.name+'</div>'+
+        '<div><b style="color:var(--text-secondary)">状态：</b>'+statusTag(b.status)+'</div>'+
+        '<div><b style="color:var(--text-secondary)">有效期：</b>'+b.expire+'</div>'+
+        '<div><b style="color:var(--text-secondary)">录入时间：</b>'+b.entry+'</div>'+
+        '<div><b style="color:var(--text-secondary)">录入人：</b>'+b.person+'</div>'+
+        '</div>'+
+        '<div style="margin-top:14px"><b style="color:var(--text-secondary)">证照事件：</b></div>'+
+        '<div style="margin-top:6px;padding:12px;background:rgba(123,97,255,0.06);border-radius:6px;line-height:1.7;font-size:13px;border-left:3px solid #7b61ff">'+b.event+'</div>';
+    document.getElementById('detailModal').classList.add('show');
+}
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('show');}
+
+function showLog(i){
+    var b=licenses[i];
+    var logs=['2025-03-15 录入证照信息','2025-06-20 更新有效期','2025-09-01 证照状态变更','2025-12-10 管理员复核通过'].join('<br>');
+    document.getElementById('logBody').innerHTML='<b>证照：</b>'+b.name+'<br><b>单号：</b>'+b.sn+'<hr style="border-color:var(--split-color)"><div style="display:flex;flex-direction:column;gap:8px">'+logs.split('<br>').map(function(l){return '<div style="padding:6px 10px;background:var(--bg-card);border-radius:6px;border:1px solid var(--border-color);font-size:12px">'+l+'</div>';}).join('')+'</div>';
+    document.getElementById('logModal').classList.add('show');
+}
+function closeLogModal(){document.getElementById('logModal').classList.remove('show');}
+
+function openAddModal(){
+    document.getElementById('addBody').innerHTML='<div style="display:grid;gap:14px"><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">证照名称</div><input class="form-control" id="addName" style="width:100%" placeholder="如：营业执照"></div><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">公司名称</div><input class="form-control" id="addCompany" style="width:100%" placeholder="如：佳兴铝业"></div><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">状态</div><select class="form-control" id="addStatus" style="width:100%"><option>有效</option><option>即将过期</option><option>被吊销</option></select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">有效期</div><input class="form-control" id="addExpire" type="date" style="width:100%"></div><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">录入人</div><input class="form-control" id="addPerson" style="width:100%" value="管理员"></div></div></div>';
+    document.getElementById('addSubmitBtn').onclick=function(){
+        var n=document.getElementById('addName').value.trim(), c=document.getElementById('addCompany').value.trim();
+        var s=document.getElementById('addStatus').value;
+        var e=document.getElementById('addExpire').value||'2027-12-31', p=document.getElementById('addPerson').value.trim()||'管理员';
+        if(!n){showToast('请输入证照名称','warning');return;}
+        licenses.push({sn:genSN(),name:n,company:c,status:s,expire:e,img:'ic_business',entry:new Date().toISOString().slice(0,10),person:p,event:'正常有效',id:licenses.length});
+        closeAddModal();filtered=licenses.map(function(_,i){return i;});updateKPIs();renderTable();
+        showToast('新增成功','success');
+    };
+    document.getElementById('addModal').classList.add('show');
+}
+function closeAddModal(){document.getElementById('addModal').classList.remove('show');}
+
+function filterTable(){
+    var kw=(document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var fs=document.getElementById('fStatus').value.trim();
+    var fd=document.getElementById('fDate').value;
+    filtered=[];licenses.forEach(function(l,i){var t=(l.sn+' '+l.name+' '+l.status+' '+l.expire+' '+l.event).toLowerCase();if((!kw||t.indexOf(kw)>-1)&&(!fs||l.status===fs)&&(!fd||l.expire>=fd))filtered.push(i);});
+    renderTable();
+}
+function resetFilters(){['fKeyword','fStatus','fDate'].forEach(function(id){document.getElementById(id).value='';});filtered=licenses.map(function(_,i){return i;});renderTable();showToast('筛选已重置','info');}
+
+// 分页
+var initPagination=(function(){
+    return function(){
+        document.querySelectorAll('.card').forEach(function(card){
+            var table=card.querySelector('.data-table tbody'), pagi=card.querySelector('.pagination');
+            if(!table||!pagi)return;var rows=Array.from(table.querySelectorAll('tr'));if(!rows.length)return;
+            var info=pagi.querySelector('span:first-child'),tp=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+            function rp(p){var s=(p-1)*PAGE_SIZE,e=Math.min(s+PAGE_SIZE,rows.length);rows.forEach(function(r,i){r.style.display=(i>=s&&i<e)?'':'none';});info.textContent='共 '+rows.length+' 条  第'+(s+1)+'-'+e+'条';ub(p,tp,pagi);}
+            function ub(p,t,pgi){var bd=pgi.querySelector('.page-btns');if(!bd)return;bd.innerHTML='';var prev=document.createElement('div');prev.className='page-btn'+(p<=1?' disabled':'');prev.textContent='\u00AB';if(p>1)prev.onclick=function(){rp(p-1);};bd.appendChild(prev);var sp=Math.max(1,p-2),ep=Math.min(t,sp+4);if(ep-sp<4)sp=Math.max(1,ep-4);for(var pp=sp;pp<=ep;pp++){(function(pp){var btn=document.createElement('div');btn.className='page-btn'+(pp===p?' active':'');btn.textContent=pp;btn.onclick=function(){rp(pp);};bd.appendChild(btn);})(pp);}var next=document.createElement('div');next.className='page-btn'+(p>=t?' disabled':'');next.textContent='\u00BB';if(p<t)next.onclick=function(){rp(p+1);};bd.appendChild(next);}
+            rp(1);
+        });
+    };
+})();
+
+// 导出
+function openExportModal(){document.getElementById('exportModal').classList.add('show');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('show');}
+function selectExport(el,fmt){exportFormat=fmt;document.querySelectorAll('.export-option').forEach(function(o){o.classList.remove('selected');});el.classList.add('selected');}
+function doExport(){
+    var data=licenses.map(function(b){return{单号:b.sn,证照名称:b.name,公司名称:b.company||'--',状态:b.status,有效期:b.expire,录入时间:b.entry,录入人:b.person,事件:b.event};});
+    var fn='证照管理_'+new Date().toISOString().slice(0,10);
+    try{
+        if(exportFormat==='excel'){var ws=XLSX.utils.json_to_sheet(data);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'证照');XLSX.writeFile(wb,fn+'.xlsx');}
+        else if(exportFormat==='pdf'){var w=window.open('','_blank');w.document.write('<html><head><meta charset="utf-8"><title>证照</title><style>body{font-family:"Microsoft YaHei",sans-serif;padding:20px;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:5px}th{background:#40c4ff;color:#fff}</style></head><body><h2>证照管理</h2><table><thead><tr><th>单号</th><th>名称</th><th>状态</th><th>有效期</th></tr></thead><tbody>');data.forEach(function(r){w.document.write('<tr><td>'+r['单号']+'</td><td>'+r['证照名称']+'</td><td>'+r['状态']+'</td><td>'+r['有效期']+'</td></tr>');});w.document.write('</tbody></table></body></html>');w.document.close();setTimeout(function(){w.print();setTimeout(function(){w.close();},500);},300);}
+        else if(exportFormat==='word'){var html='<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body><h2>证照管理</h2><table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:11px;width:100%"><tr style="background:#40c4ff;color:#fff"><th>单号</th><th>名称</th><th>状态</th><th>有效期</th></tr>';data.forEach(function(r){html+='<tr><td>'+r['单号']+'</td><td>'+r['证照名称']+'</td><td>'+r['状态']+'</td><td>'+r['有效期']+'</td></tr>';});html+='</table></body></html>';var blob=new Blob(['\uFEFF'+html],{type:'application/msword'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn+'.doc';document.body.appendChild(a);a.click();a.remove();}
+        showToast('导出成功','success');
+    }catch(e){showToast('导出失败:'+e.message,'warning');}
+    closeExportModal();
+}
+
+window.addEventListener('DOMContentLoaded',function(){
+    seedData();
+    document.querySelector('.btn-search').addEventListener('click',filterTable);
+    renderTable();
+});
+</script>
+</body>
+</html>

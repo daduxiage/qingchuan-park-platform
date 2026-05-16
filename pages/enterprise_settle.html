@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>企业入驻 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+    <link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script defer src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="/pages/tracker.js"></script>
+    <style>
+.flow-steps{display:flex;align-items:center;justify-content:space-between;padding:28px 0;flex-wrap:nowrap;overflow-x:auto}
+.flow-node{display:flex;align-items:center;gap:0;flex-shrink:0}
+.flow-circle{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all .3s;border:3px solid transparent;flex-shrink:0}
+.flow-circle.c1{background:rgba(64,196,255,0.15);color:#40c4ff;border-color:#40c4ff}
+.flow-circle.c2{background:rgba(76,217,100,0.15);color:#4cd964;border-color:#4cd964}
+.flow-circle.c3{background:rgba(123,97,255,0.15);color:#7b61ff;border-color:#7b61ff}
+.flow-circle.c4{background:rgba(255,149,0,0.15);color:#ff9500;border-color:#ff9500}
+.flow-circle.c5{background:rgba(255,77,79,0.15);color:#ff4d4f;border-color:#ff4d4f}
+.flow-circle:hover{transform:scale(1.1);z-index:2}
+.flow-line{flex:1;min-width:30px;height:2px;margin:0 8px;flex-shrink:1}
+.flow-line.l1{background:linear-gradient(90deg,#40c4ff,#4cd964)}
+.flow-line.l2{background:linear-gradient(90deg,#4cd964,#7b61ff)}
+.flow-line.l3{background:linear-gradient(90deg,#7b61ff,#ff9500)}
+.flow-line.l4{background:linear-gradient(90deg,#ff9500,#ff4d4f)}
+.flow-label{margin-top:8px;font-size:12px;color:var(--text-secondary);text-align:center;white-space:nowrap}
+.flow-item{display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.tag-step1{background:rgba(64,196,255,0.12);color:#40c4ff;padding:2px 10px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-step2{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 10px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-step3{background:rgba(123,97,255,0.12);color:#7b61ff;padding:2px 10px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-step4{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 10px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-step5{background:rgba(255,77,79,0.12);color:#ff4d4f;padding:2px 10px;border-radius:4px;font-size:11px;white-space:nowrap}
+html.light-theme .tag-step1{background:rgba(22,119,255,0.08);color:#1677ff}
+html.light-theme .tag-step2{background:rgba(82,196,26,0.08);color:#389e0d}
+html.light-theme .tag-step3{background:rgba(83,61,218,0.08);color:#531dab}
+html.light-theme .tag-step4{background:rgba(250,140,22,0.08);color:#d46b08}
+html.light-theme .tag-step5{background:rgba(255,77,79,0.08);color:#cf1322}
+.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.filter-row .form-control{min-width:120px;width:auto;flex:0 0 auto}
+.data-table td{white-space:nowrap}
+.data-table td.file-cell{font-size:12px}
+.file-link{color:#40c4ff;cursor:pointer;text-decoration:underline;font-size:12px}
+.file-link:hover{color:#7b61ff}
+.export-options{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.export-option{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--split-color);border-radius:8px;cursor:pointer;transition:all .2s;background:transparent}
+.export-option:hover{border-color:#40c4ff;background:rgba(64,196,255,0.06)}
+.export-option.selected{border-color:#40c4ff;background:rgba(64,196,255,0.1)}
+.export-option-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.export-option-icon.excel{background:rgba(76,175,80,0.15);color:#4caf50}
+.export-option-icon.pdf{background:rgba(244,67,54,0.15);color:#f44336}
+.export-option-icon.word{background:rgba(33,150,243,0.15);color:#2196f3}
+.export-option-body{flex:1}
+.export-option-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.export-option-desc{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+.export-option-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--split-color);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.export-option.selected .export-option-check{border-color:#40c4ff;background:#40c4ff}
+.export-option.selected .export-option-check::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">企业入驻 · 加载中...</div></div>
+
+<div class="page-header">
+    <div class="page-header-left"><a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a><div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>运营管理 / 企业入驻</span></div></div>
+    <div class="page-header-right"></div>
+</div>
+
+<div class="page-body">
+
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-building"></i></div><div class="kpi-card-body"><div class="kpi-value" style="color:#40c4ff" id="kpiTotal">0</div><div class="kpi-label">入驻申请总数</div></div></div>
+    <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-check-circle"></i></div><div class="kpi-card-body"><div class="kpi-value" style="color:#4cd964" id="kpiDone">0</div><div class="kpi-label">已完成入驻</div></div></div>
+    <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-clock"></i></div><div class="kpi-card-body"><div class="kpi-value" style="color:#ff9500" id="kpiPending">0</div><div class="kpi-label">审核中</div></div></div>
+    <div class="kpi-card"><div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-hourglass"></i></div><div class="kpi-card-body"><div class="kpi-value" style="color:#7b61ff" id="kpiAvg">0天</div><div class="kpi-label">平均入驻耗时</div></div></div>
+</div>
+
+<!-- 入驻流程 -->
+<div class="card">
+    <div class="card-header"><div class="card-title"><i class="fa fa-sitemap" style="color:#40c4ff"></i> 入驻流程</div></div>
+    <div class="card-body"><div class="flow-steps" id="flowSteps"></div></div>
+</div>
+
+<!-- 企业入驻清单 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa fa-list-alt" style="color:#40c4ff"></i> 企业入驻清单</div>
+        <div class="card-toolbar"><div class="toolbar-actions">
+            <button class="btn btn-default" onclick="resetFilters()">重置</button>
+            <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+            <button class="btn btn-success" onclick="openExportModal()"><i class="fa fa-download"></i> 导出</button>
+            <button class="btn btn-primary" onclick="openAddModal()"><i class="fa fa-plus"></i> 新增</button>
+        </div></div>
+    </div>
+    <div class="card-body">
+        <div class="filter-row">
+            <input class="form-control" placeholder="搜索企业/单号..." id="fKeyword">
+            <select class="form-control" id="fStep"><option value="">全部流程节点</option></select>
+            <input class="form-control" type="date" id="fDate" title="申请时间">
+        </div>
+        <div class="table-wrap"><table class="data-table" id="settTable">
+            <thead><tr>
+                <th style="width:110px">单号</th><th>企业名称</th><th style="width:90px">流程节点</th><th style="width:80px">企业类型</th>
+                <th style="width:80px">附件</th><th style="width:100px">申请时间</th><th style="width:100px">入驻耗时</th>
+                <th style="width:220px">操作</th>
+            </tr></thead>
+            <tbody id="settTbody"></tbody>
+        </table></div>
+        <div class="pagination"><span>共 0 条</span><div class="page-btns"></div></div>
+    </div>
+</div>
+
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal" style="width:560px"><div class="modal-header"><span class="modal-title"><i class="fa fa-info-circle" style="color:#7b61ff;margin-right:6px"></i>入驻详情</span><div class="modal-close" onclick="closeDetailModal()">×</div></div>
+    <div class="modal-body" id="detailBody" style="padding:20px 24px;font-size:14px;line-height:1.8"></div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeDetailModal()">关闭</button></div></div>
+</div>
+
+<!-- 流程日志弹窗 -->
+<div class="modal-overlay" id="logModal">
+    <div class="modal" style="width:500px"><div class="modal-header"><span class="modal-title"><i class="fa fa-history" style="color:#40c4ff;margin-right:6px"></i>流程日志</span><div class="modal-close" onclick="closeLogModal()">×</div></div>
+    <div class="modal-body" style="padding:20px 24px;font-size:13px;line-height:1.8;max-height:400px;overflow-y:auto" id="logBody"></div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeLogModal()">关闭</button></div></div>
+</div>
+
+<!-- 流程步骤弹窗 -->
+<div class="modal-overlay" id="stepModal">
+    <div class="modal" style="width:520px"><div class="modal-header"><span class="modal-title" id="stepTitle"><i class="fa fa-info-circle" style="color:#40c4ff;margin-right:6px"></i>流程说明</span><div class="modal-close" onclick="closeStepModal()">×</div></div>
+    <div class="modal-body" id="stepBody" style="padding:20px 24px;font-size:14px;line-height:1.8"></div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeStepModal()">关闭</button></div></div>
+</div>
+
+<!-- 新增弹窗 -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal" style="width:480px"><div class="modal-header"><span class="modal-title"><i class="fa fa-plus-circle" style="color:#40c4ff;margin-right:6px"></i>新增入驻申请</span><div class="modal-close" onclick="closeAddModal()">×</div></div>
+    <div class="modal-body" id="addBody" style="padding:20px 24px;font-size:14px"></div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeAddModal()">取消</button><button class="btn btn-primary" id="addSubmitBtn">提交</button></div></div>
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal">
+    <div class="modal" style="width:440px"><div class="modal-header"><span class="modal-title"><i class="fa fa-download" style="color:#40c4ff;margin-right:6px"></i>导出数据</span><div class="modal-close" onclick="closeExportModal()">×</div></div>
+    <div class="modal-body"><div class="export-options">
+        <div class="export-option selected" onclick="selectExport(this,'excel')"><div class="export-option-icon excel"><i class="fa fa-file-excel"></i></div><div class="export-option-body"><div class="export-option-title">Excel</div><div class="export-option-desc">.xlsx</div></div><div class="export-option-check"></div></div>
+        <div class="export-option" onclick="selectExport(this,'pdf')"><div class="export-option-icon pdf"><i class="fa fa-file-pdf"></i></div><div class="export-option-body"><div class="export-option-title">PDF</div><div class="export-option-desc">.pdf</div></div><div class="export-option-check"></div></div>
+        <div class="export-option" onclick="selectExport(this,'word')"><div class="export-option-icon word"><i class="fa fa-file-word"></i></div><div class="export-option-body"><div class="export-option-title">Word</div><div class="export-option-desc">.doc</div></div><div class="export-option-check"></div></div>
+    </div></div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeExportModal()">取消</button><button class="btn btn-primary" onclick="doExport()"><i class="fa fa-download"></i> 导出</button></div></div>
+</div>
+
+<script src="/pages/common.js"></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+var settles=[], filtered=[], PAGE_SIZE=15, exportFormat='excel';
+function genSN(){return 'RZ'+new Date().getFullYear()+String(Math.floor(Math.random()*9000+1000));}
+
+function seedData(){
+    if(settles.length)return;
+    var steps=['提交申请','资质预审','签订入驻协议','现场交付','完成入驻'];
+    var cos=['广袤新材','新通鑫','华纳实业','九晟新材','星恒青源','中能建','虹禾晶科技','阜成新材','佳兴铝业'];
+    var types=['制造业','新材料','电子信息','新能源','食品加工','环保科技','装备制造','生物医药'];
+    cos.forEach(function(c,i){
+        var st=steps[i%5];var t=new Date();t.setDate(t.getDate()-Math.floor(Math.random()*90+i*3));
+        var done=steps.indexOf(st)>2; var dur=done?Math.floor(Math.random()*40+15)+'天':'审核中';
+        settles.push({sn:'RZ2025'+String(i+1).padStart(4,'0'),company:c,step:st,type:types[i%8],files:(Math.floor(Math.random()*3)+1)+'个文件',date:t.toISOString().slice(0,10),duration:dur,id:i});
+    });
+    updateKPIs();filtered=settles.map(function(_,i){return i;});
+}
+
+function updateKPIs(){
+    document.getElementById('kpiTotal').textContent=settles.length;
+    document.getElementById('kpiDone').textContent=settles.filter(function(s){return s.step==='完成入驻'}).length;
+    document.getElementById('kpiPending').textContent=settles.filter(function(s){return s.step!=='完成入驻'}).length;
+    var done=settles.filter(function(s){return s.step==='完成入驻'}).length;
+    document.getElementById('kpiAvg').textContent=done?Math.floor(Math.random()*30+10)+'天':(settles.length?'审核中':'--');
+}
+
+function stepTag(s){
+    var m={'提交申请':'tag-step1','资质预审':'tag-step2','签订入驻协议':'tag-step3','现场交付':'tag-step4','完成入驻':'tag-step5'};
+    return '<span class="'+m[s]+'">'+s+'</span>';
+}
+
+function flowSteps(){
+    var steps=[
+        {icon:'fa-file-alt',name:'提交申请',desc:'企业在线填写基本信息、上传营业执照等材料，提交入驻申请表单。审核人员在1-3个工作日内完成初审。'},
+        {icon:'fa-search',name:'资质预审',desc:'园区管委会对企业提交的材料进行合规性审查，包括工商信息核实、经营范围匹配、环保要求评估等。'},
+        {icon:'fa-file-signature',name:'签订入驻协议',desc:'预审通过后，双方签订正式入驻协议，明确厂房面积、租金、配套设施、违约责任等条款。'},
+        {icon:'fa-truck',name:'现场交付',desc:'园区运营团队对接企业进行厂房验收交付、水电接入、设备安装指引等现场服务。'},
+        {icon:'fa-flag-checkered',name:'完成入驻',desc:'企业正式投产运营，纳入园区日常管理服务体系，开通智慧园区平台账号。'}
+    ];
+    var html='';
+    steps.forEach(function(s,i){
+        html+='<div class="flow-item" onclick="showStep(\''+s.name+'\',\''+s.desc+'\')"><div class="flow-circle c'+(i+1)+'"><i class="fa '+s.icon+'"></i></div><div class="flow-label">'+s.name+'</div></div>';
+        if(i<steps.length-1)html+='<div class="flow-line l'+(i+1)+'"></div>';
+    });
+    document.getElementById('flowSteps').innerHTML=html;
+}
+function showStep(name,desc){
+    document.getElementById('stepTitle').innerHTML='<i class="fa fa-info-circle" style="color:#40c4ff;margin-right:6px"></i>'+name;
+    document.getElementById('stepBody').innerHTML='<div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:12px">'+name+'</div><div style="padding:14px;background:rgba(64,196,255,0.06);border-radius:8px;border-left:3px solid #40c4ff;line-height:1.8">'+desc+'</div>';
+    document.getElementById('stepModal').classList.add('show');
+}
+function closeStepModal(){document.getElementById('stepModal').classList.remove('show');}
+
+function renderTable(){
+    var tbody=document.getElementById('settTbody'), frag=document.createDocumentFragment();
+    filtered.forEach(function(idx){
+        var b=settles[idx], tr=document.createElement('tr');
+        tr.innerHTML='<td>'+b.sn+'</td><td><b>'+b.company+'</b></td><td>'+stepTag(b.step)+'</td><td>'+b.type+'</td><td class="file-cell"><span class="file-link" onclick="event.stopPropagation();showToast(\'📎 '+b.files+'\',\'info\')">'+b.files+'</span></td><td>'+b.date+'</td><td>'+b.duration+'</td><td></td>';
+        var tdA=tr.lastChild;
+        addBtn(tdA,'详情',idx,function(i){showDetail(i);});
+        addBtn(tdA,'流程日志',idx,function(i){showLog(i);});
+        addBtn(tdA,'审批',idx,function(i){if(settles[i].step==='完成入驻'){showToast('已完成入驻，无需审批','info');return;} settles[i].step=settles[i].step==='提交申请'?'资质预审':settles[i].step==='资质预审'?'签订入驻协议':settles[i].step==='签订入驻协议'?'现场交付':'完成入驻';if(settles[i].step==='完成入驻')settles[i].duration=Math.floor(Math.random()*20+10)+'天';updateKPIs();renderTable();showToast('审批通过 → '+settles[i].step,'success');});
+        frag.appendChild(tr);
+    });
+    tbody.innerHTML='';tbody.appendChild(frag);
+    if(typeof initPagination==='function')initPagination();
+}
+function addBtn(parent,text,idx,fn){
+    if(parent.children.length)parent.appendChild(document.createTextNode(' '));
+    var btn=document.createElement('button');btn.className='btn btn-default';btn.style.cssText='padding:3px 8px;font-size:11px';
+    btn.textContent=text;btn.dataset.deleteInited='1';btn.setAttribute('onclick','('+fn.toString()+')('+idx+')');parent.appendChild(btn);
+}
+
+function showDetail(i){
+    var b=settles[i];if(!b){showToast('数据加载失败','warning');return;}
+    var body=document.getElementById('detailBody');
+    body.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px">'+
+        '<div><b style="color:var(--text-secondary)">单号：</b>'+b.sn+'</div>'+
+        '<div><b style="color:var(--text-secondary)">企业名称：</b>'+b.company+'</div>'+
+        '<div><b style="color:var(--text-secondary)">流程节点：</b>'+stepTag(b.step)+'</div>'+
+        '<div><b style="color:var(--text-secondary)">企业类型：</b>'+b.type+'</div>'+
+        '<div><b style="color:var(--text-secondary)">申请时间：</b>'+b.date+'</div>'+
+        '<div><b style="color:var(--text-secondary)">入驻耗时：</b>'+b.duration+'</div>'+
+        '<div><b style="color:var(--text-secondary)">附件：</b>'+b.files+'</div>'+
+        '</div>'+
+        '<div style="margin-top:14px"><b style="color:var(--text-secondary)">入驻说明：</b></div>'+
+        '<div style="margin-top:6px;padding:12px;background:rgba(123,97,255,0.06);border-radius:6px;line-height:1.7;font-size:13px;border-left:3px solid #7b61ff">企业 '+b.company+' 当前处于「'+b.step+'」阶段，请按照入驻流程指引完成后续步骤。</div>';
+    document.getElementById('detailModal').classList.add('show');
+}
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('show');}
+
+function showLog(i){
+    var b=settles[i],logs=[];
+    if(b.step==='提交申请') logs=['提交入驻申请，等待审核']; else logs=['提交入驻申请，等待审核','资质预审通过'];
+    if(b.step==='签订入驻协议')logs.push('签订入驻协议','协议备案完成');
+    if(b.step==='现场交付')logs.push('签订入驻协议','协议备案完成','现场厂房验收','设备进场');
+    if(b.step==='完成入驻')logs.push('签订入驻协议','协议备案完成','现场厂房验收','设备进场','完成入驻');
+    document.getElementById('logBody').innerHTML='<b>企业：</b>'+b.company+'<br><b>单号：</b>'+b.sn+'<hr style="border-color:var(--split-color)"><div style="display:flex;flex-direction:column;gap:8px">'+logs.map(function(l){return '<div style="padding:6px 10px;background:var(--bg-card);border-radius:6px;border:1px solid var(--border-color);font-size:12px">⏱ '+l+'</div>';}).join('')+'</div>';
+    document.getElementById('logModal').classList.add('show');
+}
+function closeLogModal(){document.getElementById('logModal').classList.remove('show');}
+
+function openAddModal(){
+    document.getElementById('addBody').innerHTML='<div style="display:grid;gap:14px"><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">企业名称</div><input class="form-control" id="addCompany" style="width:100%" placeholder="如：某科技有限公司"></div><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">企业类型</div><input class="form-control" id="addType" style="width:100%" placeholder="如：新材料"></div><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">流程节点</div><select class="form-control" id="addStep" style="width:100%"><option>提交申请</option><option>资质预审</option><option>签订入驻协议</option><option>现场交付</option><option>完成入驻</option></select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">申请时间</div><input class="form-control" id="addDate" type="date" style="width:100%"></div><div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:5px">附件</div><input class="form-control" id="addFiles" style="width:100%" placeholder="如：3个文件"></div></div></div>';
+    document.getElementById('addSubmitBtn').onclick=function(){
+        var c=document.getElementById('addCompany').value.trim(),t=document.getElementById('addType').value.trim();
+        var s=document.getElementById('addStep').value,d=document.getElementById('addDate').value||new Date().toISOString().slice(0,10);
+        var f=document.getElementById('addFiles').value.trim()||'1个文件';
+        if(!c){showToast('请输入企业名称','warning');return;}
+        settles.push({sn:genSN(),company:c,step:s,type:t||'其他',files:f,date:d,duration:s==='完成入驻'?Math.floor(Math.random()*20+10)+'天':'审核中',id:settles.length});
+        closeAddModal();filtered=settles.map(function(_,i){return i;});updateKPIs();renderTable();showToast('新增成功','success');
+    };
+    document.getElementById('addModal').classList.add('show');
+}
+function closeAddModal(){document.getElementById('addModal').classList.remove('show');}
+
+function filterTable(){
+    var kw=(document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var fs=document.getElementById('fStep').value.trim();
+    var fd=document.getElementById('fDate').value;
+    filtered=[];settles.forEach(function(s,i){var t=(s.sn+' '+s.company+' '+s.step+' '+s.type+' '+s.date).toLowerCase();if((!kw||t.indexOf(kw)>-1)&&(!fs||s.step===fs)&&(!fd||s.date>=fd))filtered.push(i);});
+    renderTable();
+}
+function resetFilters(){['fKeyword','fStep','fDate'].forEach(function(id){document.getElementById(id).value='';});filtered=settles.map(function(_,i){return i;});renderTable();showToast('筛选已重置','info');}
+
+var initPagination=(function(){return function(){
+    document.querySelectorAll('.card').forEach(function(card){
+        var table=card.querySelector('.data-table tbody'), pagi=card.querySelector('.pagination');if(!table||!pagi)return;
+        var rows=Array.from(table.querySelectorAll('tr'));if(!rows.length)return;
+        var info=pagi.querySelector('span:first-child'),tp=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+        function rp(p){var s=(p-1)*PAGE_SIZE,e=Math.min(s+PAGE_SIZE,rows.length);rows.forEach(function(r,i){r.style.display=(i>=s&&i<e)?'':'none';});info.textContent='共 '+rows.length+' 条  第'+(s+1)+'-'+e+'条';ub(p,tp,pagi);}
+        function ub(p,t,pgi){var bd=pgi.querySelector('.page-btns');if(!bd)return;bd.innerHTML='';var prev=document.createElement('div');prev.className='page-btn'+(p<=1?' disabled':'');prev.textContent='\u00AB';if(p>1)prev.onclick=function(){rp(p-1);};bd.appendChild(prev);var sp=Math.max(1,p-2),ep=Math.min(t,sp+4);if(ep-sp<4)sp=Math.max(1,ep-4);for(var pp=sp;pp<=ep;pp++){(function(pp){var btn=document.createElement('div');btn.className='page-btn'+(pp===p?' active':'');btn.textContent=pp;btn.onclick=function(){rp(pp);};bd.appendChild(btn);})(pp);}var next=document.createElement('div');next.className='page-btn'+(p>=t?' disabled':'');next.textContent='\u00BB';if(p<t)next.onclick=function(){rp(p+1);};bd.appendChild(next);}
+        rp(1);
+    });
+};})();
+
+function openExportModal(){document.getElementById('exportModal').classList.add('show');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('show');}
+function selectExport(el,fmt){exportFormat=fmt;document.querySelectorAll('.export-option').forEach(function(o){o.classList.remove('selected');});el.classList.add('selected');}
+function doExport(){
+    var data=settles.map(function(b){return{单号:b.sn,企业名称:b.company,流程节点:b.step,企业类型:b.type,附件:b.files,申请时间:b.date,入驻耗时:b.duration};});
+    var fn='企业入驻_'+new Date().toISOString().slice(0,10);
+    try{
+        if(exportFormat==='excel'){var ws=XLSX.utils.json_to_sheet(data);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'入驻');XLSX.writeFile(wb,fn+'.xlsx');}
+        else if(exportFormat==='pdf'){var w=window.open('','_blank');w.document.write('<html><head><meta charset="utf-8"><title>入驻</title><style>body{font-family:"Microsoft YaHei",sans-serif;padding:20px;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:5px}th{background:#40c4ff;color:#fff}</style></head><body><h2>企业入驻清单</h2><table><thead><tr><th>单号</th><th>企业</th><th>节点</th><th>类型</th></tr></thead><tbody>');data.forEach(function(r){w.document.write('<tr><td>'+r['单号']+'</td><td>'+r['企业名称']+'</td><td>'+r['流程节点']+'</td><td>'+r['企业类型']+'</td></tr>');});w.document.write('</tbody></table></body></html>');w.document.close();setTimeout(function(){w.print();setTimeout(function(){w.close();},500);},300);}
+        else if(exportFormat==='word'){var html='<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body><h2>企业入驻清单</h2><table border="1" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:11px;width:100%"><tr style="background:#40c4ff;color:#fff"><th>单号</th><th>企业</th><th>节点</th><th>类型</th></tr>';data.forEach(function(r){html+='<tr><td>'+r['单号']+'</td><td>'+r['企业名称']+'</td><td>'+r['流程节点']+'</td><td>'+r['企业类型']+'</td></tr>';});html+='</table></body></html>';var blob=new Blob(['\uFEFF'+html],{type:'application/msword'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn+'.doc';document.body.appendChild(a);a.click();a.remove();}
+        showToast('导出成功','success');
+    }catch(e){showToast('导出失败:'+e.message,'warning');}
+    closeExportModal();
+}
+
+window.addEventListener('DOMContentLoaded',function(){
+    seedData();flowSteps();
+    document.querySelector('.btn-search').addEventListener('click',filterTable);
+    renderTable();
+});
+</script>
+</body>
+</html>

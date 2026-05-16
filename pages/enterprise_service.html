@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业服务 - 青川县庄子上工业园区智慧园区平台</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Microsoft YaHei', sans-serif; margin: 0; padding: 0; background: #f5f7fa; }
+        .page-wrapper { display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e8ecf1; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #e8ecf1; display: flex; align-items: center; gap: 10px; }
+        .sidebar-logo { font-size: 18px; color: #1677ff; }
+        .sidebar-subtitle { font-size: 12px; color: #999; }
+        .sidebar-nav { padding: 15px 0; }
+        .nav-item { padding: 12px 20px; color: #333; cursor: pointer; display: flex; align-items: center; gap: 10px; border-left: 3px solid transparent; transition: all 0.3s; }
+        .nav-item:hover { background: #f0f7ff; color: #1677ff; }
+        .nav-item.active { background: #e6f4ff; color: #1677ff; border-left-color: #1677ff; }
+        .nav-item i { width: 20px; text-align: center; }
+        .nav-item-sub { padding-left: 50px; font-size: 13px; }
+        .main-content { flex: 1; margin-left: 220px; padding: 20px; }
+        .page-header { background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666; }
+        .breadcrumb a { color: #1677ff; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid #d9d9d9; background: #fff; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s; }
+        .btn:hover { border-color: #1677ff; color: #1677ff; }
+        .btn-primary { background: #1677ff; color: #fff; border-color: #1677ff; }
+        .module-intro { background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%); color: #fff; padding: 30px; border-radius: 12px; margin-bottom: 20px; }
+        .module-intro h2 { margin: 0 0 10px 0; font-size: 22px; }
+        .module-intro p { margin: 0; opacity: 0.9; font-size: 14px; line-height: 1.6; }
+        .func-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .func-item { background: #fff; border-radius: 12px; padding: 25px; cursor: pointer; transition: all 0.3s; border: 1px solid #e8ecf1; }
+        .func-item:hover { background: #e6f4ff; transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .func-item-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 15px; }
+        .func-item h3 { margin: 0 0 8px 0; font-size: 16px; color: #333; }
+        .func-item p { margin: 0; font-size: 13px; color: #999; line-height: 1.5; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: #fff; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #e8ecf1; }
+        .stat-num { font-size: 28px; font-weight: bold; color: #1677ff; }
+        .stat-text { font-size: 13px; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🏭</div>
+                <div>
+                    <div class="sidebar-subtitle">智慧园区平台</div>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-item" onclick="location.href='../index.html'"><i class="fa fa-home"></i> 首页概览</div>
+                <div class="nav-item" onclick="location.href='ai_recruit_service.html'"><i class="fa fa-robot"></i> AI招商服务</div>
+                <div class="nav-item" onclick="location.href='digital_sand.html'"><i class="fa fa-cube"></i> 数字沙盘</div>
+                <div class="nav-item" onclick="location.href='enterprise_dossier.html'"><i class="fa fa-folder-open"></i> 企业档案</div>
+                <div class="nav-item" onclick="location.href='safety_monitor.html'"><i class="fa fa-shield-alt"></i> 全域安全监控</div>
+                <div class="nav-item active"><i class="fa fa-handshake"></i> 企业服务</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='appeal_direct.html'"><i class="fa fa-camera"></i> 诉求直达</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='service_direct.html'"><i class="fa fa-rocket"></i> 服务直达</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='park_enterprise_interact.html'"><i class="fa fa-comments"></i> 园企交互</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='supply_demand.html'"><i class="fa fa-handshake"></i> 供需对接</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='enterprise_settle.html'"><i class="fa fa-building"></i> 企业入驻</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='license_mgmt.html'"><i class="fa fa-file-alt"></i> 证照管理</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='credit_eval.html'"><i class="fa fa-star"></i> 信用评价</div>
+                <div class="nav-item" onclick="location.href='operations_mgmt.html'"><i class="fa fa-cogs"></i> 运营管理</div>
+                <div class="nav-item" onclick="location.href='energy_monitoring.html'"><i class="fa fa-bolt"></i> 能效与运营监测</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="../index.html">首页</a>
+                    <i class="fa fa-angle-right"></i>
+                    <span>企业服务</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn"><i class="fa fa-history"></i> 服务记录</button>
+                    <button class="btn btn-primary"><i class="fa fa-plus"></i> 提交诉求</button>
+                </div>
+            </div>
+
+            <div class="module-intro">
+                <h2>🤝 企业服务</h2>
+                <p>构建"亲清"政企关系，优化营商环境。建设"诉求直达（随手拍）"、"服务直达"、"园企交互"、"供需对接"等功能，实现企业全生命周期服务覆盖。</p>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-num">48</div>
+                    <div class="stat-text">入驻企业</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">86</div>
+                    <div class="stat-text">本月诉求</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">95%</div>
+                    <div class="stat-text">办结率</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">4.8</div>
+                    <div class="stat-text">满意度评分</div>
+                </div>
+            </div>
+
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">选择功能模块</h3>
+            <div class="func-grid">
+                <div class="func-item" onclick="location.href='appeal_direct.html'">
+                    <div class="func-item-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff;">
+                        <i class="fa fa-camera"></i>
+                    </div>
+                    <h3>诉求直达（随手拍）</h3>
+                    <p>企业通过随手拍方式快速提交诉求，园区管理部门及时响应处理</p>
+                </div>
+                <div class="func-item" onclick="location.href='service_direct.html'">
+                    <div class="func-item-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: #fff;">
+                        <i class="fa fa-rocket"></i>
+                    </div>
+                    <h3>服务直达</h3>
+                    <p>提供政策推送、办事指南、在线申请等一站式企业服务</p>
+                </div>
+                <div class="func-item" onclick="location.href='park_enterprise_interact.html'">
+                    <div class="func-item-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: #fff;">
+                        <i class="fa fa-comments"></i>
+                    </div>
+                    <h3>园企交互</h3>
+                    <p>建立园区与企业间的沟通渠道，实现信息互通、问题共商</p>
+                </div>
+                <div class="func-item" onclick="location.href='supply_demand.html'">
+                    <div class="func-item-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #fff;">
+                        <i class="fa fa-handshake"></i>
+                    </div>
+                    <h3>供需对接</h3>
+                    <p>促进园区企业间的供需匹配，实现资源共享、互利共赢</p>
+                </div>
+                <div class="func-item" onclick="location.href='enterprise_settle.html'">
+                    <div class="func-item-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: #fff;">
+                        <i class="fa fa-building"></i>
+                    </div>
+                    <h3>企业入驻</h3>
+                    <p>全流程电子化的企业入驻申请、审批、签约服务</p>
+                </div>
+                <div class="func-item" onclick="location.href='license_mgmt.html'">
+                    <div class="func-item-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333;">
+                        <i class="fa fa-file-alt"></i>
+                    </div>
+                    <h3>证照管理</h3>
+                    <p>企业证照电子化管理，支持证照到期提醒、在线更新</p>
+                </div>
+                <div class="func-item" onclick="location.href='credit_eval.html'">
+                    <div class="func-item-icon" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333;">
+                        <i class="fa fa-star"></i>
+                    </div>
+                    <h3>信用评价</h3>
+                    <p>建立企业信用评价体系，营造诚实守信的营商环境</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

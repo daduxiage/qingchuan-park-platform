@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天眼·道路交通安全监控 - 青川县庄子上工业园区智慧园区平台</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Microsoft YaHei', sans-serif; margin: 0; padding: 0; background: #f5f7fa; }
+        .page-wrapper { display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e8ecf1; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #e8ecf1; display: flex; align-items: center; gap: 10px; }
+        .sidebar-logo { font-size: 18px; color: #1677ff; }
+        .sidebar-subtitle { font-size: 12px; color: #999; }
+        .sidebar-nav { padding: 15px 0; }
+        .nav-item { padding: 12px 20px; color: #333; cursor: pointer; display: flex; align-items: center; gap: 10px; border-left: 3px solid transparent; transition: all 0.3s; }
+        .nav-item:hover { background: #f0f7ff; color: #1677ff; }
+        .nav-item.active { background: #e6f4ff; color: #1677ff; border-left-color: #1677ff; }
+        .nav-item i { width: 20px; text-align: center; }
+        .nav-item-sub { padding-left: 50px; font-size: 13px; }
+        .main-content { flex: 1; margin-left: 220px; padding: 20px; }
+        .page-header { background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666; }
+        .breadcrumb a { color: #1677ff; text-decoration: none; }
+        .btn { padding: 8px 16px; border-radius: 6px; border: 1px solid #d9d9d9; background: #fff; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s; }
+        .btn:hover { border-color: #1677ff; color: #1677ff; }
+        .btn-primary { background: #1677ff; color: #fff; border-color: #1677ff; }
+        .content-card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e8ecf1; }
+        .card-title { font-size: 15px; font-weight: bold; color: #333; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: #fff; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #e8ecf1; }
+        .stat-num { font-size: 28px; font-weight: bold; color: #1677ff; }
+        .stat-text { font-size: 13px; color: #666; margin-top: 5px; }
+        .video-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .video-card { background: #f9fafb; border-radius: 10px; overflow: hidden; }
+        .video-preview { height: 200px; background: #1a1a2e; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 50px; position: relative; }
+        .video-live { position: absolute; top: 10px; right: 10px; background: #ff4d4f; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+        .video-info { padding: 15px; }
+        .video-name { font-weight: bold; color: #333; margin-bottom: 5px; }
+        .video-meta { font-size: 12px; color: #999; display: flex; justify-content: space-between; }
+        .alert-list { display: grid; gap: 10px; }
+        .alert-item { display: flex; align-items: center; padding: 12px 15px; background: #fff7e6; border-radius: 8px; border-left: 3px solid #faad14; }
+        .alert-time { font-size: 12px; color: #999; margin-right: 15px; min-width: 60px; }
+        .alert-content { flex: 1; font-size: 13px; color: #333; }
+        .alert-type { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #faad14; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🏭</div>
+                <div>
+                    <div class="sidebar-subtitle">智慧园区平台</div>
+                </div>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-item" onclick="location.href='../index.html'"><i class="fa fa-home"></i> 首页概览</div>
+                <div class="nav-item" onclick="location.href='ai_recruit_service.html'"><i class="fa fa-robot"></i> AI招商服务</div>
+                <div class="nav-item" onclick="location.href='digital_sand.html'"><i class="fa fa-cube"></i> 数字沙盘</div>
+                <div class="nav-item" onclick="location.href='enterprise_dossier.html'"><i class="fa fa-folder-open"></i> 企业档案</div>
+                <div class="nav-item active"><i class="fa fa-shield-alt"></i> 全域安全监控</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='safety_monitor.html'"><i class="fa fa-shield-alt"></i> 安全监控总览</div>
+                <div class="nav-item nav-item-sub active" onclick="location.href='traffic_monitor.html'"><i class="fa fa-video"></i> 天眼·道路监控</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='disaster_monitor.html'"><i class="fa fa-exclamation-triangle"></i> 哨兵·地灾监测</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='env_monitor.html'"><i class="fa fa-leaf"></i> 慧眼·环保监测</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='video_surveillance.html'"><i class="fa fa-camera"></i> 视频监控总览</div>
+                <div class="nav-item nav-item-sub" onclick="location.href='emergency_command.html'"><i class="fa fa-bell"></i> 应急指挥联动</div>
+                <div class="nav-item" onclick="location.href='enterprise_service.html'"><i class="fa fa-handshake"></i> 企业服务</div>
+                <div class="nav-item" onclick="location.href='operations_mgmt.html'"><i class="fa fa-cogs"></i> 运营管理</div>
+                <div class="nav-item" onclick="location.href='energy_monitoring.html'"><i class="fa fa-bolt"></i> 能效与运营监测</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="../index.html">首页</a>
+                    <i class="fa fa-angle-right"></i>
+                    <a href="safety_monitor.html">全域安全监控</a>
+                    <i class="fa fa-angle-right"></i>
+                    <span>天眼·道路交通安全监控</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn"><i class="fa fa-history"></i> 录像回放</button>
+                    <button class="btn btn-primary"><i class="fa fa-video"></i> 实时监控</button>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-num">8</div>
+                    <div class="stat-text">监控点位</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">1</div>
+                    <div class="stat-text">今日告警</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">2</div>
+                    <div class="stat-text">违章停车</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">100%</div>
+                    <div class="stat-text">在线率</div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title">📹 实时监控画面</div>
+                    <button class="btn"><i class="fa fa-th-large"></i> 切换视图</button>
+                </div>
+                <div class="video-grid">
+                    <div class="video-card">
+                        <div class="video-preview">
+                            <i class="fa fa-video"></i>
+                            <span class="video-live">直播中</span>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-name">园区主入口 · 鹰眼全景</div>
+                            <div class="video-meta">
+                                <span>800万像素 | 180°全景</span>
+                                <span>正常运行</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-card">
+                        <div class="video-preview">
+                            <i class="fa fa-video"></i>
+                            <span class="video-live">直播中</span>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-name">园区次入口 · 智能警戒</div>
+                            <div class="video-meta">
+                                <span>400万像素 | 声光警戒</span>
+                                <span>正常运行</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-card">
+                        <div class="video-preview">
+                            <i class="fa fa-video"></i>
+                            <span class="video-live">直播中</span>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-name">主干道卡口 · 车流统计</div>
+                            <div class="video-meta">
+                                <span>400万像素 | 车牌识别</span>
+                                <span>正常运行</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-card">
+                        <div class="video-preview">
+                            <i class="fa fa-video"></i>
+                            <span class="video-live" style="background: #faad14;">离线</span>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-name">企业A区入口 · 智能警戒</div>
+                            <div class="video-meta">
+                                <span>400万像素 | 声光警戒</span>
+                                <span>设备维护中</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title">⚠️ 今日告警记录</div>
+                </div>
+                <div class="alert-list">
+                    <div class="alert-item">
+                        <div class="alert-time">10:32</div>
+                        <div class="alert-content">园区主入口 - 检测到违章停车，车牌：川H·12345</div>
+                        <div class="alert-type">违章停车</div>
+                    </div>
+                    <div class="alert-item" style="background: #e6f4ff; border-color: #1677ff;">
+                        <div class="alert-time">09:15</div>
+                        <div class="alert-content">主干道卡口 - 车流量异常，当前：128辆/分钟</div>
+                        <div class="alert-type" style="background: #1677ff;">拥堵预警</div>
+                    </div>
+                    <div class="alert-item" style="background: #f5f5f5; border-color: #d9d9d9;">
+                        <div class="alert-time">昨日</div>
+                        <div class="alert-content">园区次入口 - 识别陌生人员，访客：张三</div>
+                        <div class="alert-type" style="background: #8c8c8c;">人员识别</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

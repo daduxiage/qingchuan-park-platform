@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加班申请 - 青川县庄子上工业园区智慧园区平台</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+</head>
+<body>
+<script>
+// ===== 主题初始化（从 localStorage 恢复） =====
+(function(){
+    if(localStorage.getItem('ss_theme')==='light'){
+        document.documentElement.classList.add('light-theme');
+    }
+})();
+</script>
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">加班申请 · 加载中...</div></div>
+<script>window.addEventListener('load',()=>{const m=document.getElementById('loadingMask');if(m){m.classList.add('hide');setTimeout(()=>m.style.display='none',500);}});</script>
+<div class="toast-container" id="toastContainer"></div>
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn" title="返回工作台"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>数字化办公 / 加班申请</span></div>
+    </div>
+    <div class="page-header-right"><div id="pageTime" style="font-size:13px;color:var(--text-primary)"></div></div>
+</div>
+<div class="page-body">
+
+<!-- KPI -->
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-business-time"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#ff9500">7</div><div class="kpi-label">待审批申请</div><div class="kpi-trend" style="color:#ff9500">需及时处理</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-clock"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#40c4ff">286</div><div class="kpi-label">本月加班时数</div><div class="kpi-trend" style="color:#40c4ff">全员合计</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-user-clock"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#4cd964">38</div><div class="kpi-label">本月加班人次</div><div class="kpi-trend" style="color:#4cd964">人均7.5小时</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-yen-sign"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#7b61ff">12,460</div><div class="kpi-label">本月加班费(元)</div><div class="kpi-trend" style="color:#a0cfff">已审核通过</div></div>
+    </div>
+</div>
+
+<!-- 图表 -->
+<div class="chart-row chart-cols-2-1">
+    <div class="chart-box">
+        <div class="chart-box-title">📊 各部门加班时数统计（本月）</div>
+        <div id="chart-ot-dept" style="height:240px;"></div>
+    </div>
+    <div class="chart-box">
+        <div class="chart-box-title">🥧 加班类型分布</div>
+        <div id="chart-ot-type" style="height:240px;"></div>
+    </div>
+</div>
+
+<!-- 查询 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><div class="card-title-icon" style="background:rgba(255,149,0,0.2);color:#ff9500"><i class="fa fa-search"></i></div>加班查询</div>
+        <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+            <button class="btn btn-success" data-action="add"><i class="fa fa-plus"></i> 发起申请</button>
+            <button class="btn btn-default"><i class="fa fa-download"></i> 导出</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="form-row">
+            <div class="form-item"><div class="form-label">申请人</div><input class="form-control" placeholder="请输入申请人姓名..."></div>
+            <div class="form-item"><div class="form-label">部门</div>
+                <select class="form-control"><option>全部部门</option><option>监管部</option><option>运营部</option><option>技术部</option><option>行政部</option></select>
+            </div>
+            <div class="form-item"><div class="form-label">加班类型</div>
+                <select class="form-control"><option>全部类型</option><option>工作日加班</option><option>周末加班</option><option>节假日加班</option></select>
+            </div>
+            <div class="form-item"><div class="form-label">加班日期</div><input class="form-control" type="date"></div>
+            <div class="form-item"><div class="form-label">审批状态</div>
+                <select class="form-control"><option>全部状态</option><option>待审批</option><option>已批准</option><option>已拒绝</option></select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 列表 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><div class="card-title-icon" style="background:rgba(255,149,0,0.2);color:#ff9500">⏰</div>加班申请列表</div>
+        <span style="font-size:12px;color:var(--text-tertiary)">共 54 条</span>
+    </div>
+    <div class="card-body" style="padding:0">
+        <table class="data-table">
+            <thead><tr>
+                <th style="width:38px;text-align:center"><input type="checkbox" id="__cb_all" style="cursor:pointer"></th>
+                <th>申请编号</th><th>申请人</th><th>部门</th><th>加班类型</th><th>加班日期</th><th>开始时间</th><th>结束时间</th><th>时长(h)</th><th>加班原因</th><th>状态</th><th>操作</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>JB-20260316-001</td><td>张明</td><td>技术部</td><td>工作日加班</td><td>2026-03-16</td><td>18:00</td><td>21:00</td><td>3</td><td>平台紧急上线</td><td><span class="status-tag status-stopped">待审批</span></td><td><button class="btn btn-primary" style="padding:4px 10px;font-size:12px">审批</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>JB-20260315-003</td><td>李华</td><td>监管部</td><td>周末加班</td><td>2026-03-15</td><td>09:00</td><td>17:00</td><td>8</td><td>季度数据核查</td><td><span class="status-tag status-running">已批准</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>JB-20260314-002</td><td>王刚</td><td>运营部</td><td>工作日加班</td><td>2026-03-14</td><td>19:00</td><td>22:00</td><td>3</td><td>客户汇报材料</td><td><span class="status-tag status-running">已批准</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>JB-20260313-005</td><td>陈晓</td><td>行政部</td><td>工作日加班</td><td>2026-03-13</td><td>18:30</td><td>20:00</td><td>1.5</td><td>合同整理归档</td><td><span class="status-tag status-closed">已拒绝</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>JB-20260308-001</td><td>刘强</td><td>技术部</td><td>节假日加班</td><td>2026-03-08</td><td>09:00</td><td>17:00</td><td>8</td><td>系统安全升级</td><td><span class="status-tag status-running">已批准</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination"><span>共 54 条记录</span><div class="page-btns"></div></div>
+</div>
+
+</div>
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+    const c1 = echarts.init(document.getElementById('chart-ot-dept'));
+    c1.setOption({animation:true,tooltip:{trigger:'axis'},xAxis:{type:'value',axisLabel:{color:'#a0cfff',fontSize:10},splitLine:{lineStyle:{color:'rgba(43,104,224,0.2)'}}},yAxis:{type:'category',data:['行政部','运营部','监管部','技术部'],axisLabel:{color:'#a0cfff',fontSize:10}},grid:{left:55,right:30,top:10,bottom:25},series:[{type:'bar',data:[22,56,80,128],itemStyle:{color:p=>['#00c2b8','#ff9500','#7b61ff','#40c4ff'][p.dataIndex],borderRadius:[0,4,4,0]},label:{show:true,position:'right',color:'#a0cfff',fontSize:10,formatter:'{c}h'}}]});
+    const c2 = echarts.init(document.getElementById('chart-ot-type'));
+    c2.setOption({animation:true,tooltip:{trigger:'item'},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:10}},series:[{type:'pie',radius:['40%','65%'],data:[{value:168,name:'工作日加班'},{value:86,name:'周末加班'},{value:32,name:'节假日加班'}],itemStyle:{color:p=>['#40c4ff','#ff9500','#ff4d4f'][p.dataIndex]},label:{color:'#a0cfff',fontSize:10},animationType:'scale'}]});
+});
+</script>
+<script>
+// ===== ECharts 浅色主题动态适配 =====
+(function() {
+    function getChartThemeOpts(isLight) {
+        return {
+            axisLabelColor: isLight ? '#4a6880' : '#a0cfff',
+            splitLineColor: isLight ? 'rgba(100,150,220,0.15)' : 'rgba(43,104,224,0.2)',
+            legendColor:    isLight ? '#4a6880' : '#a0cfff',
+            tooltipBg:      isLight ? '#fff' : 'rgba(10,16,36,0.95)',
+            tooltipBorder:  isLight ? 'rgba(100,150,220,0.4)' : 'rgba(43,104,224,0.5)',
+            tooltipColor:   isLight ? '#1a2a4a' : '#e0f0ff',
+        };
+    }
+    function applyChartTheme(isLight) {
+        if (typeof echarts === 'undefined') return;
+        var opts = getChartThemeOpts(isLight);
+        document.querySelectorAll('[_echarts_instance_],[data-chart],div[id]').forEach(function(el) {
+            try {
+                var inst = echarts.getInstanceByDom(el);
+                if (!inst) return;
+                var option = inst.getOption();
+                var changed = false;
+                if (option.xAxis) option.xAxis.forEach(function(ax) {
+                    if (ax.axisLabel) { ax.axisLabel.color = opts.axisLabelColor; changed=true; }
+                    if (ax.axisLine && ax.axisLine.lineStyle) { ax.axisLine.lineStyle.color = opts.splitLineColor; changed=true; }
+                });
+                if (option.yAxis) option.yAxis.forEach(function(ax) {
+                    if (ax.axisLabel) { ax.axisLabel.color = opts.axisLabelColor; changed=true; }
+                    if (ax.splitLine && ax.splitLine.lineStyle) { ax.splitLine.lineStyle.color = opts.splitLineColor; changed=true; }
+                });
+                if (option.legend) option.legend.forEach(function(lg) {
+                    if (lg.textStyle) { lg.textStyle.color = opts.legendColor; changed=true; }
+                });
+                if (option.series) option.series.forEach(function(s) {
+                    if (s.label && s.label.color) { s.label.color = opts.axisLabelColor; changed=true; }
+                });
+                if (option.tooltip) option.tooltip.forEach(function(tp) {
+                    tp.backgroundColor = opts.tooltipBg;
+                    tp.borderColor = opts.tooltipBorder;
+                    if (tp.textStyle) tp.textStyle.color = opts.tooltipColor;
+                    changed=true;
+                });
+                if (changed) inst.setOption(option, false);
+            } catch(e) {}
+        });
+    }
+    window.addEventListener('load', function() {
+        var isLight = document.documentElement.classList.contains('light-theme');
+        if (isLight) setTimeout(function() { applyChartTheme(true); }, 300);
+    });
+    window._applyChartTheme = applyChartTheme;
+})();
+</script>
+<script>
+// ===== 初始化时同步菜单颜色 =====
+(function() {
+    var isLt = document.documentElement.classList.contains('light-theme');
+    function syncMenuColors(isLight) {
+        document.querySelectorAll('.menu-item').forEach(function(item) {
+            if (item.classList.contains('active')) {
+                item.style.color = isLight ? '#1677ff' : '#40c4ff';
+                item.style.background = isLight ? 'rgba(22,119,255,0.08)' : 'rgba(64,196,255,0.1)';
+            } else {
+                item.style.color = isLight ? '#4a6880' : '#a0cfff';
+                item.style.background = '';
+            }
+        });
+        var panel = document.getElementById('panelContent');
+        if (panel) panel.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+        var menuBox = document.getElementById('menuItems');
+        if (menuBox) menuBox.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+        var sideBar = menuBox ? menuBox.closest('[style*="border-radius:8px"]') : null;
+        if (sideBar) {
+            sideBar.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+            sideBar.style.borderColor = isLight ? 'rgba(100,150,220,0.35)' : 'rgba(43,104,224,0.4)';
+        }
+    }
+    if (isLt) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { syncMenuColors(true); });
+        } else { syncMenuColors(true); }
+    }
+    window._syncMenuColors = syncMenuColors;
+})();
+
+// ===== 深度内联样式主题同步 =====
+(function() {
+    var DARK_BG = ['linear-gradient(135deg,#101838','linear-gradient(135deg, #101838',
+        'linear-gradient(135deg,#0d1a3a','linear-gradient(135deg, #0d1a3a',
+        'rgba(10,20,50','rgba(10,16,36','rgba(16,24,56','#101838','#0a1024','#162969','#0d1b3e'];
+    var DARK_CLR = ['color:#a0cfff','color: #a0cfff','color:#40c4ff','color: #40c4ff','color:#80bfff','color: #80bfff'];
+    function applyInlineTheme(isLight) {
+        if (!isLight) return;
+        document.querySelectorAll('[style]').forEach(function(el) {
+            var s = el.getAttribute('style') || '';
+            if (el.closest('.page-header') || el.closest('.leaflet-container')) return;
+            var hasDarkBg  = DARK_BG.some(function(p){return s.includes(p);});
+            var hasDarkClr = DARK_CLR.some(function(p){return s.includes(p);});
+            if (hasDarkBg) {
+                if (s.includes('rgba(10,20,50')||s.includes('rgba(10,16,36')||s.includes('rgba(16,24,56')) {
+                    var tag = el.tagName.toLowerCase();
+                    if (tag==='input'||tag==='select'||tag==='textarea') {
+                        el.style.background='#fff'; el.style.color='#1a2a4a'; el.style.borderColor='rgba(100,150,220,0.5)';
+                    } else { el.style.background='rgba(255,255,255,0.85)'; }
+                } else if (s.includes('#101838')||s.includes('linear-gradient(135deg,#101838')||s.includes('linear-gradient(135deg, #101838')) {
+                    el.style.background='linear-gradient(135deg,#fff,#f5f8ff)';
+                    el.style.borderColor='rgba(100,150,220,0.35)';
+                } else if (s.includes('linear-gradient(135deg,#0d1a3a')||s.includes('linear-gradient(135deg, #0d1a3a')) {
+                    el.style.background='#f0f6ff';
+                }
+            }
+            if (hasDarkClr) {
+                if (s.includes('color:#a0cfff')||s.includes('color: #a0cfff')) el.style.color='#4a6880';
+                else if (s.includes('color:#40c4ff')||s.includes('color: #40c4ff')) el.style.color='#1677ff';
+                else if (s.includes('color:#80bfff')||s.includes('color: #80bfff')) el.style.color='#5a7a9a';
+            }
+        });
+        document.querySelectorAll('.notice-switch,.config-row,.param-row').forEach(function(el){
+            el.style.borderColor='rgba(100,150,220,0.2)';
+        });
+    }
+    window._applyInlineTheme = applyInlineTheme;
+    var isLt = document.documentElement.classList.contains('light-theme');
+    if (isLt) {
+        if (document.readyState==='loading') {
+            document.addEventListener('DOMContentLoaded', function(){applyInlineTheme(true);});
+        } else { setTimeout(function(){applyInlineTheme(true);},50); }
+    }
+})();
+</script>
+<script src="common.js?v=20260315"></script>
+</body>
+</html>

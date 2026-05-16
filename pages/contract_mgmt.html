@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>合同管理 - 青川县庄子上工业园区智慧园区平台</title>
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315">
+<script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+
+.monitor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+
+.progress-bar{background:rgba(43,104,224,0.2);border-radius:4px;height:8px;margin:6px 0;overflow:hidden;}
+.progress-fill{height:100%;border-radius:4px;transition:width 0.5s ease;}
+</style>
+
+</head>
+<body>
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div>
+<script>
+window.addEventListener('load',()=>{
+    const m=document.getElementById('loadingMask');
+    if(m){m.classList.add('hide');setTimeout(()=>m.style.display='none',500);}
+});
+</script><div class="loading-text">加载中...</div></div>
+<div class="toast-container" id="toastContainer"></div>
+<div class="page-header">
+  <div class="page-header-left">
+        <a href="../index.html" class="back-btn" title="返回工作台"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>基础支撑 / 合同管理</span></div>
+    </div>
+  <div class="page-header-right">
+        <div id="pageTime" style="font-size:13px;color:var(--text-primary)"></div>
+    </div>
+</div>
+<div class="page-body">
+
+  <div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-file-text"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#40c4ff">156</div>
+            <div class="kpi-label">合同总数</div>
+            <div class="kpi-trend" style="color:#40c4ff">↑ 本月新增 6 份</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-check-circle"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#4cd964">128</div>
+            <div class="kpi-label">生效中</div>
+            <div class="kpi-trend" style="color:#4cd964">占比 82%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-clock-o"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#ff9500">18</div>
+            <div class="kpi-label">即将到期</div>
+            <div class="kpi-trend" style="color:#ff9500">30天内到期</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,77,79,0.15);color:#ff4d4f"><i class="fa fa-times-circle"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#ff4d4f">10</div>
+            <div class="kpi-label">已到期</div>
+            <div class="kpi-trend" style="color:#ff4d4f">待续签</div>
+        </div>
+    </div>
+</div>
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">📑 合同列表</div>
+    <div class="card-toolbar">
+        <div class="toolbar-filters">
+            <input class="form-control" type="text" placeholder="搜索合同编号/名称/甲乙方">
+            <input class="form-control" type="date" placeholder="开始日期">
+            <select class="form-control"><option value="">全部类型</option><option>运输合同</option><option>采购合同</option><option>销售合同</option><option>服务合同</option></select>
+            <select class="form-control"><option value="">全部状态</option><option>生效中</option><option>即将到期</option><option>已到期</option><option>已终止</option></select>
+        </div>
+        <div class="toolbar-actions">
+            <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+            <button class="btn btn-reset btn-default ">重置</button>
+            <button class="btn btn-primary" data-action="add">+ 新增合同</button>
+            <button class="btn btn-default" data-action="export">导出</button>
+        </div>
+    </div>
+</div>
+<div class="card-body">
+    <table class="data-table"><thead><tr><th style="width:38px;text-align:center"><input type="checkbox" id="__cb_all" style="cursor:pointer" title="全选/反选"></th><th>合同编号</th><th>合同名称</th><th>类型</th><th>甲方</th><th>乙方</th><th>签订日期</th><th>到期日期</th><th>金额(万元)</th><th>状态</th><th>操作</th></tr></thead>
+    <tbody>
+      <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>CT2026001</td><td>砂石运输框架合同</td><td>运输合同</td><td>广州砂石公司</td><td>佛山运输公司</td><td>2026-01-01</td><td>2026-12-31</td><td>500</td><td><span class="status-tag status-running">生效中</span></td><td><button class="btn btn-default">查看</button> <button class="btn btn-primary" data-action="edit">编辑</button></td></tr>
+      <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>CT2026002</td><td>碎石采购合同</td><td>采购合同</td><td>东莞建设公司</td><td>清远矿业公司</td><td>2025-12-01</td><td>2026-04-01</td><td>180</td><td><span class="status-tag status-stopped">即将到期</span></td><td><button class="btn btn-primary" data-action="edit">续签</button></td></tr>
+      <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>CT2025108</td><td>年度砂石销售合同</td><td>销售合同</td><td>广州砂石公司</td><td>中山建设集团</td><td>2025-01-01</td><td>2025-12-31</td><td>1,200</td><td><span class="status-tag status-closed">已到期</span></td><td><button class="btn btn-default" data-action="export">归档</button></td></tr>
+      <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>CT2026003</td><td>平台服务合同</td><td>服务合同</td><td>广东省砂管办</td><td>科技有限公司</td><td>2026-03-01</td><td>2027-03-01</td><td>80</td><td><span class="status-tag status-running">生效中</span></td><td><button class="btn btn-default">查看</button></td></tr>
+    </tbody></table>
+    <div class="pagination" style="margin-top:12px"><span>共 16 页</span><div class="page-btns"></div></div>
+  </div>
+</div>
+</div>
+<script>
+
+document.addEventListener('click',function(e){
+  const btn=e.target.closest('[data-action]');
+  if(!btn)return;
+  const msgs={add:'新增成功！',edit:'修改已保存！',delete:'已删除！',save:'保存成功！',submit:'提交成功！',approve:'审批通过！',reject:'已驳回！',export:'导出成功！',import:'导入完成！',reset:'已重置！',send:'发送成功！',handle:'处置完成！',assign:'分配成功！',close:'已关闭！',open:'已开启！',download:'下载成功！',upload:'上传成功！',bind:'绑定成功！',unbind:'解绑成功！',check:'核查完成！',revoke:'已撤销！',confirm:'确认成功！',cancel:'已取消！',generate:'生成成功！',restart:'重启成功！',deploy:'部署成功！',backup:'备份成功！'};
+  showToast(msgs[btn.dataset.action]||'操作成功！','success');
+});
+document.querySelectorAll('.search-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const bar=btn.closest('.filter-bar')||btn.closest('.card');
+    const inputs=bar?bar.querySelectorAll('input,select'):[];
+    const keywords=Array.from(inputs).map(i=>i.value.trim().toLowerCase()).filter(Boolean);
+    const rows=document.querySelectorAll('tbody tr');
+    rows.forEach(row=>{
+      const show=keywords.length===0||keywords.every(k=>row.textContent.toLowerCase().includes(k));
+      row.style.display=show?'':'none';
+    });
+    showToast('筛选完成！','success');
+  });
+});
+document.querySelectorAll('.reset-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const bar=btn.closest('.filter-bar')||btn.closest('.card');
+    if(bar)bar.querySelectorAll('input,select').forEach(i=>i.value='');
+    document.querySelectorAll('tbody tr').forEach(r=>r.style.display='');
+    showToast('已重置！','success');
+  });
+});
+
+</script>
+<script>
+// ===== 主题切换 =====
+function applyThemeToMenus(isLight) {
+    const menu = document.getElementById('toolsMenu');
+    if (menu) {
+        if (isLight) {
+            menu.style.background = 'linear-gradient(135deg,#fff,#f0f6ff)';
+            menu.style.borderColor = 'rgba(100,150,220,0.4)';
+            menu.style.boxShadow = '0 8px 30px rgba(100,150,220,0.25)';
+        } else {
+            menu.style.background = 'linear-gradient(135deg,#101838,#162969)';
+            menu.style.borderColor = 'rgba(43,104,224,0.5)';
+            menu.style.boxShadow = '0 8px 30px rgba(0,0,0,0.5)';
+        }
+        const firstDiv = menu.querySelector('div:first-child');
+        if (firstDiv) firstDiv.style.color = isLight ? '#4a6880' : '#a0cfff';
+    }
+}
+// 初始化主题
+(function(){
+    const isLight = localStorage.getItem('ss_theme') === 'light';
+    if (isLight) {
+        document.documentElement.classList.add('light-theme');
+            }
+    window.addEventListener('DOMContentLoaded', function() {
+        const isLt = document.documentElement.classList.contains('light-theme');
+                applyThemeToMenus(isLt);
+    });
+})();
+
+// ===== 工具菜单 =====
+window.toggleToolsMenu = function() {
+    const menu = document.getElementById('toolsMenu');
+    if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+};
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('toolsMenu');
+    const btn = document.getElementById('toolsMenuBtn');
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.style.display = 'none';
+    }
+});
+// 清除样本数据
+window.clearSampleData = function() {
+    const menu = document.getElementById('toolsMenu');
+    if (menu) menu.style.display = 'none';
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('ss_') && k !== 'ss_theme');
+    keys.forEach(k => localStorage.removeItem(k));
+    showToast && showToast('🗑️ 已清除 ' + keys.length + ' 条本地样本数据', 'warning');
+};
+// 生成样本数据
+window.generateSampleData = function() {
+    const menu = document.getElementById('toolsMenu');
+    if (menu) menu.style.display = 'none';
+    localStorage.setItem('ss_stats', JSON.stringify({todayTrips:178,todayStorage:3847,todayAlerts:17,activeVehicles:312,monthRevenue:533,activeMines:5}));
+    localStorage.setItem('ss_generated_at', new Date().toISOString());
+    showToast && showToast('✅ 样本数据已生成！', 'success');
+};
+// 清除浏览器缓存
+window.clearCacheNow = async function() {
+    const menu = document.getElementById('toolsMenu');
+    if (menu) menu.style.display = 'none';
+    const results = [];
+    const preserve = {};
+    ['logged_in','ss_theme'].forEach(k => { const v = localStorage.getItem(k); if(v) preserve[k]=v; });
+    const lsCount = localStorage.length;
+    localStorage.clear();
+    Object.entries(preserve).forEach(([k,v]) => localStorage.setItem(k,v));
+    results.push('localStorage清除' + (lsCount - Object.keys(preserve).length) + '项');
+    const ssCount = sessionStorage.length;
+    sessionStorage.clear();
+    sessionStorage.setItem('logged_in','1');
+    results.push('sessionStorage清除' + ssCount + '项');
+    if ('caches' in window) {
+        try { const ns = await caches.keys(); for(const n of ns) await caches.delete(n); results.push('Cache API清除' + ns.length + '个'); } catch(e){}
+    }
+    if ('serviceWorker' in navigator) {
+        try { const rs = await navigator.serviceWorker.getRegistrations(); for(const r of rs) await r.unregister(); if(rs.length) results.push('SW注销' + rs.length + '个'); } catch(e){}
+    }
+    showToast && showToast('✅ 缓存清除完成！' + results.join(' | '), 'success', 5000);
+};
+</script>
+<script>
+// ===== 通用分页逻辑 =====
+(function() {
+    var PAGE_SIZE = 10;
+    // 初始化所有分页组件
+    function initPaginations() {
+        // 找到所有含有data-table的card-body + pagination对
+        document.querySelectorAll('.card').forEach(function(card) {
+            var table = card.querySelector('.data-table tbody');
+            var pagination = card.querySelector('.pagination');
+            if (!table || !pagination) return;
+            var rows = Array.from(table.querySelectorAll('tr'));
+            if (rows.length === 0) return;
+            // 读取原始total数字
+            var infoSpan = pagination.querySelector('span:first-child');
+            var totalText = infoSpan ? infoSpan.textContent : '';
+            var totalMatch = totalText.match(/\d[\d,]*/);
+            var totalRecords = totalMatch ? parseInt(totalMatch[0].replace(/,/g,'')) : rows.length;
+            // 如果总数<=当前行数，用当前行数模拟分页（假设每页pageSize条）
+            var actualRows = rows.length;
+            var totalPages = Math.max(1, Math.ceil(totalRecords / PAGE_SIZE));
+            var currentPage = 1;
+
+            // 存储原始rows（只管当前显示的几行，模拟翻页时轮换显示）
+            function renderPage(page) {
+                currentPage = page;
+                // 对于已有的行，用循环偏移模拟翻页效果
+                rows.forEach(function(row, i) {
+                    // 计算当前页应该显示哪些行（循环复用）
+                    var startIdx = ((page - 1) * PAGE_SIZE) % actualRows;
+                    var localIdx = (startIdx + i) % actualRows;
+                    // 把row内容从源行复制（仅显示/隐藏实现）
+                    // 简单方案：前PAGE_SIZE行显示，其余隐藏（因演示数据少）
+                    row.style.display = i < Math.min(PAGE_SIZE, actualRows) ? '' : 'none';
+                });
+                // 更新info文字
+                if (infoSpan) {
+                    var start = (page-1)*PAGE_SIZE+1;
+                    var end = Math.min(page*PAGE_SIZE, totalRecords);
+                    infoSpan.textContent = '共 ' + totalRecords.toLocaleString() + ' 条  第' + start + '-' + end + '条';
+                }
+                // 更新page-btn状态
+                updateBtns(page, totalPages, pagination);
+            }
+
+            function updateBtns(page, total, pagi) {
+                var btnsDiv = pagi.querySelector('.page-btns');
+                if (!btnsDiv) return;
+                btnsDiv.innerHTML = '';
+                // 上一页
+                var prev = document.createElement('div');
+                prev.className = 'page-btn' + (page <= 1 ? ' disabled' : '');
+                prev.textContent = '«';
+                prev.style.cursor = page <= 1 ? 'default' : 'pointer';
+                prev.style.opacity = page <= 1 ? '0.4' : '1';
+                if (page > 1) prev.onclick = function() { renderPage(page-1); };
+                btnsDiv.appendChild(prev);
+                // 页码按钮（最多显示5个）
+                var startP = Math.max(1, page-2);
+                var endP = Math.min(total, startP+4);
+                if (endP - startP < 4) startP = Math.max(1, endP-4);
+                for (var p = startP; p <= endP; p++) {
+                    (function(pp) {
+                        var btn = document.createElement('div');
+                        btn.className = 'page-btn' + (pp === page ? ' active' : '');
+                        btn.textContent = pp;
+                        btn.onclick = function() { renderPage(pp); };
+                        btnsDiv.appendChild(btn);
+                    })(p);
+                }
+                // 下一页
+                var next = document.createElement('div');
+                next.className = 'page-btn' + (page >= total ? ' disabled' : '');
+                next.textContent = '»';
+                next.style.cursor = page >= total ? 'default' : 'pointer';
+                next.style.opacity = page >= total ? '0.4' : '1';
+                if (page < total) next.onclick = function() { renderPage(page+1); };
+                btnsDiv.appendChild(next);
+            }
+
+            renderPage(1);
+        });
+    }
+    window.addEventListener('DOMContentLoaded', initPaginations);
+    // 搜索/查询按钮点击后重新初始化分页
+    window._reinitPagination = initPaginations;
+})();
+</script>
+<script>
+// ===== 通用弹窗 & 功能按钮 =====
+(function() {
+    // 通用确认弹窗
+    function createConfirmModal(title, content, onConfirm) {
+        var old = document.getElementById('__globalModal');
+        if (old) old.remove();
+        var overlay = document.createElement('div');
+        overlay.id = '__globalModal';
+        overlay.className = 'modal-overlay show';
+        var isLight = document.documentElement.classList.contains('light-theme');
+        overlay.innerHTML = '<div class="modal" id="__globalModalBox" style="width:420px">' +
+            '<div class="modal-header"><span class="modal-title">' + title + '</span>' +
+            '<div class="modal-close" onclick="document.getElementById(&apos;__globalModal&apos;).remove()">×</div></div>' +
+            '<div class="modal-body" style="padding:20px 24px;font-size:14px;line-height:1.7">' + content + '</div>' +
+            '<div class="modal-footer">' +
+            '<button class="btn btn-default" onclick="document.getElementById(&apos;__globalModal&apos;).remove()">取消</button>' +
+            '<button class="btn btn-primary" id="__confirmBtn">确认</button>' +
+            '</div></div>';
+        document.body.appendChild(overlay);
+        document.getElementById('__confirmBtn').onclick = function() {
+            document.getElementById('__globalModal').remove();
+            if (onConfirm) onConfirm();
+        };
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    }
+
+    // 通用表单弹窗
+    function createFormModal(title, fields, onSave) {
+        var old = document.getElementById('__globalModal');
+        if (old) old.remove();
+        var fieldsHtml = fields.map(function(f) {
+            if (f.type === 'select') {
+                return '<div class="form-item" style="min-width:180px">' +
+                    '<div class="form-label">' + f.label + '</div>' +
+                    '<select class="form-control" data-field="' + f.name + '">' +
+                    f.options.map(function(o) { return '<option>' + o + '</option>'; }).join('') +
+                    '</select></div>';
+            } else if (f.type === 'textarea') {
+                return '<div class="form-item" style="min-width:100%">' +
+                    '<div class="form-label">' + f.label + '</div>' +
+                    '<textarea class="form-control" data-field="' + f.name + '" rows="3" style="resize:vertical">' + (f.value||'') + '</textarea></div>';
+            } else {
+                return '<div class="form-item" style="min-width:180px">' +
+                    '<div class="form-label">' + f.label + '</div>' +
+                    '<input class="form-control" type="' + (f.type||'text') + '" data-field="' + f.name + '" placeholder="' + (f.placeholder||'请输入') + '" value="' + (f.value||'') + '"></div>';
+            }
+        }).join('');
+        var overlay = document.createElement('div');
+        overlay.id = '__globalModal';
+        overlay.className = 'modal-overlay show';
+        overlay.innerHTML = '<div class="modal" style="width:560px;max-width:95vw">' +
+            '<div class="modal-header"><span class="modal-title">' + title + '</span>' +
+            '<div class="modal-close" onclick="document.getElementById(&apos;__globalModal&apos;).remove()">×</div></div>' +
+            '<div class="modal-body"><div class="form-row" style="flex-wrap:wrap">' + fieldsHtml + '</div></div>' +
+            '<div class="modal-footer">' +
+            '<button class="btn btn-default" onclick="document.getElementById(&apos;__globalModal&apos;).remove()">取消</button>' +
+            '<button class="btn btn-primary" id="__saveBtn">保存</button>' +
+            '</div></div>';
+        document.body.appendChild(overlay);
+        document.getElementById('__saveBtn').onclick = function() {
+            var data = {};
+            overlay.querySelectorAll('[data-field]').forEach(function(el) {
+                data[el.dataset.field] = el.value;
+            });
+            document.getElementById('__globalModal').remove();
+            if (onSave) onSave(data);
+        };
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    }
+
+    // 通用详情弹窗
+    function createDetailModal(title, rows) {
+        var old = document.getElementById('__globalModal');
+        if (old) old.remove();
+        var rowsHtml = rows.map(function(r) {
+            return '<div class="detail-row" style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--split-color)">' +
+                '<span style="min-width:110px;font-size:12px;color:var(--text-tertiary)">' + r[0] + '</span>' +
+                '<span style="font-size:13px;color:var(--text-primary);flex:1">' + r[1] + '</span></div>';
+        }).join('');
+        var overlay = document.createElement('div');
+        overlay.id = '__globalModal';
+        overlay.className = 'modal-overlay show';
+        overlay.innerHTML = '<div class="modal" style="width:520px;max-width:95vw">' +
+            '<div class="modal-header"><span class="modal-title">' + title + '</span>' +
+            '<div class="modal-close" onclick="document.getElementById(&apos;__globalModal&apos;).remove()">×</div></div>' +
+            '<div class="modal-body">' + rowsHtml + '</div>' +
+            '<div class="modal-footer">' +
+            '<button class="btn btn-primary" onclick="document.getElementById(&apos;__globalModal&apos;).remove()">关闭</button>' +
+            '</div></div>';
+        document.body.appendChild(overlay);
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    }
+
+    // 导出功能
+    function exportCSV(tableSel, filename) {
+        var table = document.querySelector(tableSel || '.data-table');
+        if (!table) { showToast && showToast('没有可导出的数据', 'warning'); return; }
+        var rows = [];
+        table.querySelectorAll('tr').forEach(function(tr) {
+            var cells = [];
+            tr.querySelectorAll('th,td').forEach(function(cell) {
+                cells.push('"' + cell.textContent.trim().replace(/"/g,'""') + '"');
+            });
+            if (cells.length) rows.push(cells.join(','));
+        });
+        var csv = '\uFEFF' + rows.join('\n');
+        var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (filename || 'export') + '_' + new Date().toLocaleDateString('zh-CN').replace(/\//g,'-') + '.csv';
+        a.click();
+        showToast && showToast('✅ 已导出 ' + (rows.length-1) + ' 条数据', 'success');
+    }
+
+    // 暴露全局
+    window._modal = { confirm: createConfirmModal, form: createFormModal, detail: createDetailModal };
+    window._exportCSV = exportCSV;
+
+    // 绑定所有"导出"按钮的点击事件
+    window.addEventListener('DOMContentLoaded', function() {
+        // 为导出按钮绑定真实导出
+        document.querySelectorAll('.btn').forEach(function(btn) {
+            var txt = btn.textContent.trim();
+            if ((txt.includes('导出') || txt.includes('下载')) && !btn.dataset.bound) {
+                btn.dataset.bound = '1';
+                var origClick = btn.onclick;
+                btn.onclick = function(e) {
+                    exportCSV('.data-table', document.title.replace(/[- ·].*/,'').trim());
+                };
+            }
+        });
+
+        // 为"新增"按钮绑定弹窗（从表头自动识别字段）
+        document.querySelectorAll('.btn').forEach(function(btn) {
+            var txt = btn.textContent.trim();
+            if ((txt.includes('新增') || txt.includes('添加') || txt.includes('登记')) && !btn.dataset.bound) {
+                btn.dataset.bound = '1';
+                btn.onclick = function() {
+                    var table = document.querySelector('.data-table');
+                    var fields = [];
+                    if (table) {
+                        var ths = table.querySelectorAll('thead th');
+                        ths.forEach(function(th, i) {
+                            var label = th.textContent.trim();
+                            if (!label || label === '操作' || label === '序号' || label === '' || i > 8) return;
+                            fields.push({name: 'f'+i, label: label, placeholder: '请输入'+label});
+                        });
+                    }
+                    if (fields.length === 0) fields = [{name:'name',label:'名称',placeholder:'请输入名称'}];
+                    createFormModal(txt.replace(/\s/g,''), fields, function(data) {
+                        showToast && showToast('✅ ' + txt.replace(/\s/g,'') + '成功', 'success');
+                    });
+                };
+            }
+        });
+
+        // 为"查询/搜索"按钮绑定真实过滤
+        document.querySelectorAll('.btn').forEach(function(btn) {
+            var txt = btn.textContent.trim();
+            if ((txt === '查询' || txt === '搜索') && !btn.dataset.bound) {
+                btn.dataset.bound = '1';
+                btn.onclick = function() {
+                    var card = btn.closest('.card');
+                    var inputs = card ? card.querySelectorAll('input.form-control, select.form-control') : [];
+                    var filters = [];
+                    inputs.forEach(function(inp) {
+                        var v = inp.value.trim();
+                        if (v && v !== '全部' && v !== '全部类型' && v !== '全部状态' && v !== '全部等级' && v !== '全部乡镇') {
+                            filters.push(v.toLowerCase());
+                        }
+                    });
+                    var table = document.querySelector('.data-table tbody');
+                    if (!table) { showToast && showToast('查询完成', 'success'); return; }
+                    var rows = table.querySelectorAll('tr');
+                    var shown = 0;
+                    rows.forEach(function(row) {
+                        var text = row.textContent.toLowerCase();
+                        var match = filters.length === 0 || filters.every(function(f) { return text.includes(f); });
+                        row.style.display = match ? '' : 'none';
+                        if (match) shown++;
+                    });
+                    showToast && showToast('✅ 查询到 ' + shown + ' 条记录', 'success');
+                };
+            }
+        });
+
+        // 为"重置"按钮绑定
+        document.querySelectorAll('.btn').forEach(function(btn) {
+            var txt = btn.textContent.trim();
+            if ((txt === '重置' || txt === '清除') && !btn.dataset.bound) {
+                btn.dataset.bound = '1';
+                btn.onclick = function() {
+                    var card = btn.closest('.card');
+                    if (card) {
+                        card.querySelectorAll('input.form-control').forEach(function(i) { i.value = ''; });
+                        card.querySelectorAll('select.form-control').forEach(function(s) { s.selectedIndex = 0; });
+                    }
+                    var table = document.querySelector('.data-table tbody');
+                    if (table) table.querySelectorAll('tr').forEach(function(r) { r.style.display=''; });
+                    showToast && showToast('已重置查询条件', 'info');
+                };
+            }
+        });
+
+        // 为表格内"详情"按钮绑定
+        document.querySelectorAll('.data-table tbody tr').forEach(function(row) {
+            row.querySelectorAll('.btn').forEach(function(btn) {
+                var txt = btn.textContent.trim();
+                if ((txt === '详情' || txt === '查看' || txt === '档案') && !btn.dataset.bound) {
+                    btn.dataset.bound = '1';
+                    btn.onclick = function() {
+                        var cells = row.querySelectorAll('td');
+                        var table = btn.closest('table');
+                        var headers = table ? Array.from(table.querySelectorAll('thead th')).map(function(t){return t.textContent.trim();}) : [];
+                        var details = [];
+                        cells.forEach(function(cell, i) {
+                            var header = headers[i] || ('字段'+(i+1));
+                            if (header !== '操作' && header !== '') {
+                                details.push([header, cell.textContent.trim()]);
+                            }
+                        });
+                        createDetailModal('记录详情', details);
+                    };
+                }
+                // 删除按钮
+                if ((txt === '删除' || txt === '移除') && !btn.dataset.bound) {
+                    btn.dataset.bound = '1';
+                    btn.onclick = function() {
+                        createConfirmModal('⚠️ 确认删除', '确认要删除该条记录吗？此操作不可恢复。', function() {
+                            row.style.opacity = '0';
+                            row.style.transition = 'opacity 0.4s';
+                            setTimeout(function() { row.remove(); }, 400);
+                            showToast && showToast('✅ 已删除', 'success');
+                        });
+                    };
+                }
+                // 编辑按钮
+                if ((txt === '编辑' || txt === '修改') && !btn.dataset.bound) {
+                    btn.dataset.bound = '1';
+                    btn.onclick = function() {
+                        var cells = row.querySelectorAll('td');
+                        var table = btn.closest('table');
+                        var headers = table ? Array.from(table.querySelectorAll('thead th')).map(function(t){return t.textContent.trim();}) : [];
+                        var fields = [];
+                        cells.forEach(function(cell, i) {
+                            var header = headers[i] || ('字段'+(i+1));
+                            if (header !== '操作' && header !== '' && header !== '状态') {
+                                fields.push({name:'f'+i, label:header, value:cell.textContent.trim()});
+                            }
+                        });
+                        createFormModal('编辑记录', fields, function(data) {
+                            showToast && showToast('✅ 保存成功', 'success');
+                        });
+                    };
+                }
+            });
+        });
+    });
+})();
+</script>
+<script>
+// ===== ECharts 浅色主题动态适配 =====
+(function() {
+    function getChartThemeOpts(isLight) {
+        return {
+            axisLabelColor: isLight ? '#4a6880' : '#a0cfff',
+            splitLineColor: isLight ? 'rgba(100,150,220,0.15)' : 'rgba(43,104,224,0.2)',
+            legendColor: isLight ? '#4a6880' : '#a0cfff',
+            tooltipBg: isLight ? '#fff' : 'rgba(10,16,36,0.95)',
+            tooltipBorder: isLight ? 'rgba(100,150,220,0.4)' : 'rgba(43,104,224,0.5)',
+            tooltipColor: isLight ? '#1a2a4a' : '#e0f0ff',
+        };
+    }
+    function applyChartTheme(isLight) {
+        if (typeof echarts === 'undefined') return;
+        var opts = getChartThemeOpts(isLight);
+        // 遍历页面所有ECharts实例
+        document.querySelectorAll('[_echarts_instance_], [data-chart]').forEach(function(el) {
+            try {
+                var inst = echarts.getInstanceByDom(el);
+                if (!inst) return;
+                var option = inst.getOption();
+                // 更新xAxis
+                if (option.xAxis) option.xAxis.forEach(function(ax) {
+                    if (ax.axisLabel) ax.axisLabel.color = opts.axisLabelColor;
+                    if (ax.axisLine && ax.axisLine.lineStyle) ax.axisLine.lineStyle.color = opts.splitLineColor;
+                });
+                // 更新yAxis
+                if (option.yAxis) option.yAxis.forEach(function(ax) {
+                    if (ax.axisLabel) ax.axisLabel.color = opts.axisLabelColor;
+                    if (ax.splitLine && ax.splitLine.lineStyle) ax.splitLine.lineStyle.color = opts.splitLineColor;
+                });
+                // 更新legend
+                if (option.legend) option.legend.forEach(function(lg) {
+                    if (lg.textStyle) lg.textStyle.color = opts.legendColor;
+                });
+                // 更新series label
+                if (option.series) option.series.forEach(function(s) {
+                    if (s.label && s.label.color) s.label.color = opts.axisLabelColor;
+                });
+                // 更新tooltip
+                if (option.tooltip) option.tooltip.forEach(function(tp) {
+                    tp.backgroundColor = opts.tooltipBg;
+                    tp.borderColor = opts.tooltipBorder;
+                    if (tp.textStyle) tp.textStyle.color = opts.tooltipColor;
+                });
+                inst.setOption(option, false);
+            } catch(e) {}
+        });
+        // 同时尝试通过echarts.getInstanceByDom对所有div[id]查找
+        document.querySelectorAll('div[id]').forEach(function(el) {
+            try {
+                var inst = echarts.getInstanceByDom(el);
+                if (!inst) return;
+                var option = inst.getOption();
+                var changed = false;
+                if (option.xAxis) { option.xAxis.forEach(function(ax) {
+                    if (ax.axisLabel) { ax.axisLabel.color = opts.axisLabelColor; changed = true; }
+                    if (ax.axisLine && ax.axisLine.lineStyle) { ax.axisLine.lineStyle.color = opts.splitLineColor; changed = true; }
+                }); }
+                if (option.yAxis) { option.yAxis.forEach(function(ax) {
+                    if (ax.axisLabel) { ax.axisLabel.color = opts.axisLabelColor; changed = true; }
+                    if (ax.splitLine && ax.splitLine.lineStyle) { ax.splitLine.lineStyle.color = opts.splitLineColor; changed = true; }
+                }); }
+                if (option.legend) { option.legend.forEach(function(lg) {
+                    if (lg.textStyle) { lg.textStyle.color = opts.legendColor; changed = true; }
+                }); }
+                if (option.series) { option.series.forEach(function(s) {
+                    if (s.label && s.label.color) { s.label.color = opts.axisLabelColor; changed = true; }
+                }); }
+                if (changed) inst.setOption(option, false);
+            } catch(e) {}
+        });
+    }
+    // 初始化时应用
+    window.addEventListener('load', function() {
+        var isLight = document.documentElement.classList.contains('light-theme');
+        if (isLight) setTimeout(function() { applyChartTheme(true); }, 300);
+    });
+    // 监听主题切换
+    var origToggle = window.toggleTheme;
+        window._applyChartTheme = applyChartTheme;
+})();
+</script>
+<script>
+// ===== 初始化时同步菜单颜色 =====
+(function() {
+    var isLt = document.documentElement.classList.contains('light-theme');
+    function syncMenuColors(isLight) {
+        document.querySelectorAll('.menu-item').forEach(function(item) {
+            if (item.classList.contains('active')) {
+                item.style.color = isLight ? '#1677ff' : '#40c4ff';
+                item.style.background = isLight ? 'rgba(22,119,255,0.08)' : 'rgba(64,196,255,0.1)';
+            } else {
+                item.style.color = isLight ? '#4a6880' : '#a0cfff';
+                item.style.background = '';
+            }
+        });
+        var panel = document.getElementById('panelContent');
+        if (panel) panel.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+        var menuBox = document.getElementById('menuItems');
+        if (menuBox) menuBox.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+        // 侧边菜单的父容器
+        var sideBar = menuBox ? menuBox.closest('[style*="border-radius:8px"]') : null;
+        if (sideBar) {
+            sideBar.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+            sideBar.style.borderColor = isLight ? 'rgba(100,150,220,0.35)' : 'rgba(43,104,224,0.4)';
+        }
+    }
+    if (isLt) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { syncMenuColors(true); });
+        } else {
+            syncMenuColors(true);
+        }
+    }
+    window._syncMenuColors = syncMenuColors;
+})();
+
+
+// ===== 深度内联样式主题同步 =====
+(function() {
+    var DARK_BG_PATTERNS = [
+        'linear-gradient(135deg,#101838', 'linear-gradient(135deg, #101838',
+        'linear-gradient(135deg,#0d1a3a', 'linear-gradient(135deg, #0d1a3a',
+        'rgba(10,20,50', 'rgba(10,16,36', 'rgba(16,24,56',
+        '#101838', '#0a1024', '#162969', '#0d1b3e'
+    ];
+    var DARK_COLOR_PATTERNS = [
+        'color:#a0cfff', 'color: #a0cfff',
+        'color:#40c4ff', 'color: #40c4ff',
+        'color:#80bfff', 'color: #80bfff'
+    ];
+    
+    function applyInlineTheme(isLight) {
+        if (!isLight) return; // 深色不需要额外处理，CSS变量已处理
+        
+        // 处理有内联背景的容器元素（非header, 非page-body已处理的）
+        document.querySelectorAll('[style]').forEach(function(el) {
+            var s = el.getAttribute('style') || '';
+            var tag = el.tagName.toLowerCase();
+            var cls = el.className || '';
+            
+            // 跳过已有class处理的元素
+            if (el.closest('.page-header') || el.closest('.leaflet-container')) return;
+            
+            var hasDarkBg = DARK_BG_PATTERNS.some(function(p) { return s.includes(p); });
+            var hasDarkColor = DARK_COLOR_PATTERNS.some(function(p) { return s.includes(p); });
+            
+            if (hasDarkBg) {
+                if (s.includes('rgba(10,20,50') || s.includes('rgba(10,16,36') || s.includes('rgba(16,24,56')) {
+                    if (tag === 'input' || tag === 'select' || tag === 'textarea') {
+                        el.style.background = '#fff';
+                        el.style.color = '#1a2a4a';
+                        el.style.borderColor = 'rgba(100,150,220,0.5)';
+                    } else {
+                        el.style.background = 'rgba(255,255,255,0.85)';
+                    }
+                } else if (s.includes('#101838') || s.includes('linear-gradient(135deg,#101838') || s.includes('linear-gradient(135deg, #101838')) {
+                    el.style.background = 'linear-gradient(135deg,#fff,#f5f8ff)';
+                    el.style.borderColor = 'rgba(100,150,220,0.35)';
+                } else if (s.includes('linear-gradient(135deg,#0d1a3a') || s.includes('linear-gradient(135deg, #0d1a3a')) {
+                    el.style.background = '#f0f6ff';
+                }
+            }
+            
+            if (hasDarkColor) {
+                if (s.includes('color:#a0cfff') || s.includes('color: #a0cfff')) {
+                    el.style.color = '#4a6880';
+                } else if (s.includes('color:#40c4ff') || s.includes('color: #40c4ff')) {
+                    el.style.color = '#1677ff';
+                } else if (s.includes('color:#80bfff') || s.includes('color: #80bfff')) {
+                    el.style.color = '#5a7a9a';
+                }
+            }
+            
+            // label颜色
+            if (tag === 'label' && hasDarkColor) {
+                el.style.color = '#4a6880';
+            }
+        });
+        
+        // 处理通知配置等有特殊结构的页面
+        document.querySelectorAll('.notice-switch, .config-row, .param-row').forEach(function(el) {
+            el.style.borderColor = 'rgba(100,150,220,0.2)';
+        });
+        
+        // 处理视频监控卡片
+        document.querySelectorAll('.video-box, .cam-box, .stream-box').forEach(function(el) {
+            el.style.background = '#1a1a2e';
+        });
+    }
+    
+    window._applyInlineTheme = applyInlineTheme;
+    
+    // 页面加载时执行
+    var isLt = document.documentElement.classList.contains('light-theme');
+    if (isLt) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { applyInlineTheme(true); });
+        } else {
+            setTimeout(function() { applyInlineTheme(true); }, 50);
+        }
+    }
+})();
+
+</script>
+<script src="common.js"></script>
+</body>
+</html>

@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>围栏数据管理 - 数据接入</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <script src="common.js?v=20260315"></script>
+    <style>
+        :root {
+            --primary-color: #40c4ff;
+            --secondary-color-1: #2b68e0;
+            --secondary-color-2: #7b61ff;
+            --secondary-color-3: #00c2b8;
+            --warning-color: #ff9500;
+            --danger-color: #ff4d4f;
+            --success-color: #4cd964;
+            --bg-primary: #0a1024;
+            --bg-card: linear-gradient(135deg, #101838, #162969);
+            --text-primary: #fff;
+            --text-secondary: #a0cfff;
+            --text-tertiary: #80bfff;
+            --border-color: #2b68e0;
+            --split-color: rgba(50,100,204,0.2);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color-1));
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(64,196,255,0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(64,196,255,0.4);
+        }
+        .btn-secondary {
+            background: rgba(10,16,36,0.8);
+            border: 1px solid rgba(43,104,224,0.4);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover {
+            background: rgba(43,104,224,0.15);
+            border-color: var(--primary-color);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4d4f, #ff7875);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(255,77,79,0.3);
+        }
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255,77,79,0.4);
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: "Microsoft Yahei","微软雅黑",sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 主体布局 */
+        .page-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 320px 1fr 380px;
+            gap: 16px;
+            padding: 16px 24px 24px;
+            overflow: hidden;
+        }
+
+        /* 左侧侧边栏 */
+        .sidebar {
+            background: linear-gradient(135deg, #101838, #162969);
+            border: 1px solid rgba(43,104,224,0.4);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* 统计卡片 - 放在顶部 */
+        .stats-container {
+            flex-shrink: 0;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--split-color);
+            background: rgba(43,104,224,0.05);
+        }
+        .stats-grid {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 8px;
+            width: 100%;
+            min-width: 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(10,16,36,0.9), rgba(16,41,105,0.9));
+            border-radius: 6px;
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid rgba(43,104,224,0.3);
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 2px;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-tertiary);
+        }
+
+        /* 搜索筛选区域 */
+        .search-section {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--split-color);
+            background: rgba(43,104,224,0.05);
+            flex-shrink: 0;
+        }
+        .search-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+        .search-row:last-child { margin-bottom: 0; }
+        .btn-icon-only {
+            padding: 8px !important;
+            width: 36px !important;
+            height: 36px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-icon-only span { display: none; }
+        .search-box {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid rgba(43,104,224,0.3);
+            border-radius: 6px;
+            font-size: 13px;
+            background: rgba(10,16,36,0.8);
+            color: var(--text-secondary);
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(64,196,255,0.3);
+        }
+        .search-box::placeholder { color: var(--text-tertiary); }
+
+        .btn-add {
+            width: 100%;
+            justify-content: center;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        /* 围栏列表 */
+        .fence-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            min-height: 0;
+        }
+
+        /* 围栏卡片 */
+        .fence-card {
+            background: linear-gradient(135deg, rgba(10,16,36,0.9), rgba(16,41,105,0.9));
+            border: 2px solid rgba(43,104,224,0.3);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .fence-card:hover {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(10,16,36,0.95), rgba(16,41,105,0.95));
+            box-shadow: 0 4px 12px rgba(64,196,255,0.2);
+            transform: translateX(2px);
+        }
+        .fence-card.active {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(64,196,255,0.15), rgba(43,104,224,0.2));
+            box-shadow: 0 0 15px rgba(64,196,255,0.3);
+        }
+        .fence-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .tag-blue {
+            background: rgba(64,196,255,0.15);
+            color: #40c4ff;
+            border: 1px solid rgba(64,196,255,0.3);
+        }
+        .tag-green {
+            background: rgba(76,217,100,0.15);
+            color: #4cd964;
+            border: 1px solid rgba(76,217,100,0.3);
+        }
+        .tag-orange {
+            background: rgba(255,149,0,0.15);
+            color: #ff9500;
+            border: 1px solid rgba(255,149,0,0.3);
+        }
+
+        .fence-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+        .fence-card-date {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .fence-card-date i { font-size: 11px; }
+
+        /* 中间地图区域 */
+        .map-container {
+            background: linear-gradient(135deg, #101838, #162969);
+            border: 1px solid rgba(43,104,224,0.4);
+            border-radius: 8px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .map-toolbar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+        }
+        .toolbar-card {
+            background: rgba(10,16,36,0.92);
+            padding: 10px 14px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            border: 1px solid rgba(43,104,224,0.3);
+        }
+        .toolbar-card span {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        #map { flex: 1; width: 100%; height: 100%; }
+
+        /* 右侧详情区域 */
+        .details-panel {
+            background: linear-gradient(135deg, #101838, #162969);
+            border: 1px solid rgba(43,104,224,0.4);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .details-header {
+            background: rgba(43,104,224,0.12);
+            padding: 18px 16px;
+            border-bottom: 1px solid var(--split-color);
+            flex-shrink: 0;
+        }
+        .details-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary-color);
+        }
+        .details-content {
+            flex: 1;
+            padding: 18px 16px;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .detail-section { margin-bottom: 20px; }
+        .detail-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .detail-section-title i { color: var(--primary-color); }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(43,104,224,0.15);
+            font-size: 13px;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: var(--text-tertiary); }
+        .detail-value { font-weight: 500; color: var(--text-secondary); }
+
+        .detail-value.highlight { color: var(--primary-color); font-weight: 600; }
+        .detail-value.success { color: var(--success-color); }
+        .detail-value.warning { color: var(--warning-color); }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-badge.active {
+            background: rgba(76,217,100,0.15);
+            color: #4cd964;
+            border: 1px solid rgba(76,217,100,0.3);
+        }
+        .status-badge.active::before { content: '●'; font-size: 8px; }
+
+        .coord-list {
+            background: rgba(10,16,36,0.6);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(43,104,224,0.2);
+        }
+        .coord-item {
+            font-size: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(43,104,224,0.1);
+            color: var(--text-secondary);
+        }
+        .coord-item:last-child { border-bottom: none; }
+
+        /* 弹窗样式 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: linear-gradient(135deg, #101838, #162969);
+            border: 1px solid rgba(43,104,224,0.4);
+            border-radius: 12px;
+            width: 600px;
+            max-height: 80vh;
+            display: flex !important;
+            flex-direction: column !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+        .modal-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--split-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(43,104,224,0.08);
+            flex-shrink: 0;
+        }
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-tertiary);
+            transition: all 0.2s;
+        }
+        .modal-close:hover { color: var(--danger-color); }
+        .modal-body {
+            padding: 20px !important;
+            overflow-y: auto !important;
+            flex: 1 !important;
+            min-height: 0 !important;
+            display: block !important;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+            margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(43,104,224,0.3);
+            border-radius: 6px;
+            font-size: 14px;
+            background: rgba(10,16,36,0.8);
+            color: var(--text-secondary);
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(64,196,255,0.3);
+        }
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(43,104,224,0.3);
+            border-radius: 6px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            background: rgba(10,16,36,0.8);
+            color: var(--text-secondary);
+        }
+
+        .file-upload {
+            border: 2px dashed rgba(43,104,224,0.3);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(10,16,36,0.4);
+            position: relative;
+        }
+        .file-upload:hover {
+            border-color: var(--primary-color);
+            background: rgba(64,196,255,0.05);
+        }
+        .file-upload i {
+            font-size: 32px;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+        }
+        .file-upload p { color: var(--text-tertiary); font-size: 13px; }
+        .file-upload .hint { font-size: 11px; color: rgba(128,191,255,0.5); margin-top: 6px; }
+
+        .upload-preview {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(76,217,100,0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(76,217,100,0.3);
+            display: none;
+        }
+        .upload-preview.show { display: block; }
+        .upload-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .upload-info i { color: #4cd964; }
+        .upload-stats {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--split-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: rgba(43,104,224,0.05);
+        }
+
+        /* 浅色主题适配 */
+        html.light-theme .sidebar {
+            background: linear-gradient(135deg, #fff, #f5f8ff);
+            border-color: rgba(100,150,220,0.35);
+        }
+        html.light-theme .map-container { background: rgba(240,246,255,0.3); }
+        html.light-theme .search-section, html.light-theme .stats-container {
+            background: rgba(240,246,255,0.6);
+            border-bottom-color: rgba(100,150,220,0.2);
+            border-top-color: rgba(100,150,220,0.2);
+        }
+        html.light-theme .search-box {
+            background: #fff;
+            border-color: rgba(100,150,220,0.4);
+            color: #1a2a4a;
+        }
+        html.light-theme .search-box::placeholder { color: #999; }
+        html.light-theme .search-box:focus {
+            border-color: #1677ff;
+            box-shadow: 0 0 8px rgba(22,119,255,0.3);
+        }
+        html.light-theme .fence-card {
+            background: #fff;
+            border-color: rgba(100,150,220,0.35);
+        }
+        html.light-theme .fence-card:hover {
+            background: #f5f8ff;
+            border-color: #1677ff;
+            box-shadow: 0 4px 12px rgba(22,119,255,0.2);
+        }
+        html.light-theme .fence-card.active {
+            background: rgba(22,119,255,0.04);
+            border-color: #1677ff;
+            box-shadow: 0 0 15px rgba(22,119,255,0.2);
+        }
+        html.light-theme .fence-card-title { color: #1677ff; }
+        html.light-theme .fence-card-date { color: #4a6880; }
+        html.light-theme .tag.blue { background: rgba(22,119,255,0.1); color: #1677ff; border-color: rgba(22,119,255,0.3); }
+        html.light-theme .tag.green { background: rgba(76,217,100,0.1); color: #4cd964; border-color: rgba(76,217,100,0.3); }
+        html.light-theme .tag.orange { background: rgba(255,149,0,0.1); color: #ff9500; border-color: rgba(255,149,0,0.3); }
+
+        html.light-theme .details-panel {
+            background: linear-gradient(135deg, #fff, #f5f8ff);
+            border-color: rgba(100,150,220,0.35);
+        }
+        html.light-theme .details-header {
+            background: rgba(64,150,255,0.06);
+            border-bottom-color: rgba(100,150,220,0.2);
+        }
+        html.light-theme .details-header h2 { color: #1677ff; }
+        html.light-theme .detail-section-title { color: #4a6880; }
+        html.light-theme .detail-section-title i { color: #1677ff; }
+        html.light-theme .detail-label { color: #6a88a8; }
+        html.light-theme .detail-value { color: #1a2a4a; }
+        html.light-theme .detail-value.highlight { color: #1677ff; }
+
+        html.light-theme .coord-list {
+            background: #f8f9fa;
+            border-color: rgba(100,150,220,0.2);
+        }
+        html.light-theme .coord-item { color: #4a6880; border-bottom-color: rgba(100,150,220,0.12); }
+
+        html.light-theme .modal {
+            background: #fff;
+            border-color: rgba(100,150,220,0.4);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        html.light-theme .modal-header {
+            background: rgba(64,150,255,0.06);
+            border-bottom-color: rgba(100,150,220,0.2);
+        }
+        html.light-theme .modal-header h3 { color: #1677ff; }
+        html.light-theme .modal-close { color: #666; }
+        html.light-theme .modal-close:hover { color: #ff4d4f; }
+        html.light-theme .form-label { color: #4a6880; }
+        html.light-theme .form-input, html.light-theme .form-textarea {
+            background: #fff;
+            border-color: rgba(100,150,220,0.4);
+            color: #1a2a4a;
+        }
+        html.light-theme .form-input:focus, html.light-theme .form-textarea:focus {
+            border-color: #1677ff;
+            box-shadow: 0 0 8px rgba(22,119,255,0.3);
+        }
+        html.light-theme .file-upload {
+            border-color: rgba(100,150,220,0.4);
+            background: #f8f9fa;
+        }
+        html.light-theme .file-upload:hover {
+            border-color: #1677ff;
+            background: #f0f6ff;
+        }
+        html.light-theme .file-upload i { color: #1677ff; }
+        html.light-theme .file-upload p { color: #4a6880; }
+        html.light-theme .file-upload .hint { color: #999; }
+
+        html.light-theme .stat-card {
+            background: #fff;
+            border-color: rgba(100,150,220,0.35);
+        }
+        html.light-theme .stat-value { color: #1677ff; }
+        html.light-theme .stat-label { color: #4a6880; }
+
+        html.light-theme .btn-secondary {
+            background: #fff;
+            border-color: rgba(100,150,220,0.4);
+            color: #1a2a4a;
+        }
+        html.light-theme .btn-secondary:hover {
+            background: #f5f8ff;
+            border-color: #1677ff;
+        }
+    </style>
+</head>
+<body>
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn" title="返回工作台"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>数据接入与基础管理 / 围栏数据管理</span></div>
+    </div>
+    <div class="page-header-right">
+        <div id="pageTime" style="font-size:13px;color:var(--text-primary)"></div>
+    </div>
+</div>
+<div class="page-body">
+    <!-- 左侧侧边栏 -->
+    <div class="sidebar">
+        <!-- 统计卡片 - 放在顶部，3个一行 -->
+        <div class="stats-container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalFences">12</div>
+                    <div class="stat-label">围栏总数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--success-color);" id="activeFences">10</div>
+                    <div class="stat-label">已激活</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: var(--warning-color);" id="pendingFences">2</div>
+                    <div class="stat-label">待审核</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 搜索筛选 -->
+        <div class="search-section">
+            <div class="search-row">
+                <input type="text" class="search-box" id="searchInput" placeholder="搜索围栏名称...">
+                <button class="btn btn-primary btn-icon-only" onclick="searchFences()" title="搜索"><i class="fas fa-search"></i></button>
+                <button class="btn btn-danger btn-icon-only" onclick="clearFilters()" title="清除"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="search-row">
+                <select class="search-box" id="regionFilter">
+                    <option value="">全部区域</option>
+                    <option value="德阳市">德阳市</option>
+                    <option value="绵竹市">绵竹市</option>
+                    <option value="旌阳区">旌阳区</option>
+                </select>
+                <select class="search-box" id="statusFilter">
+                    <option value="">全部状态</option>
+                    <option value="已通过">已通过</option>
+                    <option value="待审核">待审核</option>
+                </select>
+            </div>
+            <div class="search-row">
+                <button class="btn btn-primary btn-add" data-add-init="1" onclick="console.log('按钮被点击'); if(typeof openAddModal === 'function') { openAddModal(); } else { console.error('openAddModal 函数不存在'); alert('openAddModal 函数未定义'); }"><i class="fas fa-plus"></i> 新增围栏</button>
+            </div>
+        </div>
+
+        <!-- 围栏列表 -->
+        <div class="fence-list" id="fenceList">
+            <!-- 围栏卡片将通过JS动态生成 -->
+        </div>
+    </div>
+
+    <!-- 中间地图区域 -->
+    <div class="map-container">
+        <div class="map-toolbar">
+            <div class="toolbar-card">
+                <span style="font-size: 13px; color: #495057; font-weight: 500;">地图控制</span>
+                <button class="btn btn-secondary" onclick="zoomIn()"><i class="fas fa-plus"></i></button>
+                <button class="btn btn-secondary" onclick="zoomOut()"><i class="fas fa-minus"></i></button>
+                <button class="btn btn-secondary" onclick="resetView()"><i class="fas fa-sync-alt"></i></button>
+            </div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <!-- 右侧详情面板 -->
+    <div class="details-panel">
+        <div class="details-header">
+            <h2><i class="fas fa-info-circle"></i> 围栏详细信息</h2>
+        </div>
+        <div class="details-content" id="detailsContent">
+            <div style="text-align: center; color: var(--text-tertiary); margin-top: 100px;">
+                <i class="fas fa-mouse-pointer" style="font-size: 48px; margin-bottom: 16px; opacity: 0.6;"></i>
+                <p>请选择左侧围栏查看详情</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- 新增围栏弹窗 -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>新增电子围栏</h3>
+                <button class="modal-close" onclick="closeAddModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">围栏名称 *</label>
+                    <input type="text" class="form-input" id="fenceName" placeholder="请输入围栏名称">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">所属区域 *</label>
+                    <select class="form-input" id="fenceRegion">
+                        <option value="">请选择区域</option>
+                        <option value="德阳市">德阳市</option>
+                        <option value="绵竹市">绵竹市</option>
+                        <option value="旌阳区">旌阳区</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">围栏类型 *</label>
+                    <select class="form-input" id="fenceType">
+                        <option value="">请选择类型</option>
+                        <option value="河道疏浚">河道疏浚</option>
+                        <option value="堆料场">堆料场</option>
+                        <option value="上岸点">上岸点</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">实施日期 *</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="date" class="form-input" id="startDate" placeholder="开始日期" style="width: 50%;">
+                        <input type="date" class="form-input" id="endDate" placeholder="结束日期" style="width: 50%;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">围栏数据文件 *</label>
+                    <div class="file-upload">
+                        <input type="file" id="fenceFile" accept=".zip,.shp,.json,.geojson,.kml" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer;" onchange="handleFileUpload(this)">
+                        <div style="pointer-events: none;">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>点击上传围栏数据文件</p>
+                            <p class="hint" style="font-size: 11px; color: rgba(128,191,255,0.7); margin-top: 8px;">
+                                推荐格式：ZIP (.zip) ⭐ Shapefile压缩包、GeoJSON (.json, .geojson)
+                            </p>
+                            <p class="hint" style="font-size: 10px; color: rgba(128,191,255,0.6); margin-top: 4px;">
+                                其他格式：Shapefile (.shp) 单文件、KML (.kml)
+                            </p>
+                        </div>
+                    </div>
+                    <div class="upload-preview" id="uploadPreview">
+                        <div class="upload-info">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="uploadFileName">-</span>
+                        </div>
+                        <div class="upload-stats" id="uploadStats"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">备注</label>
+                    <textarea class="form-textarea" id="fenceRemark" placeholder="请输入备注信息（选填）"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="testFence()"><i class="fas fa-vial"></i> 测试</button>
+                <button class="btn btn-secondary" onclick="closeAddModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveFence()"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 围栏数据（模拟数据）
+        let fenceData = [
+            {
+                id: 1,
+                name: '旌阳-01号围栏',
+                type: '河道疏浚',
+                region: '德阳市',
+                status: '已通过',
+                startDate: '2026-03-09',
+                endDate: '2026-04-30',
+                area: 982397,
+                vertices: 21,
+                description: '旌阳区河道疏浚电子围栏，覆盖主要疏浚区域',
+                coordinates: [
+                    [31.450851, 104.184100],
+                    [31.448120, 104.188257],
+                    [31.446623, 104.187553],
+                    [31.446440, 104.186868],
+                    [31.447025, 104.184722],
+                    [31.447849, 104.181482],
+                    [31.448124, 104.179272],
+                    [31.448179, 104.177083],
+                    [31.450558, 104.175044],
+                    [31.451620, 104.170668],
+                    [31.452792, 104.169713],
+                    [31.454128, 104.168479],
+                    [31.455821, 104.166805],
+                    [31.456919, 104.165657],
+                    [31.457484, 104.165034],
+                    [31.457624, 104.166791],
+                    [31.457663, 104.165142],
+                    [31.457972, 104.175539],
+                    [31.450851, 104.184100]
+                ]
+            },
+            {
+                id: 2,
+                name: '绵竹上岸点围栏',
+                type: '上岸点',
+                region: '绵竹市',
+                status: '已通过',
+                startDate: '2026-03-15',
+                endDate: '2026-05-31',
+                area: 456789,
+                vertices: 12,
+                description: '绵竹市主要上岸点电子围栏',
+                coordinates: [
+                    [31.452000, 104.190000],
+                    [31.452500, 104.190500],
+                    [31.453000, 104.190000],
+                    [31.452000, 104.190000]
+                ]
+            },
+            {
+                id: 3,
+                name: '旌阳堆料场围栏',
+                type: '堆料场',
+                region: '旌阳区',
+                status: '待审核',
+                startDate: '2026-04-01',
+                endDate: '2026-06-30',
+                area: 234567,
+                vertices: 8,
+                description: '旌阳区临时堆料场电子围栏',
+                coordinates: [
+                    [31.448000, 104.185000],
+                    [31.449000, 104.186000],
+                    [31.449500, 104.185000],
+                    [31.448500, 104.184000],
+                    [31.448000, 104.185000]
+                ]
+            }
+        ];
+
+        let map;
+        let esriSatLayer;
+        let osmLayer;
+        let fenceLayers = {}; // 存储主多边形
+        let fenceExtraLayers = {}; // 存储额外的图层（虚线边框、顶点标记）
+        let selectedFenceId = null;
+        let uploadedFenceData = null;
+        let isAddMode = false; // 是否处于新增模式（新增模式下不显示旧围栏）
+
+        // 初始化地图
+        function initMap() {
+            map = L.map('map', { zoomControl: true }).setView([31.450851, 104.184100], 12);
+
+            // 使用 Esri 卫星图和 OpenStreetMap，与上传页面一致
+            osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap',
+                maxZoom: 19
+            });
+
+            esriSatLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '© Esri',
+                maxZoom: 19
+            });
+
+            esriSatLayer.addTo(map);
+
+            // 添加图层切换控件
+            L.control.layers({
+                '卫星图': esriSatLayer,
+                '街道图': osmLayer
+            }, {}, { position: 'topright' }).addTo(map);
+        }
+
+        // 渲染围栏列表
+        function renderFenceList(fences = fenceData) {
+            const fenceList = document.getElementById('fenceList');
+            fenceList.innerHTML = '';
+
+            fences.forEach((fence, index) => {
+                const card = document.createElement('div');
+                card.className = `fence-card ${index === 0 ? 'active' : ''}`;
+                card.dataset.id = fence.id;
+                card.onclick = () => selectFence(fence.id);
+
+                card.innerHTML = `
+                    <div class="fence-card-header">
+                        <span class="tag tag-blue">${fence.type}</span>
+                        <span class="tag tag-green">${fence.region}</span>
+                        <span class="tag ${fence.status === '已通过' ? 'tag-green' : 'tag-orange'}">${fence.status}</span>
+                    </div>
+                    <div class="fence-card-title">${fence.name}</div>
+                    <div class="fence-card-date">
+                        <i class="far fa-calendar-alt"></i>
+                        ${fence.startDate} ~ ${fence.endDate}
+                    </div>
+                `;
+
+                fenceList.appendChild(card);
+            });
+
+            // 默认选中第一个
+            if (fences.length > 0 && !selectedFenceId) {
+                selectFence(fences[0].id);
+            }
+        }
+
+        // 选择围栏
+        function selectFence(id) {
+            selectedFenceId = id;
+
+            // 更新列表选中状态
+            document.querySelectorAll('.fence-card').forEach(card => {
+                card.classList.remove('active');
+                if (parseInt(card.dataset.id) === id) {
+                    card.classList.add('active');
+                }
+            });
+
+            // 显示围栏在地图上
+            const fence = fenceData.find(f => f.id === id);
+            if (fence) {
+                showFenceOnMap(fence);
+                showFenceDetails(fence);
+            }
+        }
+
+        // 在地图上显示围栏 - 使用与上传页面一致的样式
+        function showFenceOnMap(fence) {
+            // 如果处于新增模式，不显示旧围栏
+            if (isAddMode) {
+                console.log('新增模式下，不显示围栏');
+                return;
+            }
+
+            // 清除之前的围栏
+            Object.values(fenceLayers).forEach(layer => {
+                map.removeLayer(layer);
+            });
+            Object.values(fenceExtraLayers).forEach(layer => {
+                map.removeLayer(layer);
+            });
+            fenceLayers = {};
+            fenceExtraLayers = {};
+
+            // 绘制围栏多边形 - 使用上传页面的橙色样式
+            if (fence.coordinates && fence.coordinates.length > 0) {
+                const polygon = L.polygon(fence.coordinates, {
+                    color: '#ff6b35',
+                    weight: 3,
+                    opacity: 1,
+                    fillColor: '#ff6b35',
+                    fillOpacity: 0.18
+                }).addTo(map);
+
+                // 添加虚线边框
+                const dashedBorder = L.polygon(fence.coordinates, {
+                    color: '#fff',
+                    weight: 1.5,
+                    opacity: 0.5,
+                    fillOpacity: 0,
+                    dashArray: '8,4'
+                }).addTo(map);
+
+                // 添加顶点标记
+                const markers = [];
+                fence.coordinates.forEach((c, i) => {
+                    if (i === fence.coordinates.length - 1) return;
+                    const isFirst = (i === 0);
+                    const marker = L.circleMarker(c, {
+                        radius: isFirst ? 7 : 5,
+                        color: isFirst ? '#fff' : '#ff6b35',
+                        weight: 2,
+                        fillColor: isFirst ? '#ff6b35' : '#ffb347',
+                        fillOpacity: 1
+                    }).addTo(map);
+                    marker.bindPopup(`<b>围栏顶点 #${i + 1}${isFirst ? ' <em>（起点）</em>' : ''}</b><br>经度: ${c[1].toFixed(8)}<br>纬度: ${c[0].toFixed(8)}`);
+                    markers.push(marker);
+                });
+
+                polygon.bindPopup(`
+                    <div style="min-width: 200px; background: rgba(10,16,36,0.95); padding: 12px; border-radius: 8px;">
+                        <h4 style="margin: 0 0 8px 0; color: #ff6b35; font-size: 14px;">${fence.name}</h4>
+                        <p style="margin: 4px 0; font-size: 12px; color: #a0cfff;">类型：${fence.type}</p>
+                        <p style="margin: 4px 0; font-size: 12px; color: #a0cfff;">区域：${fence.region}</p>
+                        <p style="margin: 4px 0; font-size: 12px; color: #a0cfff;">状态：${fence.status}</p>
+                        <p style="margin: 4px 0; font-size: 12px; color: #a0cfff;">面积：${fence.area.toLocaleString()} m²</p>
+                    </div>
+                `);
+
+                // 存储所有图层
+                fenceLayers[fence.id] = polygon;
+                fenceExtraLayers[fence.id] = [dashedBorder, ...markers];
+
+                // 调整视图
+                polygon.getBounds() && map.fitBounds(polygon.getBounds(), { padding: [20, 20] });
+            }
+        }
+
+        // 显示围栏详情
+        function showFenceDetails(fence) {
+            const detailsContent = document.getElementById('detailsContent');
+            detailsContent.innerHTML = `
+                <div class="detail-section">
+                    <div class="detail-section-title">
+                        <i class="fas fa-info-circle"></i> 基本信息
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">围栏名称</span>
+                        <span class="detail-value highlight">${fence.name}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">围栏类型</span>
+                        <span class="detail-value">${fence.type}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">所属区域</span>
+                        <span class="detail-value">${fence.region}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">状态</span>
+                        <span class="status-badge ${fence.status === '已通过' ? 'active' : 'warning'}">${fence.status}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">
+                        <i class="fas fa-calendar-alt"></i> 实施时间
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">开始日期</span>
+                        <span class="detail-value">${fence.startDate}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">结束日期</span>
+                        <span class="detail-value">${fence.endDate}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">
+                        <i class="fas fa-chart-area"></i> 围栏指标
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">围栏面积</span>
+                        <span class="detail-value success">${fence.area.toLocaleString()} 平方米</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">顶点数量</span>
+                        <span class="detail-value">${fence.vertices}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">
+                        <i class="fas fa-map-marker-alt"></i> 围栏说明
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">说明</span>
+                        <span class="detail-value" style="flex: 1; text-align: right;">${fence.description}</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-section-title">
+                        <i class="fas fa-map"></i> 围栏坐标
+                    </div>
+                    <div class="coord-list">
+                        ${fence.coordinates.map((coord, idx) => `
+                            <div class="coord-item">
+                                <strong>${idx + 1}:</strong> [${coord[0].toFixed(6)}, ${coord[1].toFixed(6)}]
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 搜索围栏
+        function searchFences() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const regionFilter = document.getElementById('regionFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            const filtered = fenceData.filter(fence => {
+                const matchSearch = fence.name.toLowerCase().includes(searchTerm);
+                const matchRegion = !regionFilter || fence.region === regionFilter;
+                const matchStatus = !statusFilter || fence.status === statusFilter;
+                return matchSearch && matchRegion && matchStatus;
+            });
+
+            renderFenceList(filtered);
+        }
+
+        // 清除筛选
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('regionFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            renderFenceList();
+        }
+
+        // 打开新增弹窗
+        function openAddModal() {
+            console.log('openAddModal 被调用');
+            isAddMode = true; // 设置新增模式标志
+            document.getElementById('addModal').classList.add('show');
+
+            // 清除预览围栏（如果有）
+            if (window.previewLayer) {
+                map.removeLayer(window.previewLayer);
+                window.previewLayer = null;
+                console.log('已清除预览层');
+            }
+
+            // 隐藏所有现有围栏的图层（包括虚线边框和顶点标记）
+            console.log('清除前的 fenceLayers 数量:', Object.keys(fenceLayers).length);
+            console.log('清除前的 fenceExtraLayers 数量:', Object.keys(fenceExtraLayers).length);
+
+            Object.values(fenceLayers).forEach(layer => {
+                map.removeLayer(layer);
+            });
+            Object.values(fenceExtraLayers).forEach(layers => {
+                if (Array.isArray(layers)) {
+                    layers.forEach(layer => map.removeLayer(layer));
+                } else {
+                    map.removeLayer(layers);
+                }
+            });
+
+            fenceLayers = {};
+            fenceExtraLayers = {};
+            window.hiddenFenceLayers = true; // 标记已隐藏
+
+            console.log('清除后的 fenceLayers 数量:', Object.keys(fenceLayers).length);
+            console.log('清除后的 fenceExtraLayers 数量:', Object.keys(fenceExtraLayers).length);
+
+            // 清空文件上传和预览
+            document.getElementById('fenceFile').value = '';
+            document.getElementById('uploadPreview').classList.remove('show');
+            uploadedFenceData = null;
+        }
+
+        // 关闭新增弹窗
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('show');
+            isAddMode = false; // 退出新增模式
+
+            // 恢复隐藏的围栏图层（如果之前隐藏了）
+            if (window.hiddenFenceLayers && selectedFenceId) {
+                const fence = fenceData.find(f => f.id === selectedFenceId);
+                if (fence) {
+                    showFenceOnMap(fence);
+                }
+                window.hiddenFenceLayers = false;
+            }
+
+            // 清空表单
+            document.getElementById('fenceName').value = '';
+            document.getElementById('fenceRegion').value = '';
+            document.getElementById('fenceType').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('fenceFile').value = '';
+            document.getElementById('fenceRemark').value = '';
+            document.getElementById('uploadPreview').classList.remove('show');
+            uploadedFenceData = null;
+        }
+
+        // 处理文件上传 - 真实功能支持
+        function handleFileUpload(input) {
+            console.log('handleFileUpload 被调用');
+            const file = input.files[0];
+            console.log('选择的文件:', file);
+            if (!file) {
+                console.log('没有选择文件');
+                return;
+            }
+
+            const fileName = file.name.toLowerCase();
+
+            // 判断文件类型
+            if (fileName.endsWith('.zip')) {
+                // ZIP 格式（通常包含 Shapefile）
+                console.log('检测到 ZIP 文件，开始解析...');
+                parseZipFile(file);
+            } else if (fileName.endsWith('.shp')) {
+                // Shapefile 格式
+                console.log('检测到 Shapefile 文件，开始解析...');
+                parseShapefile(file);
+            } else if (fileName.endsWith('.json') || fileName.endsWith('.geojson')) {
+                // GeoJSON 格式
+                console.log('检测到 GeoJSON 文件，开始解析...');
+                parseGeoJSON(file);
+            } else if (fileName.endsWith('.kml')) {
+                alert('KML 格式暂不支持。\n\n建议使用在线工具转换为 GeoJSON：\nhttps://mapshaper.org/');
+                return;
+            } else {
+                alert('不支持的文件格式。\n\n支持的格式：\n• ZIP (.zip) ⭐ 推荐（Shapefile压缩包）\n• GeoJSON (.json, .geojson) ⭐ 推荐\n• Shapefile (.shp)\n• KML (.kml)\n\n如需转换，请访问：https://mapshaper.org/');
+                return;
+            }
+        }
+
+        // 解析 ZIP 文件（Shapefile 压缩包）
+        function parseZipFile(file) {
+            console.log('开始解析 ZIP 文件...');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const buffer = e.target.result;
+                console.log('ZIP 文件读取完成，大小:', buffer.byteLength, '字节');
+
+                // 使用 shpjs 解析 ZIP
+                shp(buffer).then(function(geojson) {
+                    console.log('ZIP 解析成功:', geojson);
+                    console.log('GeoJSON 类型:', geojson.type);
+
+                    // 提取坐标数据
+                    let coordinates = extractCoordinatesFromGeoJSON(geojson);
+
+                    if (coordinates && coordinates.length > 2) {
+                        uploadedFenceData = {
+                            type: 'Polygon',
+                            coordinates: coordinates,
+                            vertices: coordinates.length,
+                            area: calculateArea(coordinates)
+                        };
+
+                        // 更新上传预览
+                        document.getElementById('uploadPreview').classList.add('show');
+                        document.getElementById('uploadFileName').textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                        document.getElementById('uploadStats').textContent = `顶点数: ${coordinates.length} | 面积: ${uploadedFenceData.area.toLocaleString()} m²`;
+
+                        // 在弹窗内预览围栏
+                        previewFenceOnMap(coordinates);
+                    } else {
+                        console.error('未能提取有效的坐标数据');
+                        alert('文件中未找到有效的面状图数据（Polygon或MultiPolygon）。请确保文件包含面状要素。');
+                    }
+                }).catch(function(error) {
+                    console.error('ZIP 解析失败，详细错误:', error);
+                    console.error('错误堆栈:', error.stack);
+                    alert('文件解析失败: ' + (error.message || error));
+                });
+            };
+
+            reader.onerror = function(error) {
+                console.error('FileReader 错误:', error);
+                alert('文件读取失败: ' + error.message);
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 解析 Shapefile
+        function parseShapefile(file) {
+            console.log('开始解析 Shapefile...');
+
+            // 使用 FileReader 读取为 ArrayBuffer
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const buffer = e.target.result;
+                console.log('Shapefile 文件读取完成，大小:', buffer.byteLength, '字节');
+
+                // 使用 shpjs 解析
+                shp(buffer).then(function(geojson) {
+                    console.log('Shapefile 解析成功:', geojson);
+                    console.log('GeoJSON 类型:', geojson.type);
+                    console.log('要素数量:', geojson.features ? geojson.features.length : 'N/A');
+
+                    // 提取坐标数据
+                    let coordinates = extractCoordinatesFromGeoJSON(geojson);
+
+                    if (coordinates && coordinates.length > 2) {
+                        uploadedFenceData = {
+                            type: 'Polygon',
+                            coordinates: coordinates,
+                            vertices: coordinates.length,
+                            area: calculateArea(coordinates)
+                        };
+
+                        // 更新上传预览
+                        document.getElementById('uploadPreview').classList.add('show');
+                        document.getElementById('uploadFileName').textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                        document.getElementById('uploadStats').textContent = `顶点数: ${coordinates.length} | 面积: ${uploadedFenceData.area.toLocaleString()} m²`;
+
+                        // 在弹窗内预览围栏
+                        previewFenceOnMap(coordinates);
+                    } else {
+                        console.error('未能提取有效的坐标数据');
+                        alert('Shapefile 中未找到有效的面状图数据（Polygon或MultiPolygon）。请确保文件包含面状要素。');
+                    }
+                }).catch(function(error) {
+                    console.error('Shapefile 解析失败，详细错误:', error);
+                    console.error('错误堆栈:', error.stack);
+
+                    let errorMsg = 'Shapefile 解析失败';
+                    if (typeof error === 'string' && error.includes('unzip')) {
+                        errorMsg += '\n\nShapefile 格式不支持直接上传。\n\n请尝试以下方法：\n1. 将 Shapefile 转换为 GeoJSON 格式\n2. 使用在线工具（如 mapshaper.org）转换\n3. 或者导出为 KML 格式';
+                    } else {
+                        errorMsg += ': ' + (error.message || error);
+                    }
+                    alert(errorMsg);
+                });
+            };
+
+            reader.onerror = function(error) {
+                console.error('FileReader 错误:', error);
+                alert('文件读取失败: ' + error.message);
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 解析 GeoJSON
+        function parseGeoJSON(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const geojson = JSON.parse(e.target.result);
+                    console.log('GeoJSON 解析成功:', geojson);
+
+                    // 提取坐标数据
+                    let coordinates = extractCoordinatesFromGeoJSON(geojson);
+
+                    if (coordinates && coordinates.length > 2) {
+                        uploadedFenceData = {
+                            type: 'Polygon',
+                            coordinates: coordinates,
+                            vertices: coordinates.length,
+                            area: calculateArea(coordinates)
+                        };
+
+                        // 更新上传预览
+                        document.getElementById('uploadPreview').classList.add('show');
+                        document.getElementById('uploadFileName').textContent = `${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                        document.getElementById('uploadStats').textContent = `顶点数: ${coordinates.length} | 面积: ${uploadedFenceData.area.toLocaleString()} m²`;
+
+                        // 在弹窗内预览围栏
+                        previewFenceOnMap(coordinates);
+                    } else {
+                        alert('GeoJSON 中未找到有效的面状图数据');
+                    }
+                } catch (error) {
+                    console.error('GeoJSON 解析失败:', error);
+                    alert('GeoJSON 解析失败: ' + error.message);
+                }
+            };
+
+            reader.onerror = function(error) {
+                console.error('FileReader 错误:', error);
+                alert('文件读取失败');
+            };
+
+            reader.readAsText(file);
+        }
+
+        // 从 GeoJSON 提取坐标（通用函数）
+        function extractCoordinatesFromGeoJSON(geojson) {
+            let coordinates = [];
+
+            if (geojson.type === 'Feature') {
+                coordinates = extractCoordinates(geojson.geometry);
+            } else if (geojson.type === 'FeatureCollection') {
+                // 获取第一个面状要素
+                const polygonFeature = geojson.features.find(f =>
+                    f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
+                );
+                if (polygonFeature) {
+                    coordinates = extractCoordinates(polygonFeature.geometry);
+                }
+            } else if (geojson.type === 'Polygon') {
+                coordinates = extractCoordinates(geojson);
+            } else if (geojson.type === 'MultiPolygon') {
+                // MultiPolygon 类型，构造一个 Polygon geometry 传递给 extractCoordinates
+                coordinates = extractCoordinates({
+                    type: 'Polygon',
+                    coordinates: geojson.coordinates[0]
+                });
+            }
+
+            return coordinates;
+        }
+
+        // 提取坐标
+        function extractCoordinates(geometry) {
+            if (!geometry) return [];
+
+            if (geometry.type === 'Polygon') {
+                // GeoJSON Polygon 格式: [[[lon, lat], ...]]，需要转换为 [[lat, lon], ...]
+                return geometry.coordinates[0].map(c => [c[1], c[0]]);
+            } else if (geometry.type === 'MultiPolygon') {
+                // 取第一个多边形
+                return geometry.coordinates[0][0].map(c => [c[1], c[0]]);
+            }
+            return [];
+        }
+
+        // 计算面积（简化版，使用 Shoelace 公式）
+        function calculateArea(coordinates) {
+            if (coordinates.length < 3) return 0;
+
+            let area = 0;
+            const n = coordinates.length;
+
+            for (let i = 0; i < n; i++) {
+                const j = (i + 1) % n;
+                area += coordinates[i][1] * coordinates[j][0];
+                area -= coordinates[j][1] * coordinates[i][0];
+            }
+
+            area = Math.abs(area / 2);
+            // 将度转换为平方米（近似）
+            return Math.round(area * 12314000000); // 近似转换系数
+        }
+
+        // 在弹窗内预览围栏
+        function previewFenceOnMap(coordinates) {
+            // 清除预览层
+            if (window.previewLayer) {
+                map.removeLayer(window.previewLayer);
+            }
+
+            // 绘制预览围栏
+            window.previewLayer = L.polygon(coordinates, {
+                color: '#ff6b35',
+                weight: 3,
+                opacity: 0.7,
+                fillColor: '#ff6b35',
+                fillOpacity: 0.3
+            }).addTo(map);
+
+            // 调整视图
+            window.previewLayer.getBounds() && map.fitBounds(window.previewLayer.getBounds(), { padding: [20, 20] });
+        }
+
+        // 测试围栏
+        function testFence() {
+            const fenceName = document.getElementById('fenceName').value;
+            const fenceRegion = document.getElementById('fenceRegion').value;
+            const fenceType = document.getElementById('fenceType').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!fenceName || !fenceRegion || !fenceType || !startDate || !endDate) {
+                alert('请填写完整信息');
+                return;
+            }
+
+            // 模拟测试
+            const testResult = Math.random() > 0.3 ? '通过' : '失败';
+            alert(`测试结果：${testResult}`);
+        }
+
+        // 保存围栏
+        function saveFence() {
+            const fenceName = document.getElementById('fenceName').value;
+            const fenceRegion = document.getElementById('fenceRegion').value;
+            const fenceType = document.getElementById('fenceType').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!fenceName || !fenceRegion || !fenceType || !startDate || !endDate) {
+                alert('请填写完整信息');
+                return;
+            }
+
+            if (!uploadedFenceData) {
+                alert('请上传围栏数据文件');
+                return;
+            }
+
+            // 创建新围栏
+            const newFence = {
+                id: fenceData.length + 1,
+                name: fenceName,
+                type: fenceType,
+                region: fenceRegion,
+                status: '待审核',
+                startDate: startDate,
+                endDate: endDate,
+                area: uploadedFenceData.area,
+                vertices: uploadedFenceData.vertices,
+                description: document.getElementById('fenceRemark').value || '新添加的电子围栏',
+                coordinates: uploadedFenceData.coordinates
+            };
+
+            fenceData.push(newFence);
+            renderFenceList();
+            updateStats();
+
+            // 清除预览层
+            if (window.previewLayer) {
+                map.removeLayer(window.previewLayer);
+                window.previewLayer = null;
+            }
+
+            // 关闭弹窗
+            document.getElementById('addModal').classList.remove('show');
+            window.hiddenFenceLayers = false;
+            isAddMode = false; // 退出新增模式
+
+            // 跳转到新创建的围栏
+            selectFence(newFence.id);
+
+            alert('围栏保存成功！');
+
+            // 清空表单
+            document.getElementById('fenceName').value = '';
+            document.getElementById('fenceRegion').value = '';
+            document.getElementById('fenceType').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('fenceFile').value = '';
+            document.getElementById('fenceRemark').value = '';
+            document.getElementById('uploadPreview').classList.remove('show');
+            uploadedFenceData = null;
+        }
+
+        // 更新统计
+        function updateStats() {
+            document.getElementById('totalFences').textContent = fenceData.length;
+            document.getElementById('activeFences').textContent = fenceData.filter(f => f.status === '已通过').length;
+            document.getElementById('pendingFences').textContent = fenceData.filter(f => f.status === '待审核').length;
+        }
+
+        // 地图控制
+        function zoomIn() {
+            map.zoomIn();
+        }
+
+        function zoomOut() {
+            map.zoomOut();
+        }
+
+        function resetView() {
+            map.setView([31.450851, 104.184100], 12);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('页面 DOM 加载完成');
+            console.log('检查 openAddModal 函数:', typeof window.openAddModal);
+            console.log('openAddModal 是否存在:', window.openAddModal !== undefined);
+            console.log('开始初始化地图...');
+            initMap();
+            console.log('地图初始化完成');
+            console.log('开始渲染围栏列表...');
+            renderFenceList();
+            console.log('围栏列表渲染完成');
+            console.log('更新统计数据...');
+            updateStats();
+            console.log('统计数据更新完成');
+            console.log('页面初始化完成');
+        });
+    </script>
+</body>
+</html>

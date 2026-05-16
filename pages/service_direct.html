@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>服务直达 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script defer src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+.tag-pending{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-processing{background:rgba(64,196,255,0.12);color:#40c4ff;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-done{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-rejected{background:rgba(255,77,79,0.12);color:#ff4d4f;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.data-table td{white-space:nowrap}
+.data-table td .detail-cell{display:inline-block;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+html.light-theme .tag-pending{background:rgba(250,140,22,0.08);color:#d46b08}
+html.light-theme .tag-processing{background:rgba(22,119,255,0.08);color:#1677ff}
+html.light-theme .tag-done{background:rgba(82,196,26,0.08);color:#389e0d}
+html.light-theme .tag-rejected{background:rgba(255,77,79,0.08);color:#cf1322}
+.filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.filter-row .form-control{min-width:120px;width:auto;flex:0 0 auto}
+.filter-row select.form-control{text-align:center;text-align-last:center;appearance:none;-webkit-appearance:none;background:#0a1024 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23a0cfff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:32px}
+.filter-row select.form-control option{text-align:center;direction:ltr}
+.svc-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));gap:16px;margin-bottom:24px}
+.svc-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:22px 20px;cursor:pointer;transition:all .25s}
+.svc-card:hover{border-color:var(--primary-color);transform:translateY(-2px);box-shadow:0 4px 16px rgba(64,196,255,0.1)}
+.svc-card .svc-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.svc-card .svc-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.svc-card h4{font-size:14px;color:var(--text-primary)}
+.svc-card p{font-size:12px;color:var(--text-tertiary);line-height:1.5}
+.fci-sky{background:rgba(64,196,255,0.15);color:#40c4ff}
+.fci-green{background:rgba(76,217,100,0.15);color:#4cd964}
+.fci-orange{background:rgba(255,149,0,0.15);color:#ff9500}
+.fci-purple{background:rgba(123,97,255,0.15);color:#7b61ff}
+.fci-teal{background:rgba(0,194,184,0.15);color:#00c2b8}
+.fci-red{background:rgba(255,77,79,0.15);color:#ff4d4f}
+.fci-pink{background:rgba(255,126,179,0.15);color:#ff7eb3}
+.fci-amber{background:rgba(255,204,0,0.15);color:#ffcc00}
+.export-options{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.export-option{display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--split-color);border-radius:8px;cursor:pointer;transition:all .2s;background:transparent}
+.export-option:hover{border-color:#40c4ff;background:rgba(64,196,255,0.06)}
+.export-option.selected{border-color:#40c4ff;background:rgba(64,196,255,0.1)}
+.export-option-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.export-option-icon.excel{background:rgba(76,175,80,0.15);color:#4caf50}
+.export-option-icon.pdf{background:rgba(244,67,54,0.15);color:#f44336}
+.export-option-icon.word{background:rgba(33,150,243,0.15);color:#2196f3}
+.export-option-body{flex:1}
+.export-option-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.export-option-desc{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+.export-option-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--split-color);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.export-option.selected .export-option-check{border-color:#40c4ff;background:#40c4ff}
+.export-option.selected .export-option-check::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff}
+.add-form{display:flex;flex-direction:column;gap:14px;padding:4px 0}
+.add-form-row{display:flex;gap:12px;align-items:flex-start}
+.add-form-group{flex:1;display:flex;flex-direction:column;gap:5px}
+.add-form-group label{font-size:12px;color:var(--text-secondary);font-weight:500}
+.add-form-group .form-control{width:100%;padding:8px 12px;font-size:13px}
+.add-form-group textarea.form-control{min-height:60px;resize:vertical}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">加载中...</div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>企业服务 / 服务直达</span></div>
+    </div>
+    <div class="page-header-right"></div>
+</div>
+
+<div class="page-body">
+
+<!-- 统计卡片 -->
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-file-alt"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#40c4ff">328</div>
+            <div class="kpi-label">本月服务申请数</div>
+            <div class="kpi-trend" style="color:#40c4ff">↑ 较上月+18.8%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-clock"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#ff9500">42</div>
+            <div class="kpi-label">待处理申请</div>
+            <div class="kpi-trend" style="color:#ff9500">占比 12.8%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-check-circle"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#4cd964">286</div>
+            <div class="kpi-label">已办结申请</div>
+            <div class="kpi-trend" style="color:#4cd964">办结率 87.2%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-hourglass-half"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#7b61ff">1.8天</div>
+            <div class="kpi-label">平均处理时长</div>
+            <div class="kpi-trend" style="color:#7b61ff">↓ 较上月缩短0.3天</div>
+        </div>
+    </div>
+</div>
+
+<!-- 图表行 -->
+<div class="chart-row chart-cols-2-1">
+    <div class="chart-box"><div class="chart-box-title">服务申请趋势</div><div id="chartLine" class="chart-canvas" style="height:300px;"></div></div>
+    <div class="chart-box"><div class="chart-box-title">服务类型分布</div><div id="chartPie" class="chart-canvas" style="height:300px;"></div></div>
+</div>
+
+<!-- 服务申请列表 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa fa-list-alt" style="color:#40c4ff"></i> 服务申请列表</div>
+        <div class="card-toolbar">
+            <div class="toolbar-actions">
+                <button class="btn btn-default" onclick="resetFilters()">重置</button>
+                <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+                <button class="btn btn-success" onclick="openExportModal()"><i class="fa fa-download"></i> 导出</button>
+                <button class="btn btn-primary" onclick="openAddModal()"><i class="fa fa-plus"></i> 新增</button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="filter-row">
+            <input class="form-control" placeholder="搜索单号/服务事项/企业..." id="fKeyword">
+            <select class="form-control" id="fType"><option value="">全部服务类型</option></select>
+            <select class="form-control" id="fStatus"><option value="">全部状态</option><option>待处理</option><option>处理中</option><option>已办结</option><option>已驳回</option></select>
+            <input class="form-control" type="date" id="fDate" title="提交时间">
+        </div>
+        <div class="table-wrap">
+            <table class="data-table" id="svcTable">
+                <thead><tr>
+                    <th style="width:38px;text-align:center"><input type="checkbox" id="__cb_all" style="cursor:pointer" title="全选/反选"></th>
+                    <th>单号</th>
+                    <th>服务事项</th>
+                    <th style="width:110px">企业名称</th>
+                    <th style="width:80px">申请人</th>
+                    <th style="width:110px">提交时间</th>
+                    <th>服务详情说明</th>
+                    <th style="width:80px">状态</th>
+                    <th style="width:80px">操作</th>
+                </tr></thead>
+                <tbody id="svcTbody"></tbody>
+            </table>
+        </div>
+        <div class="pagination"><span>共 12 条</span><div class="page-btns"></div></div>
+    </div>
+</div>
+
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal">
+    <div class="modal" style="width:440px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-download" style="color:#40c4ff;margin-right:6px"></i>导出服务申请数据</span>
+            <div class="modal-close" onclick="closeExportModal()">×</div>
+        </div>
+        <div class="modal-body">
+            <div class="export-options">
+                <div class="export-option selected" onclick="selectExportFormat(this,'excel')" data-format="excel">
+                    <div class="export-option-icon excel"><i class="fa fa-file-excel"></i></div>
+                    <div class="export-option-body">
+                        <div class="export-option-title">Excel 文件</div>
+                        <div class="export-option-desc">导出为 .xlsx 格式，可用 Excel 打开编辑</div>
+                    </div>
+                    <div class="export-option-check"></div>
+                </div>
+                <div class="export-option" onclick="selectExportFormat(this,'pdf')" data-format="pdf">
+                    <div class="export-option-icon pdf"><i class="fa fa-file-pdf"></i></div>
+                    <div class="export-option-body">
+                        <div class="export-option-title">PDF 文件</div>
+                        <div class="export-option-desc">导出为 .pdf 格式，适合打印和分享</div>
+                    </div>
+                    <div class="export-option-check"></div>
+                </div>
+                <div class="export-option" onclick="selectExportFormat(this,'word')" data-format="word">
+                    <div class="export-option-icon word"><i class="fa fa-file-word"></i></div>
+                    <div class="export-option-body">
+                        <div class="export-option-title">Word 文件</div>
+                        <div class="export-option-desc">导出为 .doc 格式，可用 Word 打开编辑</div>
+                    </div>
+                    <div class="export-option-check"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeExportModal()">取消</button>
+            <button class="btn btn-primary" onclick="doExport()"><i class="fa fa-download"></i> 导出</button>
+        </div>
+    </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal" style="width:520px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-info-circle" style="color:#40c4ff;margin-right:6px"></i>服务申请详情</span>
+            <div class="modal-close" onclick="closeDetailModal()">×</div>
+        </div>
+        <div class="modal-body" id="detailBody" style="padding:20px 24px;font-size:14px;line-height:1.8"></div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeDetailModal()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 新增弹窗 -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal" style="width:560px">
+        <div class="modal-header">
+            <span class="modal-title"><i class="fa fa-plus-circle" style="color:#40c4ff;margin-right:6px"></i>新增服务申请</span>
+            <div class="modal-close" onclick="closeAddModal()">×</div>
+        </div>
+        <div class="modal-body">
+            <div class="add-form">
+                <div class="add-form-row">
+                    <div class="add-form-group">
+                        <label>服务事项 *</label>
+                        <select class="form-control" id="addItem">
+                            <option value="">请选择</option>
+                            <option>工商注册-新设企业</option>
+                            <option>工商注册-变更登记</option>
+                            <option>工商注册-注销登记</option>
+                            <option>税务办理-一般纳税人认定</option>
+                            <option>税务办理-发票增量</option>
+                            <option>税务办理-纳税申报</option>
+                            <option>项目申报-科技创新补贴</option>
+                            <option>项目申报-人才引进补贴</option>
+                            <option>项目申报-产业扶持资金</option>
+                            <option>场地申请-厂房租赁</option>
+                            <option>场地申请-会议室预定</option>
+                            <option>能源申请-用电增容</option>
+                            <option>能源申请-用水申请</option>
+                            <option>车辆通行证-货运车辆</option>
+                            <option>车辆通行证-客运车辆</option>
+                            <option>装修审批-车间改造</option>
+                            <option>装修审批-消防审批</option>
+                            <option>人才服务-招聘协助</option>
+                            <option>人才服务-社保办理</option>
+                            <option>人才服务-人才公寓申请</option>
+                        </select>
+                    </div>
+                    <div class="add-form-group">
+                        <label>企业名称 *</label>
+                        <input class="form-control" id="addCompany" placeholder="请输入企业名称">
+                    </div>
+                </div>
+                <div class="add-form-row">
+                    <div class="add-form-group">
+                        <label>申请人 *</label>
+                        <input class="form-control" id="addApplicant" placeholder="请输入申请人姓名">
+                    </div>
+                    <div class="add-form-group">
+                        <label>提交时间 *</label>
+                        <input class="form-control" type="datetime-local" id="addTime">
+                    </div>
+                </div>
+                <div class="add-form-row">
+                    <div class="add-form-group" style="flex:2">
+                        <label>申请详情</label>
+                        <textarea class="form-control" id="addDetail" placeholder="请输入申请详情描述" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeAddModal()">取消</button>
+            <button class="btn btn-primary" onclick="doAdd()"><i class="fa fa-plus"></i> 新增</button>
+        </div>
+    </div>
+</div>
+
+<script src="/pages/common.js">
+<script src="/pages/tracker.js"></script></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+function showToast(msg,type,duration){
+    duration = duration || 3000;
+    var container=document.getElementById('toastContainer');var t=document.createElement('div');
+    t.style.cssText='padding:10px 20px;border-radius:6px;margin-bottom:8px;background:linear-gradient(135deg,rgba(16,24,56,0.95),rgba(22,41,105,0.95));border:1px solid rgba(43,104,224,0.4);color:#a0cfff;font-size:13px;display:flex;align-items:center;gap:8px;animation:slideIn 0.3s ease';
+    t.innerHTML='<i class="fa fa-'+(type==='success'?'check-circle':type==='warning'?'exclamation-triangle':'info-circle')+'"></i> '+msg;
+    container.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(function(){t.remove()},300)},duration);
+}
+
+// ========== 单号生成方法 ==========
+var snCounter = 12;
+function generateSN(){
+    snCounter++;
+    var d = new Date();
+    var y = d.getFullYear();
+    var m = String(d.getMonth()+1).padStart(2,'0');
+    var dd = String(d.getDate()).padStart(2,'0');
+    var seq = String(snCounter).padStart(3,'0');
+    return 'FW'+y+m+dd+seq;
+}
+
+// ========== 服务申请数据 ==========
+var services = [
+    {sn:'FW20260501001',item:'工商注册-新设企业',company:'星恒青源',applicant:'张力',time:'2026-05-01 09:15',status:'已办结',detail:'申请新设立全资子公司「青川星恒新能源材料有限公司」，注册资本500万元，经营范围：新能源材料研发/生产/销售。已通过工商预核名，营业执照已发放。'},
+    {sn:'FW20260502002',item:'税务办理-一般纳税人认定',company:'阜成新材',applicant:'李明辉',time:'2026-05-02 14:30',status:'已办结',detail:'申请认定增值税一般纳税人资格。企业年销售额超500万元，符合认定条件。已完成税务登记变更，税控设备已配发。'},
+    {sn:'FW20260503003',item:'项目申报-科技创新补贴',company:'中能建',applicant:'王建国',time:'2026-05-03 10:00',status:'已办结',detail:'申报2026年度四川省科技创新补贴项目，项目名称「高效光伏组件智能化生产线」，计划投资1200万元。已通过初审，进入专家评审阶段。'},
+    {sn:'FW20260504004',item:'场地申请-厂房租赁',company:'九晟新材',applicant:'赵强',time:'2026-05-04 11:20',status:'已办结',detail:'申请租赁B2区2号标准厂房，面积3200㎡，用于新增铝合金型材生产线。租期5年，租金按园区标准执行。已签订租赁合同，预计6月1日入驻。'},
+    {sn:'FW20260506005',item:'能源申请-用电增容',company:'佳兴铝业',applicant:'陈伟',time:'2026-05-06 08:45',status:'已办结',detail:'申请电力增容2500KVA，因二期生产线投产用电需求增加。已现场勘查，确认变电站余量充足，改造方案已审批，预计5月20日完成增容。'},
+    {sn:'FW20260507006',item:'车辆通行证-货运车辆',company:'虹禾晶',applicant:'刘芳',time:'2026-05-07 15:30',status:'已办结',detail:'申请日常货运车辆通行证5张，车辆牌号：川B-3K201/川B-7M280/川B-9J642/川B-2L851/川B-5N032。已审核通过，通行证有效期至2026年12月31日。'},
+    {sn:'FW20260508007',item:'装修审批-车间改造',company:'华纳实业',applicant:'周明',time:'2026-05-08 09:00',status:'处理中',detail:'申请B5区1号厂房内部改造，涉及隔墙改造、消防管道调整、电气线路重布。改造面积1800㎡。已提交施工图纸和消防方案，消防部门正在审核。'},
+    {sn:'FW20260509008',item:'人才服务-招聘协助',company:'广袤新材',applicant:'吴小燕',time:'2026-05-09 16:10',status:'处理中',detail:'申请园区协助招聘生产操作工15名、质量检验员3名。已在园区用工信息平台发布招聘信息，拟定于5月20日举办专场招聘会。'},
+    {sn:'FW20260510009',item:'税务办理-发票增量',company:'新通鑫',applicant:'黄涛',time:'2026-05-10 10:30',status:'已办结',detail:'因订单量增加，申请增值税专用发票月领用量由25份增至50份，每份最高开票限额由10万元提至50万元。已审核通过，税务端已调整完毕。'},
+    {sn:'FW20260511010',item:'项目申报-人才引进补贴',company:'中能建',applicant:'王建国',time:'2026-05-11 08:00',status:'待处理',detail:'申报2026年高层次人才引进补贴，引进博士2人、硕士5人。已提交人才学历证明、劳动合同、社保缴纳凭证等材料，等待人才办审核。'},
+    {sn:'FW20260512011',item:'场地申请-会议室预定',company:'阜成新材',applicant:'李明辉',time:'2026-05-12 14:00',status:'已驳回',detail:'预定5月18日多功能会议室（容纳50人），举办客户技术交流会。驳回原因：当天会议室已被园区管委会使用，建议改为5月17日或5月19日。'},
+    {sn:'FW20260513012',item:'工商注册-经营范围变更',company:'虹禾晶',applicant:'刘芳',time:'2026-05-13 11:15',status:'待处理',detail:'申请增加经营范围：食品添加剂生产/销售。企业已取得食品生产许可证，需同步更新营业执照。已提交变更申请表及相关证照扫描件。'}
+];
+
+var filteredServices = Array.from({length: services.length}, function(_, i) { return i; });
+
+function initFilters(){
+    var sel=document.getElementById('fType');var seen={};
+    services.forEach(function(b){if(!seen[b.item]){seen[b.item]=1;var opt=document.createElement('option');opt.textContent=b.item;sel.appendChild(opt);}});
+}
+
+function statusTag(s){
+    if(s==='待处理') return '<span class="tag-pending">待处理</span>';
+    if(s==='处理中') return '<span class="tag-processing">处理中</span>';
+    if(s==='已办结') return '<span class="tag-done">已办结</span>';
+    return '<span class="tag-rejected">已驳回</span>';
+}
+
+function renderTable(){
+    var tbody=document.getElementById('svcTbody');
+    var frag=document.createDocumentFragment();
+    filteredServices.forEach(function(idx){
+        var b=services[idx];
+        var tr=document.createElement('tr');
+
+        var td0=document.createElement('td');
+        td0.style.textAlign='center';
+        var cb=document.createElement('input');
+        cb.type='checkbox';cb.className='row-cb';cb.style.cursor='pointer';cb.setAttribute('data-idx',idx);
+        td0.appendChild(cb);tr.appendChild(td0);
+
+        ['sn','item','company','applicant'].forEach(function(k){
+            var td=document.createElement('td');td.textContent=b[k];tr.appendChild(td);
+        });
+
+        var tdTm=document.createElement('td');tdTm.style.cssText='font-size:12px;white-space:nowrap';tdTm.textContent=b.time;tr.appendChild(tdTm);
+
+        var tdDetail=document.createElement('td');var span=document.createElement('span');span.className='detail-cell';span.textContent=b.detail||'--';span.title=b.detail||'--';tdDetail.appendChild(span);tr.appendChild(tdDetail);
+
+        var tdSt=document.createElement('td');tdSt.style.textAlign='center';tdSt.innerHTML=statusTag(b.status);tr.appendChild(tdSt);
+
+        var tdA=document.createElement('td');
+        var btn1=document.createElement('button');btn1.className='btn btn-default';btn1.style.cssText='padding:3px 8px;font-size:11px';btn1.textContent='详情';
+        btn1.onclick=function(){showDetail(idx);};tdA.appendChild(btn1);
+        tr.appendChild(tdA);
+        frag.appendChild(tr);
+    });
+    tbody.innerHTML='';
+    tbody.appendChild(frag);
+    if(typeof initPagination==='function') initPagination();
+}
+
+function showDetail(i){
+    var b=services[i];
+    var body=document.getElementById('detailBody');
+    body.innerHTML=
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:13px">'+
+        '<div><b style="color:var(--text-secondary)">单号：</b>'+b.sn+'</div>'+
+        '<div><b style="color:var(--text-secondary)">服务事项：</b>'+b.item+'</div>'+
+        '<div><b style="color:var(--text-secondary)">企业名称：</b>'+b.company+'</div>'+
+        '<div><b style="color:var(--text-secondary)">申请人：</b>'+b.applicant+'</div>'+
+        '<div><b style="color:var(--text-secondary)">提交时间：</b>'+b.time+'</div>'+
+        '<div><b style="color:var(--text-secondary)">状态：</b>'+statusTag(b.status)+'</div>'+
+        '</div>'+
+        '<div style="margin-top:14px"><b style="color:var(--text-secondary)">申请详情：</b></div>'+
+        '<div style="margin-top:6px;padding:12px;background:rgba(64,196,255,0.06);border-radius:6px;line-height:1.7;font-size:13px;border-left:3px solid #40c4ff">'+b.detail+'</div>';
+    document.getElementById('detailModal').classList.add('show');
+}
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('show');}
+
+function filterTable(){
+    var fKeyword=(document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var fType=document.getElementById('fType').value.replace(/[ ]/g,'').trim();
+    var fStatus=document.getElementById('fStatus').value.replace(/[ ]/g,'').trim();
+    var fDate=document.getElementById('fDate').value;
+    filteredServices = [];
+    for(var i=0;i<services.length;i++){
+        var b=services[i];
+        var t=[b.sn,b.item,b.company,b.applicant,b.time,b.status,b.detail].join(' ').toLowerCase();
+        if((!fKeyword||t.indexOf(fKeyword)>-1)&&(!fType||t.indexOf(fType)>-1)&&(!fStatus||t.indexOf(fStatus)>-1)&&(!fDate||t.indexOf(fDate)>-1)){
+            filteredServices.push(i);
+        }
+    }
+    renderTable();
+}
+
+function resetFilters(){
+    ['fKeyword','fType','fStatus','fDate'].forEach(function(id){document.getElementById(id).value='';});
+    filteredServices = Array.from({length: services.length}, function(_, i) { return i; });
+    renderTable();
+    showToast('筛选条件已重置','info');
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+    initFilters();
+    document.querySelectorAll('.filter-row select option').forEach(function(opt){
+        var t=opt.textContent.trim();if(t) opt.textContent='　　'+t+'　　';
+    });
+    var searchBtn=document.querySelector('.btn-search');
+    if(searchBtn) searchBtn.addEventListener('click',filterTable);
+});
+
+// ========== ECharts ==========
+var _chart1=null,_chart2=null,_rzFn=null;
+function getCssVar(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||'#a0cfff';}
+function initCharts(){
+    var textColor=getCssVar('--text-primary');
+    var isNarrow = window.innerWidth < 900;
+    var gridLeft = isNarrow ? 35 : 42;
+    var gridBottom = isNarrow ? 42 : 38;
+    var fontSize = isNarrow ? 9 : 11;
+    _chart1=echarts.init(document.getElementById('chartLine'));
+    _chart1.setOption({animation:true,tooltip:{trigger:'axis',textStyle:{color:textColor}},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:fontSize},data:['新增申请','已办结']},xAxis:{type:'category',boundaryGap:false,data:['5-01','5-02','5-03','5-04','5-05','5-06','5-07','5-08','5-09','5-10','5-11','5-12','5-13','5-14'],axisLabel:{color:textColor,fontSize:fontSize},axisLine:{lineStyle:{color:'#40c4ff'}}},yAxis:{type:'value',axisLabel:{color:textColor,fontSize:fontSize},splitLine:{lineStyle:{color:'rgba(64,196,255,0.2)'}}},grid:{left:gridLeft,right:10,top:10,bottom:gridBottom},series:[{name:'新增申请',type:'line',smooth:true,data:[22,25,18,30,20,28,24,26,21,32,19,27,23,29],lineStyle:{color:'#40c4ff',width:2},areaStyle:{color:'rgba(64,196,255,0.1)'},symbol:'circle',symbolSize:4,itemStyle:{color:'#40c4ff'}},{name:'已办结',type:'line',smooth:true,data:[20,22,15,28,18,25,22,23,19,30,16,24,20,26],lineStyle:{color:'#4cd964',width:2},areaStyle:{color:'rgba(76,217,100,0.08)'},symbol:'circle',symbolSize:4,itemStyle:{color:'#4cd964'}}]});
+    _chart2=echarts.init(document.getElementById('chartPie'));
+    _chart2.setOption({animation:true,tooltip:{trigger:'item',textStyle:{color:textColor}},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:fontSize},itemWidth:12,itemHeight:12},series:[{type:'pie',radius:['35%','55%'],center:['50%','45%'],data:[{value:58,name:'工商注册'},{value:43,name:'税务办理'},{value:36,name:'项目申报'},{value:28,name:'场地申请'},{value:22,name:'能源申请'},{value:18,name:'车辆通行证'},{value:15,name:'人才服务'},{value:12,name:'装修审批'}],itemStyle:{color:function(p){return['#40c4ff','#ff9500','#4cd964','#7b61ff','#00c2b8','#ff4d4f','#ff7eb3','#ffcc00'][p.dataIndex]}},label:{color:textColor,fontSize:fontSize},animationType:'scale'}]});
+    _rzFn=function(){
+        var isNarrow = window.innerWidth < 900;
+        var gridLeft = isNarrow ? 35 : 42;
+        var gridBottom = isNarrow ? 42 : 38;
+        var fontSize = isNarrow ? 9 : 11;
+        _chart1&&_chart1.resize();
+        _chart2&&_chart2.resize();
+        _chart1&&_chart1.setOption({grid:{left:gridLeft,right:10,top:10,bottom:gridBottom},xAxis:{axisLabel:{fontSize:fontSize}},yAxis:{axisLabel:{fontSize:fontSize}},legend:{textStyle:{fontSize:fontSize}}});
+        _chart2&&_chart2.setOption({legend:{textStyle:{fontSize:fontSize},itemWidth:12,itemHeight:12},series:[{label:{fontSize:fontSize}}]});
+    };
+    window.addEventListener('resize',_rzFn);
+}
+
+window.addEventListener('pagehide',function(){if(_rzFn)window.removeEventListener('resize',_rzFn);if(_chart1){_chart1.dispose();_chart1=null;}if(_chart2){_chart2.dispose();_chart2=null;}});
+window.addEventListener('pageshow',function(e){if(e.persisted&&!_chart1)initCharts();});
+window.addEventListener('DOMContentLoaded',function(){initCharts();renderTable();});
+
+setInterval(function(){var n=new Date();var p=function(x){return String(x).padStart(2,'0')};var el=document.getElementById('pageTime');if(el)el.textContent=n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate())+' '+p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds())},1000);
+
+// ========== 分页 ==========
+var initPagination=(function(){
+    var PAGE_SIZE=10;
+    return function initPagination(){
+        document.querySelectorAll('.card').forEach(function(card){
+            var table=card.querySelector('.data-table tbody');
+            var pagination=card.querySelector('.pagination');
+            if(!table||!pagination)return;
+            var rows=Array.from(table.querySelectorAll('tr'));
+            if(rows.length===0)return;
+            var infoSpan=pagination.querySelector('span:first-child');
+            var totalPages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+            function renderPage(page){
+                var start=(page-1)*PAGE_SIZE,end=Math.min(start+PAGE_SIZE,rows.length);
+                rows.forEach(function(r,i){r.style.display=(i>=start&&i<end)?'':'none';});
+                infoSpan.textContent='共 '+rows.length+' 条  第'+(start+1)+'-'+end+'条';
+                updateBtns(page,totalPages,pagination);
+            }
+            function updateBtns(page,total,pagi){
+                var bd=pagi.querySelector('.page-btns');if(!bd)return;bd.innerHTML='';
+                var prev=document.createElement('div');prev.className='page-btn'+(page<=1?' disabled':'');prev.textContent='\u00AB';prev.style.cssText='cursor:'+(page<=1?'default':'pointer')+';opacity:'+(page<=1?'0.4':'1');
+                if(page>1)prev.onclick=function(){renderPage(page-1);};bd.appendChild(prev);
+                var sp=Math.max(1,page-2),ep=Math.min(total,sp+4);if(ep-sp<4)sp=Math.max(1,ep-4);
+                for(var p=sp;p<=ep;p++){(function(pp){var btn=document.createElement('div');btn.className='page-btn'+(pp===page?' active':'');btn.textContent=pp;btn.onclick=function(){renderPage(pp);};bd.appendChild(btn);})(p);}
+                var next=document.createElement('div');next.className='page-btn'+(page>=total?' disabled':'');next.textContent='\u00BB';next.style.cssText='cursor:'+(page>=total?'default':'pointer')+';opacity:'+(page>=total?'0.4':'1');
+                if(page<total)next.onclick=function(){renderPage(page+1);};bd.appendChild(next);
+            }
+            renderPage(1);
+        });
+    };
+})();
+
+// ========== 导出功能 ==========
+var exportFormat='excel';
+function openExportModal(){document.getElementById('exportModal').classList.add('show');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('show');}
+function selectExportFormat(el,fmt){
+    exportFormat=fmt;
+    document.querySelectorAll('.export-option').forEach(function(o){o.classList.remove('selected');});
+    el.classList.add('selected');
+}
+function doExport(){
+    var data=services.map(function(b){return{
+        '单号':b.sn,'服务事项':b.item,'企业名称':b.company,'申请人':b.applicant,
+        '提交时间':b.time,'状态':b.status,'申请详情':b.detail
+    };});
+    try{
+        if(exportFormat==='excel'){
+            var ws=XLSX.utils.json_to_sheet(data);
+            var wb=XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb,ws,'服务申请');
+            XLSX.writeFile(wb,'服务直达_'+new Date().toISOString().slice(0,10)+'.xlsx');
+        }else if(exportFormat==='pdf'){
+            var w=window.open('','_blank');
+            w.document.write('<html><head><meta charset="utf-8"><title>服务直达</title>');
+            w.document.write('<style>body{font-family:"Microsoft YaHei",sans-serif;padding:20px}table{border-collapse:collapse;width:100%;font-size:12px}th,td{border:1px solid #ccc;padding:6px}th{background:#40c4ff;color:#fff;position:sticky;top:0}</style>');
+            w.document.write('</head><body>');
+            w.document.write('<h2>服务申请列表</h2>');
+            w.document.write('<table><thead><tr><th>单号</th><th>服务事项</th><th>企业名称</th><th>申请人</th><th>提交时间</th><th>服务详情说明</th><th>状态</th></tr></thead><tbody>');
+            data.forEach(function(r){w.document.write('<tr><td>'+r['单号']+'</td><td>'+r['服务事项']+'</td><td>'+r['企业名称']+'</td><td>'+r['申请人']+'</td><td>'+r['提交时间']+'</td><td style="max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+r['申请详情']+'</td><td>'+r['状态']+'</td></tr>');});
+            w.document.write('</tbody></table></body></html>');
+            w.document.close();
+            setTimeout(function(){w.print();setTimeout(function(){w.close();},500);},300);
+        }else if(exportFormat==='word'){
+            var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>服务直达</title></head><body>';
+            html+='<h2>服务申请列表</h2><table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:12px;width:100%">';
+            html+='<tr style="background:#40c4ff;color:#fff"><th>单号</th><th>服务事项</th><th>企业名称</th><th>申请人</th><th>提交时间</th><th>服务详情说明</th><th>状态</th></tr>';
+            data.forEach(function(r){html+='<tr><td>'+r['单号']+'</td><td>'+r['服务事项']+'</td><td>'+r['企业名称']+'</td><td>'+r['申请人']+'</td><td>'+r['提交时间']+'</td><td>'+r['申请详情']+'</td><td>'+r['状态']+'</td></tr>';});
+            html+='</table></body></html>';
+            var blob=new Blob(['\uFEFF'+html],{type:'application/msword'});
+            var url=URL.createObjectURL(blob);
+            var a=document.createElement('a');a.href=url;a.download='服务直达_'+new Date().toISOString().slice(0,10)+'.doc';
+            document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+        }
+        showToast('导出成功！格式：'+exportFormat,'success');
+    }catch(e){showToast('导出失败：'+e.message,'warning');}
+    closeExportModal();
+}
+
+// ========== 新增功能 ==========
+function openAddModal(){
+    document.getElementById('addItem').value='';
+    document.getElementById('addCompany').value='';
+    document.getElementById('addApplicant').value='';
+    document.getElementById('addTime').value=new Date().toISOString().slice(0,16);
+    document.getElementById('addDetail').value='';
+    document.getElementById('addModal').classList.add('show');
+}
+function closeAddModal(){document.getElementById('addModal').classList.remove('show');}
+function doAdd(){
+    var item=document.getElementById('addItem').value;
+    var company=document.getElementById('addCompany').value.trim();
+    var applicant=document.getElementById('addApplicant').value.trim();
+    var time=document.getElementById('addTime').value;
+    var detail=document.getElementById('addDetail').value.trim();
+    if(!item){showToast('请选择服务事项','warning');return;}
+    if(!company){showToast('请输入企业名称','warning');return;}
+    if(!applicant){showToast('请输入申请人姓名','warning');return;}
+    if(!time){showToast('请选择提交时间','warning');return;}
+    services.unshift({sn:generateSN(),item:item,company:company,applicant:applicant,time:time.replace('T',' '),status:'待处理',detail:detail||'--'});
+    renderTable();
+    closeAddModal();
+    showToast('新增成功！单号：'+services[0].sn,'success');
+}
+</script>
+</body>
+</html>

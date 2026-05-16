@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>供需对接 - 青川县庄子上工业园区智慧园区平台</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        body { background: var(--bg-primary); }
+        .page-hero { background: linear-gradient(135deg, #101838, #162969); border-radius: 12px; padding: 32px; margin-bottom: 24px; border: 1px solid var(--border-color); }
+        .page-hero h1 { font-size: 24px; color: var(--warning-color); margin-bottom: 8px; }
+        .page-hero p { color: var(--text-secondary); font-size: 14px; }
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; }
+        .tab-btn { padding: 8px 20px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.03); color: var(--text-secondary); border-radius: 6px; font-size: 13px; cursor: pointer; }
+        .tab-btn.active { background: rgba(64,196,255,0.15); color: var(--primary-color); border-color: var(--primary-color); }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        .data-table th { color: var(--text-tertiary); font-weight: normal; }
+        .data-table td { color: var(--text-primary); }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+        .tag-supply { background: rgba(76,217,100,0.15); color: var(--success-color); }
+        .tag-demand { background: rgba(255,77,79,0.15); color: var(--danger-color); }
+        .btn-new { background: var(--primary-color); color: #0a1024; border: none; padding: 10px 24px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>企业服务 / 供需对接</span></div>
+        <div class="header-actions">
+            <button class="btn-icon" onclick="location.href='enterprise_service.html'"><i class="fas fa-arrow-left"></i></button>
+            <button class="btn-icon" onclick="location.href='../index.html'"><i class="fas fa-home"></i></button>
+        </div>
+    </div>
+    <div class="page-content">
+        <div class="page-hero">
+            <h1>🔄 供需对接</h1>
+            <p>发布原材料供应与产品需求信息，促进园区企业内部资源共享与协同合作，降低交易成本</p>
+            <div style="margin-top: 16px;"><button class="btn-new">+ 发布供需信息</button></div>
+        </div>
+        <div class="tab-bar">
+            <button class="tab-btn active">全部</button>
+            <button class="tab-btn">供应信息</button>
+            <button class="tab-btn">需求信息</button>
+        </div>
+        <table class="data-table">
+            <thead><tr><th>类型</th><th>产品/服务</th><th>企业名称</th><th>数量/规模</th><th>有效期</th><th>联系方式</th></tr></thead>
+            <tbody>
+                <tr><td><span class="tag tag-supply">供应</span></td><td>砂石原料（粗砂、细砂）</td><td>青川矿业公司</td><td>月供5000吨</td><td>长期有效</td><td>王经理 138****1234</td></tr>
+                <tr><td><span class="tag tag-supply">供应</span></td><td>水泥基混凝土</td><td>广元建材公司</td><td>月供3000方</td><td>长期有效</td><td>李经理 139****5678</td></tr>
+                <tr><td><span class="tag tag-demand">需求</span></td><td>钢材（螺纹钢、盘圆）</td><td>青川钢构公司</td><td>月需800吨</td><td>2026-06-30</td><td>张总 137****9012</td></tr>
+                <tr><td><span class="tag tag-supply">供应</span></td><td>新能源充电桩（运营）</td><td>四川绿能公司</td><td>20个桩位</td><td>长期有效</td><td>刘总 136****3456</td></tr>
+                <tr><td><span class="tag tag-demand">需求</span></td><td>叉车/装载机租赁</td><td>青川物流公司</td><td>各2台</td><td>2026-05-31</td><td>赵经理 135****7890</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <script src="common.js"></script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>物流供需 · 青川庄子上智慧工业园</title>
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+:root{--c-dk:#1B4332;--c-mid:#40916C;--c-light:#D8F3DC;--c-text:#2d3748;--c-sub:#718096;--sidebar-w:200px;--top-h:64px;--sub-h:40px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f5f5;color:var(--c-text);font-family:"Microsoft YaHei","微软雅黑",sans-serif;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+.top-nav{flex-shrink:0;background:var(--c-dk);height:var(--top-h);display:flex;align-items:center;padding:0 32px;border-bottom:2px solid var(--c-mid)}
+.top-nav-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:#fff;text-decoration:none}
+.top-nav-logo svg{width:34px;height:34px}
+.top-nav-menu{display:flex;gap:32px;margin-left:48px;list-style:none}
+.top-nav-menu a{color:rgba(255,255,255,.65);text-decoration:none;font-size:14px;padding:8px 0;border-bottom:2px solid transparent;transition:.2s;white-space:nowrap}
+.top-nav-menu a:hover,.top-nav-menu a.active{color:#fff;border-bottom-color:var(--c-mid)}
+.top-nav-right{margin-left:auto;display:flex;align-items:center;gap:16px}
+.top-nav-right a{color:rgba(255,255,255,.65);font-size:13px;text-decoration:none}
+.top-nav-right .btn-login{background:var(--c-mid);color:#fff;padding:6px 20px;border-radius:20px;font-weight:600;font-size:13px;border:none;cursor:pointer}
+.top-nav-right .btn-login:hover{background:#2d6a4f}
+.sub-header{flex-shrink:0;background:#fff;height:var(--sub-h);display:flex;align-items:center;padding:0 32px;border-bottom:1px solid #e8e8e8}
+.sub-header a{color:var(--c-mid);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:6px;font-weight:500}
+.sub-header a:hover{color:var(--c-dk)}
+.sub-header .sep{color:#ccc;margin:0 6px;font-size:12px}
+.main-wrap{flex:1;display:flex;min-height:0}
+.sidebar{width:var(--sidebar-w);background:#fff;border-right:1px solid #e0e0e0;overflow-y:auto;flex-shrink:0;padding-top:20px}
+.side-btn{display:flex;align-items:center;gap:10px;padding:12px 20px;cursor:pointer;transition:.15s;border-left:3px solid transparent;font-size:13px;font-weight:500;color:var(--c-text)}
+.side-btn:hover{background:#f0faf5}
+.side-btn.active{background:rgba(64,145,108,.08);border-left-color:var(--c-mid);color:var(--c-dk);font-weight:600}
+.side-btn .sb-num{font-size:11px;color:var(--c-sub);margin-left:auto}
+.content{flex:1;padding:20px 24px 0;display:flex;flex-direction:column}
+.content-panel{display:none;flex:1;flex-direction:column}
+.content-panel.show{display:flex}
+.panel-body{flex:1;overflow-y:auto;min-height:0}
+.log-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:1300px){.log-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){.log-grid{grid-template-columns:1fr}}
+.log-card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid #eee;transition:.2s;cursor:pointer}
+.log-card:hover{border-color:var(--c-mid);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.log-card .lc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.lc-type{font-size:11px;padding:3px 10px;border-radius:4px;font-weight:600}
+.t-demand{background:#fff3e0;color:#e65100}.t-supply{background:#e8f5e9;color:#2e7d32}.t-empty{background:#e3f2fd;color:#1565c0}
+.lc-status{font-size:11px;padding:2px 8px;border-radius:4px}
+.st-match{background:#fff3e0;color:#e65100}.st-ready{background:#e8f5e9;color:#2e7d32}.st-done{background:#f5f5f5;color:#9e9e9e}
+.log-card h4{font-size:15px;font-weight:600;margin-bottom:6px;color:var(--c-dk)}
+.log-card .lc-info{font-size:13px;color:var(--c-text);line-height:1.7}
+.log-card .lc-route{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--c-sub);margin:6px 0;padding:6px 0;border-top:1px dashed #eee;border-bottom:1px dashed #eee}
+.log-card .lc-route i{color:var(--c-mid)}
+.log-card .lc-contact{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #eee;justify-content:space-between}
+.lc-contact .phone{background:#e8f5e9;color:var(--c-dk);padding:2px 10px;border-radius:4px;font-size:12px;font-weight:700;white-space:nowrap}
+.lc-contact .expiry{font-size:11px;color:#999;white-space:nowrap}
+.lc-contact .name{font-size:12px;color:var(--c-sub)}
+.lc-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.lc-tags span{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--c-light);color:var(--c-dk)}
+.filter-bar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;flex-shrink:0}
+.filter-bar input,.filter-bar select{padding:8px 14px;border:1px solid #d0d0d0;border-radius:8px;font-size:13px;outline:none;background:#fff}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--c-mid);box-shadow:0 0 0 3px rgba(64,145,108,.06)}
+.filter-bar input{width:180px}.filter-bar select{min-width:110px}
+.filter-bar .result-count{font-size:12px;color:var(--c-sub);margin-left:auto}
+.btn-reset{padding:8px 16px;border:1px solid #d0d0d0;border-radius:8px;background:#fff;font-size:13px;cursor:pointer;color:var(--c-sub)}
+.btn-reset:hover{border-color:var(--c-mid);color:var(--c-dk)}
+.pagination{display:flex;justify-content:center;align-items:center;gap:6px;padding:10px 0 20px;flex-shrink:0}
+.page-btn{width:32px;height:32px;border-radius:6px;border:1px solid #d0d0d0;background:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.page-btn.active{background:var(--c-dk);color:#fff;border-color:var(--c-dk)}
+.page-btn.disabled{opacity:.3;cursor:default}
+.page-info{font-size:12px;color:var(--c-sub);padding:0 6px}
+@media(max-width:900px){.top-nav-menu{display:none}.sidebar{width:160px}}
+/* 页脚 */
+.page-footer{flex-shrink:0;background:var(--c-dk);padding:28px 32px 16px}
+.footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:36px}
+.fcol h5{color:var(--c-light);font-size:14px;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.1)}
+.fcol p,.fcol a{color:rgba(255,255,255,.6);font-size:13px;line-height:2;text-decoration:none;display:block}
+.fcol a:hover{color:#fff}
+.footer-bot{max-width:1200px;margin:20px auto 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);text-align:center;color:rgba(255,255,255,.4);font-size:12px}
+</style>
+</head>
+<body>
+<div class="top-nav">
+    <a href="info_publish.html" class="top-nav-logo">
+        <svg viewBox="0 0 34 34"><rect width="34" height="34" rx="8" fill="#40916C"/><rect x="8" y="18" width="8" height="10" rx="2" fill="#fff"/><rect x="18" y="10" width="8" height="18" rx="2" fill="#fff" opacity=".6"/></svg>
+        青川庄子上智慧工业园
+    </a>
+    <ul class="top-nav-menu">
+        <li><a href="info_publish.html">首页</a></li>
+        <li><a href="employment_detail.html">用工信息</a></li>
+        <li><a href="logistics_supply.html" class="active">物流供需</a></li>
+        <li><a href="featured_supply.html">特色供需</a></li>
+        <li><a href="policy_detail.html">园区政策</a></li>
+        <li><a href="catering.html">园区餐饮</a></li>
+        <li><a href="parking_detail.html">停车服务</a></li>
+        <li><a href="venue_service.html">场馆服务</a></li>
+        <li><a href="activities_detail.html">园区活动</a></li>
+        <li><a href="notice_detail.html">园区公告</a></li>
+    </ul>
+    <div class="top-nav-right"><a href="../login.html">登录</a><a href="#" class="btn-login">注册</a></div>
+</div>
+<div class="sub-header">
+    <a href="info_publish.html"><i class="fa fa-arrow-left"></i> 返回信息发布</a>
+    <span class="sep">/</span>
+    <span style="font-size:12px;color:var(--c-sub)">物流供需</span>
+</div>
+<div class="main-wrap">
+    <div class="sidebar" id="sidebar">
+        <div class="side-btn active" data-filter="all">全部</div>
+        <div class="side-btn" data-filter="demand">园区货源</div>
+        <div class="side-btn" data-filter="empty">返程空车</div>
+        <div class="side-btn" data-filter="supply">车辆资源</div>
+    </div>
+    <div class="content">
+        <div class="filter-bar">
+            <input type="text" id="fKeyword" placeholder="搜索货物品名/路线..." oninput="applyFilter()">
+            <select id="fRoute" onchange="applyFilter()"><option value="">全部路线</option><option value="成都">到成都</option><option value="绵阳">到绵阳</option><option value="广元">到广元</option><option value="西安">到西安</option><option value="重庆">到重庆</option></select>
+            <span class="result-count" id="resultCount"></span>
+        </div>
+        <div class="panel-body"><div class="log-grid" id="logGrid"></div></div>
+        <div class="pagination" id="pagination"></div>
+    </div>
+</div>
+<script>
+var logs = [
+    // 园区货源 (demand)
+    {type:'demand',ttype:'园区货源',cargo:'砂石原料 30吨',company:'阜成新材',from:'青川竹园',to:'成都',contact:'张先生 13856785678',time:'05-11',expiry:'2026-05-15',status:'match',stat:'匹配中',tags:['整车','普货'],desc:'生产原料，急需发车，长期合作可议价'},
+    {type:'demand',ttype:'园区货源',cargo:'铝锭 20吨',company:'佳兴铝业',from:'青川竹园',to:'绵阳',contact:'李主任 13923452345',time:'05-10',expiry:'2026-05-15',status:'match',stat:'匹配中',tags:['整车','重货','月结'],desc:'成品运输，每月固定5-8车'},
+    {type:'demand',ttype:'园区货源',cargo:'管材 15吨',company:'新通鑫',from:'青川竹园',to:'广元',contact:'王经理 13778907890',time:'05-09',expiry:'2026-05-15',status:'ready',stat:'待承运',tags:['零担','6.8m车'],desc:'PE管材，需6.8米高栏车'},
+    {type:'demand',ttype:'园区货源',cargo:'化工原料 25吨',company:'九晟新材',from:'青川竹园',to:'重庆',contact:'陈总 13643214321',time:'05-08',expiry:'2026-05-15',status:'ready',stat:'待承运',tags:['危化品','槽罐车'],desc:'聚氨酯原料，需槽罐车运输'},
+    {type:'demand',ttype:'园区货源',cargo:'钢结构件 12吨',company:'广袤新材',from:'青川竹园',to:'西安',contact:'刘厂长 13587658765',time:'05-07',expiry:'2026-05-15',status:'done',stat:'已发车',tags:['整车','9.6m车'],desc:'已匹配物流公司，今日发车'},
+    // 返程空车 (empty)
+    {type:'empty',ttype:'返程空车',cargo:'空车待配货',company:'川陕物流',from:'成都',to:'青川',contact:'赵师傅 13865436543',time:'05-11',expiry:'2026-05-15',status:'ready',stat:'待配货',tags:['9.6m高栏','载重25t'],desc:'成都下货，空车回青川，可捎货'},
+    {type:'empty',ttype:'返程空车',cargo:'空车待配货',company:'蜀通运输',from:'绵阳',to:'青川',contact:'杨师傅 13643214321',time:'05-11',expiry:'2026-05-15',status:'ready',stat:'待配货',tags:['13m半挂','载重30t'],desc:'绵阳送完货，回青川方向'},
+    {type:'empty',ttype:'返程空车',cargo:'空车待配货',company:'广元货运',from:'广元',to:'青川',contact:'周师傅 18789018901',time:'05-10',expiry:'2026-05-15',status:'ready',stat:'待配货',tags:['6.8m高栏','载重15t'],desc:'广元卸货，回青川可配货'},
+    {type:'empty',ttype:'返程空车',cargo:'空车待配货',company:'川北专线',from:'西安',to:'青川',contact:'吴师傅 15134563456',time:'05-10',expiry:'2026-05-15',status:'ready',stat:'待配货',tags:['4.2m冷藏','载重5t'],desc:'西安回青川，可带生鲜货'},
+    {type:'empty',ttype:'返程空车',cargo:'空车待配货',company:'长江物流',from:'重庆',to:'青川',contact:'孙师傅 13056785678',time:'05-09',expiry:'2026-05-15',status:'ready',stat:'待配货',tags:['9.6m高栏','载重25t'],desc:'重庆卸货返程，途经广元'},
+    // 车辆资源 (supply)
+    {type:'supply',ttype:'车辆资源',cargo:'可承运各类散货',company:'青川运通',from:'青川',to:'全国',contact:'钱队长 18290129012',time:'05-11',expiry:'2026-05-15',status:'ready',stat:'可接单',tags:['车队管理','多车型'],desc:'自有车辆20+台，承接园区企业长期运输'},
+    {type:'supply',ttype:'车辆资源',cargo:'危险品运输车',company:'安达危运',from:'青川',to:'川陕渝',contact:'何经理 13923452345',time:'05-10',expiry:'2026-05-15',status:'ready',stat:'可接单',tags:['危化品资质','槽罐车'],desc:'持危化品运输资质，专运化工原料'},
+    {type:'supply',ttype:'车辆资源',cargo:'冷链配送车',company:'鲜达冷链',from:'青川',to:'周边300km',contact:'魏师傅 13865436543',time:'05-09',expiry:'2026-05-15',status:'ready',stat:'可接单',tags:['冷藏车','恒温控温'],desc:'专业冷链配送，可温控-18~10℃'}
+];
+
+function applyFilter(){
+    var kw=(document.getElementById('fKeyword').value||'').trim().toLowerCase();
+    var cat=document.querySelector('.side-btn.active')?.getAttribute('data-filter')||'all';
+    var route=document.getElementById('fRoute').value;
+    var fl=logs.filter(function(l){
+        if(cat!=='all' && l.type!==cat) return false;
+        if(route){
+            if(l.from.indexOf(route)===-1 && l.to.indexOf(route)===-1) return false;
+        }
+        if(kw){
+            var txt=(l.cargo+' '+l.company+' '+l.from+' '+l.to+' '+l.desc+' '+(l.tags||[]).join(' ')).toLowerCase();
+            if(txt.indexOf(kw)===-1) return false;
+        }
+        return true;
+    });
+    document.getElementById('resultCount').textContent='共'+fl.length+'条';
+    var PS=9,tp=Math.max(1,Math.ceil(fl.length/PS));
+    var p=Math.min(window._cp||1,tp);window._cp=p;window._tp=tp;
+    var s=(p-1)*PS,e=Math.min(s+PS,fl.length);
+    document.getElementById('logGrid').innerHTML=fl.slice(s,e).map(function(l){
+        var ts=l.status==='match'?'st-match':l.status==='ready'?'st-ready':'st-done';
+        var tcls=l.type==='demand'?'t-demand':l.type==='empty'?'t-empty':'t-supply';
+        return '<div class="log-card">'+
+            '<div class="lc-head"><span class="lc-type '+tcls+'">'+l.ttype+'</span><span class="lc-status '+ts+'">'+l.stat+'</span></div>'+
+            '<h4>'+l.cargo+'</h4>'+
+            '<div class="lc-info">'+l.company+' · '+l.desc+'</div>'+
+            '<div class="lc-route"><i class="fa fa-map-marker-alt"></i> '+l.from+' <i class="fa fa-arrow-right" style="font-size:10px;color:#ccc"></i> '+l.to+'</div>'+
+            '<div class="lc-tags">'+(l.tags||[]).map(function(t){return '<span>'+t+'</span>'}).join('')+'</div>'+
+            '<div class="lc-contact"><span class="phone"><i class="fa fa-phone"></i> '+l.contact+'</span><span class="expiry">有效期至 '+l.expiry+'</span></div>'+
+        '</div>';
+    }).join('');
+    renderP();
+}
+function renderP(){
+    var p=window._cp||1,t=window._tp||1;
+    var h='<button class="page-btn'+(p<=1?' disabled':'')+'" onclick="gp('+(p-1)+')">&laquo;</button>';
+    for(var i=1;i<=t;i++) h+='<button class="page-btn'+(i===p?' active':'')+'" onclick="gp('+i+')">'+i+'</button>';
+    h+='<button class="page-btn'+(p>=t?' disabled':'')+'" onclick="gp('+(p+1)+')">&raquo;</button>';
+    h+='<span class="page-info">第'+p+'/'+t+'页</span>';
+    document.getElementById('pagination').innerHTML=h;
+}
+function gp(p){if(p<1||p>window._tp)return;window._cp=p;applyFilter();}
+document.getElementById('sidebar').addEventListener('click',function(e){
+    var b=e.target.closest('.side-btn');if(!b)return;
+    document.querySelectorAll('.side-btn').forEach(function(x){x.classList.remove('active');});
+    b.classList.add('active');window._cp=1;applyFilter();
+});
+applyFilter();
+</script>
+<!-- 页脚 -->
+<footer class="page-footer">
+    <div class="footer-inner">
+        <div class="fcol"><h5>联系我们</h5><p>青川县庄子上工业园区管委会</p><p>地址：四川省广元市青川县竹园镇</p><p>电话：0839-xxxxxxx</p><p>邮箱：park@zhuangzishang.gov.cn</p><p>工作时间：周一至周五 8:30-17:30</p></div>
+        <div class="fcol"><h5>快速链接</h5><a href="../index.html">智慧园区</a></div>
+        <div class="fcol"><h5>关于平台</h5><p>青川县庄子上工业园区智慧园区平台，为园区企业提供一站式信息发布与综合服务。覆盖用工招聘、物流对接、政策解读、场馆预约等全方位功能。</p></div>
+    </div>
+    <div class="footer-bot">Copyright &copy; 2026 青川县庄子上工业园区管委会 All Rights Reserved | 蜀ICP备XXXXXXXX号-1 | 技术支持：青迅科技</div>
+</footer>
+</body>
+</html>

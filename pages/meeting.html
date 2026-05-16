@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会议管理 - 青川县庄子上工业园区智慧园区平台</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+</head>
+<body>
+<script>
+// ===== 主题初始化（从 localStorage 恢复） =====
+(function(){
+    if(localStorage.getItem('ss_theme')==='light'){
+        document.documentElement.classList.add('light-theme');
+    }
+})();
+</script>
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">会议管理 · 加载中...</div></div>
+<script>window.addEventListener('load',()=>{const m=document.getElementById('loadingMask');if(m){m.classList.add('hide');setTimeout(()=>m.style.display='none',500);}});</script>
+<div class="toast-container" id="toastContainer"></div>
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn" title="返回工作台"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>数字化办公 / 会议管理</span></div>
+    </div>
+    <div class="page-header-right"><div id="pageTime" style="font-size:13px;color:var(--text-primary)"></div></div>
+</div>
+<div class="page-body">
+
+<!-- KPI -->
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-calendar-check"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#40c4ff">8</div><div class="kpi-label">本周会议</div><div class="kpi-trend" style="color:#40c4ff">↑ 较上周+2</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-clock"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#4cd964">3</div><div class="kpi-label">今日待开</div><div class="kpi-trend" style="color:#4cd964">最近：14:30</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-door-open"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#ff9500">5</div><div class="kpi-label">会议室数量</div><div class="kpi-trend" style="color:#ff9500">2间已占用</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-user-friends"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#7b61ff">128</div><div class="kpi-label">本月参会人次</div><div class="kpi-trend" style="color:#a0cfff">人均3.2次</div></div>
+    </div>
+</div>
+
+<!-- 图表 -->
+<div class="chart-row chart-cols-2-1">
+    <div class="chart-box">
+        <div class="chart-box-title">📈 近7天会议频次趋势</div>
+        <div id="chart-meeting-trend" style="height:240px;"></div>
+    </div>
+    <div class="chart-box">
+        <div class="chart-box-title">🥧 会议类型分布</div>
+        <div id="chart-meeting-type" style="height:240px;"></div>
+    </div>
+</div>
+
+<!-- 预约会议 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><div class="card-title-icon" style="background:rgba(64,196,255,0.2);color:#40c4ff"><i class="fa fa-search"></i></div>会议查询</div>
+        <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+            <button class="btn btn-success" data-action="add"><i class="fa fa-plus"></i> 预约会议</button>
+            <button class="btn btn-default"><i class="fa fa-download"></i> 导出</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="form-row">
+            <div class="form-item"><div class="form-label">会议主题</div><input class="form-control" placeholder="请输入会议主题..."></div>
+            <div class="form-item"><div class="form-label">会议室</div>
+                <select class="form-control"><option>全部会议室</option><option>第一会议室</option><option>第二会议室</option><option>大会议室</option><option>视频会议室</option></select>
+            </div>
+            <div class="form-item"><div class="form-label">会议类型</div>
+                <select class="form-control"><option>全部类型</option><option>部门例会</option><option>项目会议</option><option>培训会议</option><option>视频会议</option></select>
+            </div>
+            <div class="form-item"><div class="form-label">开始日期</div><input class="form-control" type="date"></div>
+            <div class="form-item"><div class="form-label">状态</div>
+                <select class="form-control"><option>全部状态</option><option>待开始</option><option>进行中</option><option>已结束</option><option>已取消</option></select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 列表 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><div class="card-title-icon" style="background:rgba(123,97,255,0.2);color:#7b61ff">📅</div>会议列表</div>
+        <span style="font-size:12px;color:var(--text-tertiary)">共 42 场</span>
+    </div>
+    <div class="card-body" style="padding:0">
+        <table class="data-table">
+            <thead><tr>
+                <th style="width:38px;text-align:center"><input type="checkbox" id="__cb_all" style="cursor:pointer"></th>
+                <th>会议主题</th><th>会议室</th><th>类型</th><th>开始时间</th><th>结束时间</th><th>组织人</th><th>参会人数</th><th>状态</th><th>操作</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>2026年Q1工作总结会</td><td>大会议室</td><td>部门例会</td><td>2026-03-16 09:00</td><td>2026-03-16 11:00</td><td>王总</td><td>24</td><td><span class="status-tag status-stopped">待开始</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>平台升级方案评审</td><td>第一会议室</td><td>项目会议</td><td>2026-03-16 14:30</td><td>2026-03-16 16:00</td><td>李技术</td><td>8</td><td><span class="status-tag status-stopped">待开始</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>监管数据对接协调会</td><td>视频会议室</td><td>视频会议</td><td>2026-03-15 10:00</td><td>2026-03-15 11:30</td><td>张监管</td><td>12</td><td><span class="status-tag status-running">已结束</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">纪要</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>新员工入职培训</td><td>第二会议室</td><td>培训会议</td><td>2026-03-14 09:00</td><td>2026-03-14 17:00</td><td>HR陈</td><td>5</td><td><span class="status-tag status-running">已结束</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">纪要</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>运营周报分析会</td><td>第一会议室</td><td>部门例会</td><td>2026-03-13 15:00</td><td>2026-03-13 16:00</td><td>运营部</td><td>10</td><td><span class="status-tag status-closed">已取消</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination"><span>共 42 条记录</span><div class="page-btns"></div></div>
+</div>
+
+</div>
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+    const days = ['3/10','3/11','3/12','3/13','3/14','3/15','3/16'];
+    const c1 = echarts.init(document.getElementById('chart-meeting-trend'));
+    c1.setOption({animation:true,tooltip:{trigger:'axis'},xAxis:{type:'category',data:days,axisLabel:{color:'#a0cfff',fontSize:11},axisLine:{lineStyle:{color:'#2b68e0'}}},yAxis:{type:'value',name:'场次',nameTextStyle:{color:'#a0cfff'},axisLabel:{color:'#a0cfff',fontSize:10},splitLine:{lineStyle:{color:'rgba(43,104,224,0.2)'}}},grid:{left:45,right:15,top:25,bottom:30},series:[{type:'bar',data:[3,5,2,4,6,3,8],itemStyle:{color:'#7b61ff',borderRadius:[4,4,0,0]},name:'会议场次'},{type:'line',data:[3,5,2,4,6,3,8],smooth:true,lineStyle:{color:'#40c4ff',width:2},symbol:'circle',symbolSize:5,itemStyle:{color:'#40c4ff'},name:'趋势'}]});
+    const c2 = echarts.init(document.getElementById('chart-meeting-type'));
+    c2.setOption({animation:true,tooltip:{trigger:'item'},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:10}},series:[{type:'pie',radius:['40%','65%'],data:[{value:18,name:'部门例会'},{value:12,name:'项目会议'},{value:8,name:'培训会议'},{value:4,name:'视频会议'}],itemStyle:{color:p=>['#40c4ff','#7b61ff','#4cd964','#ff9500'][p.dataIndex]},label:{color:'#a0cfff',fontSize:10},animationType:'scale'}]});
+});
+</script>
+<script>
+// ===== ECharts 浅色主题动态适配 =====
+(function() {
+    function getChartThemeOpts(isLight) {
+        return {
+            axisLabelColor: isLight ? '#4a6880' : '#a0cfff',
+            splitLineColor: isLight ? 'rgba(100,150,220,0.15)' : 'rgba(43,104,224,0.2)',
+            legendColor:    isLight ? '#4a6880' : '#a0cfff',
+            tooltipBg:      isLight ? '#fff' : 'rgba(10,16,36,0.95)',
+            tooltipBorder:  isLight ? 'rgba(100,150,220,0.4)' : 'rgba(43,104,224,0.5)',
+            tooltipColor:   isLight ? '#1a2a4a' : '#e0f0ff',
+        };
+    }
+    function applyChartTheme(isLight) {
+        if (typeof echarts === 'undefined') return;
+        var opts = getChartThemeOpts(isLight);
+        document.querySelectorAll('[_echarts_instance_],[data-chart],div[id]').forEach(function(el) {
+            try {
+                var inst = echarts.getInstanceByDom(el);
+                if (!inst) return;
+                var option = inst.getOption();
+                var changed = false;
+                if (option.xAxis) option.xAxis.forEach(function(ax) {
+                    if (ax.axisLabel) { ax.axisLabel.color = opts.axisLabelColor; changed=true; }
+                    if (ax.axisLine && ax.axisLine.lineStyle) { ax.axisLine.lineStyle.color = opts.splitLineColor; changed=true; }
+                });
+                if (option.yAxis) option.yAxis.forEach(function(ax) {
+                    if (ax.axisLabel) { ax.axisLabel.color = opts.axisLabelColor; changed=true; }
+                    if (ax.splitLine && ax.splitLine.lineStyle) { ax.splitLine.lineStyle.color = opts.splitLineColor; changed=true; }
+                });
+                if (option.legend) option.legend.forEach(function(lg) {
+                    if (lg.textStyle) { lg.textStyle.color = opts.legendColor; changed=true; }
+                });
+                if (option.series) option.series.forEach(function(s) {
+                    if (s.label && s.label.color) { s.label.color = opts.axisLabelColor; changed=true; }
+                });
+                if (option.tooltip) option.tooltip.forEach(function(tp) {
+                    tp.backgroundColor = opts.tooltipBg;
+                    tp.borderColor = opts.tooltipBorder;
+                    if (tp.textStyle) tp.textStyle.color = opts.tooltipColor;
+                    changed=true;
+                });
+                if (changed) inst.setOption(option, false);
+            } catch(e) {}
+        });
+    }
+    window.addEventListener('load', function() {
+        var isLight = document.documentElement.classList.contains('light-theme');
+        if (isLight) setTimeout(function() { applyChartTheme(true); }, 300);
+    });
+    window._applyChartTheme = applyChartTheme;
+})();
+</script>
+<script>
+// ===== 初始化时同步菜单颜色 =====
+(function() {
+    var isLt = document.documentElement.classList.contains('light-theme');
+    function syncMenuColors(isLight) {
+        document.querySelectorAll('.menu-item').forEach(function(item) {
+            if (item.classList.contains('active')) {
+                item.style.color = isLight ? '#1677ff' : '#40c4ff';
+                item.style.background = isLight ? 'rgba(22,119,255,0.08)' : 'rgba(64,196,255,0.1)';
+            } else {
+                item.style.color = isLight ? '#4a6880' : '#a0cfff';
+                item.style.background = '';
+            }
+        });
+        var panel = document.getElementById('panelContent');
+        if (panel) panel.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+        var menuBox = document.getElementById('menuItems');
+        if (menuBox) menuBox.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+        var sideBar = menuBox ? menuBox.closest('[style*="border-radius:8px"]') : null;
+        if (sideBar) {
+            sideBar.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+            sideBar.style.borderColor = isLight ? 'rgba(100,150,220,0.35)' : 'rgba(43,104,224,0.4)';
+        }
+    }
+    if (isLt) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { syncMenuColors(true); });
+        } else { syncMenuColors(true); }
+    }
+    window._syncMenuColors = syncMenuColors;
+})();
+
+// ===== 深度内联样式主题同步 =====
+(function() {
+    var DARK_BG = ['linear-gradient(135deg,#101838','linear-gradient(135deg, #101838',
+        'linear-gradient(135deg,#0d1a3a','linear-gradient(135deg, #0d1a3a',
+        'rgba(10,20,50','rgba(10,16,36','rgba(16,24,56','#101838','#0a1024','#162969','#0d1b3e'];
+    var DARK_CLR = ['color:#a0cfff','color: #a0cfff','color:#40c4ff','color: #40c4ff','color:#80bfff','color: #80bfff'];
+    function applyInlineTheme(isLight) {
+        if (!isLight) return;
+        document.querySelectorAll('[style]').forEach(function(el) {
+            var s = el.getAttribute('style') || '';
+            if (el.closest('.page-header') || el.closest('.leaflet-container')) return;
+            var hasDarkBg  = DARK_BG.some(function(p){return s.includes(p);});
+            var hasDarkClr = DARK_CLR.some(function(p){return s.includes(p);});
+            if (hasDarkBg) {
+                if (s.includes('rgba(10,20,50')||s.includes('rgba(10,16,36')||s.includes('rgba(16,24,56')) {
+                    var tag = el.tagName.toLowerCase();
+                    if (tag==='input'||tag==='select'||tag==='textarea') {
+                        el.style.background='#fff'; el.style.color='#1a2a4a'; el.style.borderColor='rgba(100,150,220,0.5)';
+                    } else { el.style.background='rgba(255,255,255,0.85)'; }
+                } else if (s.includes('#101838')||s.includes('linear-gradient(135deg,#101838')||s.includes('linear-gradient(135deg, #101838')) {
+                    el.style.background='linear-gradient(135deg,#fff,#f5f8ff)';
+                    el.style.borderColor='rgba(100,150,220,0.35)';
+                } else if (s.includes('linear-gradient(135deg,#0d1a3a')||s.includes('linear-gradient(135deg, #0d1a3a')) {
+                    el.style.background='#f0f6ff';
+                }
+            }
+            if (hasDarkClr) {
+                if (s.includes('color:#a0cfff')||s.includes('color: #a0cfff')) el.style.color='#4a6880';
+                else if (s.includes('color:#40c4ff')||s.includes('color: #40c4ff')) el.style.color='#1677ff';
+                else if (s.includes('color:#80bfff')||s.includes('color: #80bfff')) el.style.color='#5a7a9a';
+            }
+        });
+        document.querySelectorAll('.notice-switch,.config-row,.param-row').forEach(function(el){
+            el.style.borderColor='rgba(100,150,220,0.2)';
+        });
+    }
+    window._applyInlineTheme = applyInlineTheme;
+    var isLt = document.documentElement.classList.contains('light-theme');
+    if (isLt) {
+        if (document.readyState==='loading') {
+            document.addEventListener('DOMContentLoaded', function(){applyInlineTheme(true);});
+        } else { setTimeout(function(){applyInlineTheme(true);},50); }
+    }
+})();
+</script>
+<script src="common.js?v=20260315"></script>
+</body>
+</html>

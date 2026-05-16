@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>访客录入 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <style>
+.tag-approved{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px}
+.tag-pending{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px}
+.tag-signed{background:rgba(64,196,255,0.12);color:#40c4ff;padding:2px 8px;border-radius:4px;font-size:11px}
+html.light-theme .tag-approved{background:rgba(82,196,26,0.08);color:#389e0d}
+html.light-theme .tag-pending{background:rgba(250,140,22,0.08);color:#d46b08}
+html.light-theme .tag-signed{background:rgba(22,119,255,0.08);color:#1677ff}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">加载中...</div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>企业服务 / 访客录入</span></div>
+    </div>
+    <div class="page-header-right"></div>
+</div>
+
+<div class="page-body">
+
+<!-- 统计卡片 -->
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-users"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#40c4ff">1,286</div>
+            <div class="kpi-label">本月访客总数</div>
+            <div class="kpi-trend" style="color:#40c4ff">↑ 较上月+12.5%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-car"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#4cd964">427</div>
+            <div class="kpi-label">本月来访车辆</div>
+            <div class="kpi-trend" style="color:#4cd964">↑ 较上月+8.3%</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-clock"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#ff9500">38</div>
+            <div class="kpi-label">待审批</div>
+            <div class="kpi-trend" style="color:#ff9500">需及时处理</div>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-check-double"></i></div>
+        <div class="kpi-card-body">
+            <div class="kpi-value" style="color:#7b61ff">1,198</div>
+            <div class="kpi-label">已签到</div>
+            <div class="kpi-trend" style="color:#7b61ff">签到率 93.2%</div>
+        </div>
+    </div>
+</div>
+
+<!-- 访客趋势图 -->
+<div class="card">
+    <div class="card-header"><div class="card-title"><i class="fa fa-chart-line" style="color:#40c4ff"></i> 访客趋势</div></div>
+    <div class="card-body"><div id="chartVisit" style="height:300px;"></div></div>
+</div>
+
+<!-- 访客列表 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><i class="fa fa-list-alt" style="color:#40c4ff"></i> 访客列表</div>
+        <div class="card-toolbar">
+            <div class="toolbar-actions">
+                <button class="btn btn-default btn-reset">重置</button>
+                <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+                <button class="btn btn-success"><i class="fa fa-download"></i> 导出</button>
+                <button class="btn btn-primary"><i class="fa fa-plus"></i> 新增</button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="data-table" id="visitorTable">
+                <thead><tr>
+                    <th style="width:38px;text-align:center"><input type="checkbox" id="__cb_all" style="cursor:pointer" title="全选/反选"></th>
+                    <th style="width:95px">单号</th>
+                    <th>来访人姓名</th><th>来访人单位</th><th>来访人手机</th><th>来访事由</th><th>来访车牌</th>
+                    <th>申请时间</th><th>审批时间</th><th>签到时间</th><th>被访人姓名</th><th>被访人单位</th>
+                    <th style="width:150px">操作</th>
+                </tr></thead>
+                <tbody id="visitorTbody"></tbody>
+            </table>
+        </div>
+        <div class="pagination"><span>共 15 条</span><div class="page-btns"></div></div>
+    </div>
+</div>
+
+</div>
+
+<script src="/pages/common.js">
+<script src="/pages/tracker.js"></script></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+window.clearCacheNow = async function() {
+    var results = [];var preserve = {};
+    ['logged_in','ss_theme'].forEach(function(k) { var v = localStorage.getItem(k); if(v) preserve[k]=v; });
+    var lsCount = localStorage.length;localStorage.clear();
+    Object.keys(preserve).forEach(function(k) { localStorage.setItem(k, preserve[k]); });
+    results.push('localStorage清除'+(lsCount-Object.keys(preserve).length)+'项');
+    if ('caches' in window) {
+        try { var ns = await caches.keys(); for(var i=0;i<ns.length;i++) await caches.delete(ns[i]); results.push('Cache清除'+ns.length+'个'); } catch(e){}
+    }
+    showToast('缓存清除完成！'+results.join(' | '),'warning',3000);
+};
+
+function createConfirmModal(title, content, onConfirm) {
+    var old = document.getElementById('__globalModal');if (old) old.remove();
+    var overlay = document.createElement('div');overlay.id = '__globalModal';overlay.className = 'modal-overlay show';
+    overlay.innerHTML = '<div class="modal" style="width:420px"><div class="modal-header"><span class="modal-title">'+title+'</span><div class="modal-close" onclick="document.getElementById(\'__globalModal\').remove()">×</div></div><div class="modal-body" style="padding:20px 24px;font-size:14px;line-height:1.7">'+content+'</div><div class="modal-footer"><button class="btn btn-default" onclick="document.getElementById(\'__globalModal\').remove()">取消</button><button class="btn btn-primary" id="__confirmBtn">确认</button></div></div>';
+    document.body.appendChild(overlay);
+    document.getElementById('__confirmBtn').onclick = function() {document.getElementById('__globalModal').remove();if (onConfirm) onConfirm();};
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+}
+
+// 访客数据
+var visitors = [
+    {ref:'VC20260510001',name:'张伟',company:'四川新通鑫金属铸造有限公司',phone:'138****1234',reason:'业务洽谈',plates:['川A·D12389'],applyTime:'2026-05-10 09:15',approveTime:'2026-05-10 09:30',signTime:'2026-05-10 10:02',host:'李建国',hostUnit:'青川佳兴铝业有限公司',status:'signed'},
+    {ref:'VC20260510002',name:'陈芳',company:'成都恒达建设工程有限公司',phone:'139****5678',reason:'项目考察',plates:['川F·E5678'],applyTime:'2026-05-10 08:45',approveTime:'2026-05-10 09:00',signTime:'2026-05-10 09:28',host:'王建国',hostUnit:'青川佳兴铝业有限公司',status:'signed'},
+    {ref:'VC20260510003',name:'刘强',company:'广元市鼎力物流有限公司',phone:'136****9012',reason:'物流合作洽谈',plates:['川H·F9012','川H·G3456'],applyTime:'2026-05-10 10:30',approveTime:'2026-05-10 10:45',signTime:null,host:'赵志强',hostUnit:'青川县交通运输局',status:'approved'},
+    {ref:'VC20260510004',name:'周敏',company:'中能建绿色建材科技有限公司',phone:'137****3456',reason:'技术交流',plates:['川A·M7890'],applyTime:'2026-05-10 11:00',approveTime:null,signTime:null,host:'李建平',hostUnit:'四川青川经济开发区管委会',status:'pending'},
+    {ref:'VC20260509001',name:'吴军',company:'四川阜成新材料科技有限公司',phone:'135****7890',reason:'货物验收',plates:['川A·K2345','川B·L6789','川C·M0123','川D·N4567','川E·P8901'],applyTime:'2026-05-09 14:20',approveTime:'2026-05-09 14:50',signTime:'2026-05-09 15:35',host:'王建国',hostUnit:'青川佳兴铝业有限公司',status:'signed'},
+    {ref:'VC20260509002',name:'郑平',company:'四川虹禾晶玻璃科技有限公司',phone:'133****2345',reason:'设备调试',plates:['川G·R1234'],applyTime:'2026-05-09 13:10',approveTime:'2026-05-09 13:30',signTime:'2026-05-09 14:05',host:'张明华',hostUnit:'青川县住房和城乡建设局',status:'signed'},
+    {ref:'VC20260509003',name:'冯涛',company:'绵阳鑫顺达贸易公司',phone:'158****6789',reason:'样品送检',plates:['川B·T5678','川B·U6789'],applyTime:'2026-05-09 15:40',approveTime:'2026-05-09 16:00',signTime:'2026-05-09 16:22',host:'李建国',hostUnit:'青川佳兴铝业有限公司',status:'signed'},
+    {ref:'VC20260508001',name:'何丽',company:'华纳实业集团有限公司',phone:'189****0123',reason:'合同签署',plates:['川J·W9012'],applyTime:'2026-05-08 09:00',approveTime:'2026-05-08 09:20',signTime:'2026-05-08 10:15',host:'赵志强',hostUnit:'青川县交通运输局',status:'signed'},
+    {ref:'VC20260508002',name:'蒋磊',company:'九晟新材料科技有限公司',phone:'186****4567',reason:'技术研讨',plates:['川L·X3456','川M·Y5678','川N·Z7890'],applyTime:'2026-05-08 14:30',approveTime:'2026-05-08 15:00',signTime:null,host:'王治国',hostUnit:'青川佳兴铝业有限公司',status:'approved'},
+    {ref:'VC20260508003',name:'沈洁',company:'星恒青源新材料科技有限公司',phone:'150****8901',reason:'参观学习',plates:[],applyTime:'2026-05-08 10:00',approveTime:'2026-05-08 10:15',signTime:'2026-05-08 11:30',host:'张明华',hostUnit:'青川县住房和城乡建设局',status:'signed'},
+    {ref:'VC20260507001',name:'韩飞',company:'广元市环保检测中心',phone:'182****2345',reason:'环保核查',plates:['川H·A1111'],applyTime:'2026-05-07 08:30',approveTime:'2026-05-07 08:50',signTime:'2026-05-07 09:40',host:'李建平',hostUnit:'四川青川经济开发区管委会',status:'signed'},
+    {ref:'VC20260507002',name:'杨丽',company:'成都精工测绘有限公司',phone:'177****6789',reason:'地形测绘',plates:['川A·C2222','川A·D3333'],applyTime:'2026-05-07 13:20',approveTime:'2026-05-07 13:45',signTime:'2026-05-07 14:10',host:'王建国',hostUnit:'青川佳兴铝业有限公司',status:'signed'},
+    {ref:'VC20260507003',name:'曹亮',company:'四川电力建设工程公司',phone:'131****0123',reason:'电力检修',plates:['川E·E4444'],applyTime:'2026-05-07 15:00',approveTime:null,signTime:null,host:'赵志强',hostUnit:'青川县交通运输局',status:'pending'},
+    {ref:'VC20260506001',name:'范建',company:'中国移动青川分公司',phone:'153****4567',reason:'网络维护',plates:[],applyTime:'2026-05-06 09:30',approveTime:'2026-05-06 09:50',signTime:'2026-05-06 10:15',host:'李建国',hostUnit:'青川佳兴铝业有限公司',status:'signed'},
+    {ref:'VC20260506002',name:'袁媛',company:'青川县应急管理局',phone:'185****8901',reason:'安全检查',plates:['川H·F5555'],applyTime:'2026-05-06 14:00',approveTime:'2026-05-06 14:20',signTime:'2026-05-06 14:55',host:'李建平',hostUnit:'四川青川经济开发区管委会',status:'signed'}
+];
+
+function platesDisplay(plates){
+    if(!plates||plates.length===0) return '<span style="color:var(--text-tertiary)">无</span>';
+    if(plates.length<=2) return plates.join('、');
+    return plates[0]+'等'+plates.length+'个车牌';
+}
+function statusTag(s){
+    if(s==='signed') return '<span class="tag-signed">已签到</span>';
+    if(s==='approved') return '<span class="tag-approved">已审批</span>';
+    return '<span class="tag-pending">待审批</span>';
+}
+function dash(v){return v||'<span style="color:var(--text-tertiary)">--</span>';}
+
+function renderTable(){
+    var tbody=document.getElementById('visitorTbody');
+    tbody.innerHTML=visitors.map(function(v,i){
+        var ops='<button class="btn btn-default" onclick="showDetail('+i+')" style="padding:3px 8px;font-size:11px">详情</button> ';
+        if(v.status==='pending') ops+='<button class="btn btn-warning" onclick="approveVisitor('+i+')" style="padding:3px 8px;font-size:11px">审批</button> ';
+        ops+='<button class="btn btn-default" onclick="showQR('+i+')" style="padding:3px 8px;font-size:11px"><i class="fa fa-qrcode"></i></button>';
+        return '<tr>'+
+            '<td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer" data-idx="'+i+'"></td>'+
+            '<td><span style="font-family:monospace;font-size:12px">'+v.ref+'</span></td>'+
+            '<td>'+v.name+'</td><td>'+v.company+'</td><td>'+v.phone+'</td><td>'+v.reason+'</td>'+
+            '<td>'+platesDisplay(v.plates)+'</td>'+
+            '<td>'+v.applyTime+'</td><td>'+dash(v.approveTime)+'</td><td>'+dash(v.signTime)+'</td>'+
+            '<td>'+v.host+'</td><td>'+v.hostUnit+'</td>'+
+            '<td>'+ops+'</td></tr>';
+    }).join('');
+}
+function showDetail(i){var v=visitors[i];showToast(v.name+' 详情\n单位：'+v.company+'\n事由：'+v.reason+'\n手机：'+v.phone+'\n车牌：'+platesDisplay(v.plates)+'\n申请：'+v.applyTime+'\n审批：'+(v.approveTime||'待审批')+'\n签到：'+(v.signTime||'未签到'),'info')}
+function approveVisitor(i){visitors[i].status='approved';visitors[i].approveTime='2026-05-10 '+new Date().toTimeString().slice(0,5);renderTable();showToast(visitors[i].name+' 审批通过','success')}
+function showQR(i){showToast('生成访客二维码\n'+visitors[i].name+' · '+visitors[i].company,'success')}
+
+function showToast(msg,type,duration){
+    duration = duration || 3000;
+    var container=document.getElementById('toastContainer');var t=document.createElement('div');
+    t.style.cssText='padding:10px 20px;border-radius:6px;margin-bottom:8px;background:linear-gradient(135deg,rgba(16,24,56,0.95),rgba(22,41,105,0.95));border:1px solid rgba(43,104,224,0.4);color:#a0cfff;font-size:13px;display:flex;align-items:center;gap:8px;animation:slideIn 0.3s ease';
+    t.innerHTML='<i class="fa fa-'+(type==='success'?'check-circle':type==='warning'?'exclamation-triangle':'info-circle')+'"></i> '+msg;
+    container.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(function(){t.remove()},300)},duration);
+}
+
+// 趋势图
+var _chart1=null,_resizeFn=null;
+function initChart(){
+    _chart1=echarts.init(document.getElementById('chartVisit'));
+    _chart1.setOption({animation:true,tooltip:{trigger:'axis'},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:10},data:['来访人员','来访车辆']},
+        xAxis:{type:'category',data:['5-04','5-05','5-06','5-07','5-08','5-09','5-10'],axisLabel:{color:'#a0cfff',fontSize:11},axisLine:{lineStyle:{color:'#2b68e0'}}},
+        yAxis:{type:'value',axisLabel:{color:'#a0cfff',fontSize:11},splitLine:{lineStyle:{color:'rgba(43,104,224,0.2)'}}},
+        grid:{left:50,right:20,top:20,bottom:40},
+        series:[
+            {name:'来访人员',type:'line',smooth:true,data:[168,182,195,210,178,205,186],lineStyle:{color:'#40c4ff',width:2},areaStyle:{color:'rgba(64,196,255,0.1)'},symbol:'circle',symbolSize:5,itemStyle:{color:'#40c4ff'}},
+            {name:'来访车辆',type:'line',smooth:true,data:[52,58,63,71,55,68,59],lineStyle:{color:'#4cd964',width:2},areaStyle:{color:'rgba(76,217,100,0.08)'},symbol:'circle',symbolSize:5,itemStyle:{color:'#4cd964'}}
+        ]});
+    _resizeFn=function(){_chart1&&_chart1.resize();};
+    window.addEventListener('resize',_resizeFn);
+}
+// 页面离开时销毁图表，释放内存，允许 bfcache
+window.addEventListener('pagehide',function(){
+    if(_resizeFn) window.removeEventListener('resize',_resizeFn);
+    if(_chart1){_chart1.dispose();_chart1=null;}
+});
+// 页面可见时重新初始化（从 bfcache 恢复）
+window.addEventListener('pageshow',function(e){if(e.persisted&&!_chart1)initChart();});
+window.addEventListener('DOMContentLoaded',function(){initChart();renderTable();});
+
+setInterval(function(){var n=new Date();var p=function(x){return String(x).padStart(2,'0')};var el=document.getElementById('pageTime');if(el)el.textContent=n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate())+' '+p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds())},1000);
+
+// 按钮事件
+document.addEventListener('click',function(e){
+    var t=e.target.closest('[data-action]');if(!t)return;
+    var msgs={add:'新增成功！',edit:'已保存！',delete:'已删除！',export:'导出成功！',import:'导入成功！',submit:'提交成功！',approve:'审批通过！'};
+    showToast(msgs[t.dataset.action]||'操作成功！',t.dataset.action==='delete'?'error':'success');
+});
+
+// 分页
+(function(){
+    var PAGE_SIZE=10;
+    function initPaginations(){
+        document.querySelectorAll('.card').forEach(function(card){
+            var table=card.querySelector('.data-table tbody');
+            var pagination=card.querySelector('.pagination');
+            if(!table||!pagination)return;
+            var rows=Array.from(table.querySelectorAll('tr'));
+            if(rows.length===0)return;
+            var infoSpan=pagination.querySelector('span:first-child');
+            var totalPages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+            function renderPage(page){
+                var start=(page-1)*PAGE_SIZE;
+                var end=Math.min(start+PAGE_SIZE,rows.length);
+                rows.forEach(function(r,i){r.style.display=(i>=start&&i<end)?'':'none';});
+                infoSpan.textContent='共 '+rows.length+' 条  第'+(start+1)+'-'+end+'条';
+                updateBtns(page,totalPages,pagination);
+            }
+            function updateBtns(page,total,pagi){
+                var bd=pagi.querySelector('.page-btns');if(!bd)return;bd.innerHTML='';
+                var prev=document.createElement('div');prev.className='page-btn'+(page<=1?' disabled':'');prev.textContent='«';prev.style.cssText='cursor:'+(page<=1?'default':'pointer')+';opacity:'+(page<=1?'0.4':'1');
+                if(page>1)prev.onclick=function(){renderPage(page-1);};bd.appendChild(prev);
+                var sp=Math.max(1,page-2);var ep=Math.min(total,sp+4);if(ep-sp<4)sp=Math.max(1,ep-4);
+                for(var p=sp;p<=ep;p++){(function(pp){var btn=document.createElement('div');btn.className='page-btn'+(pp===page?' active':'');btn.textContent=pp;btn.onclick=function(){renderPage(pp);};bd.appendChild(btn);})(p);}
+                var next=document.createElement('div');next.className='page-btn'+(page>=total?' disabled':'');next.textContent='»';next.style.cssText='cursor:'+(page>=total?'default':'pointer')+';opacity:'+(page>=total?'0.4':'1');
+                if(page<total)next.onclick=function(){renderPage(page+1);};bd.appendChild(next);
+            }
+            renderPage(1);
+        });
+    }
+    window.initPaginations=initPaginations;
+    window.addEventListener('DOMContentLoaded',function(){setTimeout(initPaginations,300);});
+})();
+</script>
+</body>
+</html>

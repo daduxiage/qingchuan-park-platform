@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>入职管理 - 青川县庄子上工业园区智慧园区平台</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+</head>
+<body>
+<script>
+// ===== 主题初始化（从 localStorage 恢复） =====
+(function(){
+    if(localStorage.getItem('ss_theme')==='light'){
+        document.documentElement.classList.add('light-theme');
+    }
+})();
+</script>
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">入职管理 · 加载中...</div></div>
+<script>window.addEventListener('load',()=>{const m=document.getElementById('loadingMask');if(m){m.classList.add('hide');setTimeout(()=>m.style.display='none',500);}});</script>
+<div class="toast-container" id="toastContainer"></div>
+<div class="page-header">
+    <div class="page-header-left">
+        <a href="../index.html" class="back-btn" title="返回工作台"><i class="fa fa-home"></i></a>
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>数字化办公 / 入职管理</span></div>
+    </div>
+    <div class="page-header-right"><div id="pageTime" style="font-size:13px;color:var(--text-primary)"></div></div>
+</div>
+<div class="page-body">
+
+<!-- KPI -->
+<div class="kpi-row kpi-cols-4">
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(76,217,100,0.15);color:#4cd964"><i class="fa fa-user-plus"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#4cd964">4</div><div class="kpi-label">待入职人员</div><div class="kpi-trend" style="color:#4cd964">本月计划</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff"><i class="fa fa-tasks"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#40c4ff">3</div><div class="kpi-label">入职流程进行中</div><div class="kpi-trend" style="color:#40c4ff">手续办理中</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(255,149,0,0.15);color:#ff9500"><i class="fa fa-graduation-cap"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#ff9500">2</div><div class="kpi-label">试用期员工</div><div class="kpi-trend" style="color:#ff9500">待转正考核</div></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-card-icon" style="background:rgba(123,97,255,0.15);color:#7b61ff"><i class="fa fa-users"></i></div>
+        <div class="kpi-card-body"><div class="kpi-value" style="color:#7b61ff">156</div><div class="kpi-label">在职员工总数</div><div class="kpi-trend" style="color:#a0cfff">本月+4人</div></div>
+    </div>
+</div>
+
+<!-- 图表 -->
+<div class="chart-row chart-cols-2-1">
+    <div class="chart-box">
+        <div class="chart-box-title">📊 近12月入职人数趋势</div>
+        <div id="chart-onboard-trend" style="height:240px;"></div>
+    </div>
+    <div class="chart-box">
+        <div class="chart-box-title">🥧 入职部门分布</div>
+        <div id="chart-onboard-dept" style="height:240px;"></div>
+    </div>
+</div>
+
+<!-- 待入职流程跟踪 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><div class="card-title-icon" style="background:rgba(76,217,100,0.2);color:#4cd964"><i class="fa fa-stream"></i></div>入职流程跟踪</div>
+        <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-search"><i class="fa fa-search"></i> 查询</button>
+            <button class="btn btn-success" data-action="add"><i class="fa fa-plus"></i> 新增入职</button>
+            <button class="btn btn-default"><i class="fa fa-download"></i> 导出</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="form-row">
+            <div class="form-item"><div class="form-label">姓名</div><input class="form-control" placeholder="请输入姓名..."></div>
+            <div class="form-item"><div class="form-label">岗位</div><input class="form-control" placeholder="请输入岗位名称..."></div>
+            <div class="form-item"><div class="form-label">入职部门</div>
+                <select class="form-control"><option>全部部门</option><option>监管部</option><option>运营部</option><option>技术部</option><option>行政部</option></select>
+            </div>
+            <div class="form-item"><div class="form-label">入职日期</div><input class="form-control" type="date"></div>
+            <div class="form-item"><div class="form-label">流程状态</div>
+                <select class="form-control"><option>全部状态</option><option>待入职</option><option>手续办理中</option><option>试用期</option><option>已转正</option></select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 列表 -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title"><div class="card-title-icon" style="background:rgba(76,217,100,0.2);color:#4cd964">🙋</div>入职人员列表</div>
+        <span style="font-size:12px;color:var(--text-tertiary)">共 38 条</span>
+    </div>
+    <div class="card-body" style="padding:0">
+        <table class="data-table">
+            <thead><tr>
+                <th style="width:38px;text-align:center"><input type="checkbox" id="__cb_all" style="cursor:pointer"></th>
+                <th>姓名</th><th>岗位</th><th>部门</th><th>入职日期</th><th>联系电话</th><th>学历</th>
+                <th>合同签署</th><th>账号开通</th><th>设备领用</th><th>状态</th><th>操作</th>
+            </tr></thead>
+            <tbody>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>赵明亮</td><td>系统运维工程师</td><td>技术部</td><td>2026-03-18</td><td>138****2345</td><td>本科</td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-stopped">待办</span></td><td><span class="status-tag status-stopped">待办</span></td><td><span class="status-tag status-stopped">待入职</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>陈丽华</td><td>数据分析专员</td><td>运营部</td><td>2026-03-16</td><td>139****5678</td><td>硕士</td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-stopped">待办</span></td><td><span class="status-tag status-stopped">办理中</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>刘建国</td><td>监管业务专员</td><td>监管部</td><td>2026-03-10</td><td>137****8901</td><td>本科</td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-stopped">试用期</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>王晓燕</td><td>行政助理</td><td>行政部</td><td>2026-02-25</td><td>136****4567</td><td>大专</td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-stopped">试用期</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">转正</button></td></tr>
+                <tr><td style="text-align:center"><input type="checkbox" class="row-cb" style="cursor:pointer"></td><td>张伟</td><td>高级工程师</td><td>技术部</td><td>2026-01-06</td><td>135****7890</td><td>硕士</td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-running">已完成</span></td><td><span class="status-tag status-running">已转正</span></td><td><button class="btn btn-default" style="padding:4px 10px;font-size:12px">详情</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination"><span>共 38 条记录</span><div class="page-btns"></div></div>
+</div>
+
+</div>
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+    const months = ['4月','5月','6月','7月','8月','9月','10月','11月','12月','1月','2月','3月'];
+    const c1 = echarts.init(document.getElementById('chart-onboard-trend'));
+    c1.setOption({animation:true,tooltip:{trigger:'axis'},xAxis:{type:'category',data:months,axisLabel:{color:'#a0cfff',fontSize:10},axisLine:{lineStyle:{color:'#2b68e0'}}},yAxis:{type:'value',name:'人',nameTextStyle:{color:'#a0cfff'},axisLabel:{color:'#a0cfff',fontSize:10},splitLine:{lineStyle:{color:'rgba(43,104,224,0.2)'}}},grid:{left:35,right:15,top:25,bottom:30},series:[{type:'bar',data:[3,2,5,1,4,2,3,6,2,3,2,4],itemStyle:{color:'#4cd964',borderRadius:[4,4,0,0]},name:'入职人数'}]});
+    const c2 = echarts.init(document.getElementById('chart-onboard-dept'));
+    c2.setOption({animation:true,tooltip:{trigger:'item'},legend:{bottom:0,textStyle:{color:'#a0cfff',fontSize:10}},series:[{type:'pie',radius:['40%','65%'],data:[{value:15,name:'技术部'},{value:10,name:'监管部'},{value:8,name:'运营部'},{value:5,name:'行政部'}],itemStyle:{color:p=>['#40c4ff','#7b61ff','#4cd964','#ff9500'][p.dataIndex]},label:{color:'#a0cfff',fontSize:10},animationType:'scale'}]});
+});
+</script>
+<script>
+// ===== ECharts 浅色主题动态适配 =====
+(function() {
+    function getChartThemeOpts(isLight) {
+        return {
+            axisLabelColor: isLight ? '#4a6880' : '#a0cfff',
+            splitLineColor: isLight ? 'rgba(100,150,220,0.15)' : 'rgba(43,104,224,0.2)',
+            legendColor:    isLight ? '#4a6880' : '#a0cfff',
+            tooltipBg:      isLight ? '#fff' : 'rgba(10,16,36,0.95)',
+            tooltipBorder:  isLight ? 'rgba(100,150,220,0.4)' : 'rgba(43,104,224,0.5)',
+            tooltipColor:   isLight ? '#1a2a4a' : '#e0f0ff',
+        };
+    }
+    function applyChartTheme(isLight) {
+        if (typeof echarts === 'undefined') return;
+        var opts = getChartThemeOpts(isLight);
+        document.querySelectorAll('[_echarts_instance_],[data-chart],div[id]').forEach(function(el) {
+            try {
+                var inst = echarts.getInstanceByDom(el);
+                if (!inst) return;
+                var option = inst.getOption();
+                var changed = false;
+                if (option.xAxis) option.xAxis.forEach(function(ax) {
+                    if (ax.axisLabel) { ax.axisLabel.color = opts.axisLabelColor; changed=true; }
+                    if (ax.axisLine && ax.axisLine.lineStyle) { ax.axisLine.lineStyle.color = opts.splitLineColor; changed=true; }
+                });
+                if (option.yAxis) option.yAxis.forEach(function(ax) {
+                    if (ax.axisLabel) { ax.axisLabel.color = opts.axisLabelColor; changed=true; }
+                    if (ax.splitLine && ax.splitLine.lineStyle) { ax.splitLine.lineStyle.color = opts.splitLineColor; changed=true; }
+                });
+                if (option.legend) option.legend.forEach(function(lg) {
+                    if (lg.textStyle) { lg.textStyle.color = opts.legendColor; changed=true; }
+                });
+                if (option.series) option.series.forEach(function(s) {
+                    if (s.label && s.label.color) { s.label.color = opts.axisLabelColor; changed=true; }
+                });
+                if (option.tooltip) option.tooltip.forEach(function(tp) {
+                    tp.backgroundColor = opts.tooltipBg;
+                    tp.borderColor = opts.tooltipBorder;
+                    if (tp.textStyle) tp.textStyle.color = opts.tooltipColor;
+                    changed=true;
+                });
+                if (changed) inst.setOption(option, false);
+            } catch(e) {}
+        });
+    }
+    window.addEventListener('load', function() {
+        var isLight = document.documentElement.classList.contains('light-theme');
+        if (isLight) setTimeout(function() { applyChartTheme(true); }, 300);
+    });
+    window._applyChartTheme = applyChartTheme;
+})();
+</script>
+<script>
+// ===== 初始化时同步菜单颜色 =====
+(function() {
+    var isLt = document.documentElement.classList.contains('light-theme');
+    function syncMenuColors(isLight) {
+        document.querySelectorAll('.menu-item').forEach(function(item) {
+            if (item.classList.contains('active')) {
+                item.style.color = isLight ? '#1677ff' : '#40c4ff';
+                item.style.background = isLight ? 'rgba(22,119,255,0.08)' : 'rgba(64,196,255,0.1)';
+            } else {
+                item.style.color = isLight ? '#4a6880' : '#a0cfff';
+                item.style.background = '';
+            }
+        });
+        var panel = document.getElementById('panelContent');
+        if (panel) panel.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+        var menuBox = document.getElementById('menuItems');
+        if (menuBox) menuBox.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+        var sideBar = menuBox ? menuBox.closest('[style*="border-radius:8px"]') : null;
+        if (sideBar) {
+            sideBar.style.background = isLight ? 'linear-gradient(135deg,#fff,#f5f8ff)' : 'linear-gradient(135deg,#101838,#162969)';
+            sideBar.style.borderColor = isLight ? 'rgba(100,150,220,0.35)' : 'rgba(43,104,224,0.4)';
+        }
+    }
+    if (isLt) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { syncMenuColors(true); });
+        } else { syncMenuColors(true); }
+    }
+    window._syncMenuColors = syncMenuColors;
+})();
+
+// ===== 深度内联样式主题同步 =====
+(function() {
+    var DARK_BG = ['linear-gradient(135deg,#101838','linear-gradient(135deg, #101838',
+        'linear-gradient(135deg,#0d1a3a','linear-gradient(135deg, #0d1a3a',
+        'rgba(10,20,50','rgba(10,16,36','rgba(16,24,56','#101838','#0a1024','#162969','#0d1b3e'];
+    var DARK_CLR = ['color:#a0cfff','color: #a0cfff','color:#40c4ff','color: #40c4ff','color:#80bfff','color: #80bfff'];
+    function applyInlineTheme(isLight) {
+        if (!isLight) return;
+        document.querySelectorAll('[style]').forEach(function(el) {
+            var s = el.getAttribute('style') || '';
+            if (el.closest('.page-header') || el.closest('.leaflet-container')) return;
+            var hasDarkBg  = DARK_BG.some(function(p){return s.includes(p);});
+            var hasDarkClr = DARK_CLR.some(function(p){return s.includes(p);});
+            if (hasDarkBg) {
+                if (s.includes('rgba(10,20,50')||s.includes('rgba(10,16,36')||s.includes('rgba(16,24,56')) {
+                    var tag = el.tagName.toLowerCase();
+                    if (tag==='input'||tag==='select'||tag==='textarea') {
+                        el.style.background='#fff'; el.style.color='#1a2a4a'; el.style.borderColor='rgba(100,150,220,0.5)';
+                    } else { el.style.background='rgba(255,255,255,0.85)'; }
+                } else if (s.includes('#101838')||s.includes('linear-gradient(135deg,#101838')||s.includes('linear-gradient(135deg, #101838')) {
+                    el.style.background='linear-gradient(135deg,#fff,#f5f8ff)';
+                    el.style.borderColor='rgba(100,150,220,0.35)';
+                } else if (s.includes('linear-gradient(135deg,#0d1a3a')||s.includes('linear-gradient(135deg, #0d1a3a')) {
+                    el.style.background='#f0f6ff';
+                }
+            }
+            if (hasDarkClr) {
+                if (s.includes('color:#a0cfff')||s.includes('color: #a0cfff')) el.style.color='#4a6880';
+                else if (s.includes('color:#40c4ff')||s.includes('color: #40c4ff')) el.style.color='#1677ff';
+                else if (s.includes('color:#80bfff')||s.includes('color: #80bfff')) el.style.color='#5a7a9a';
+            }
+        });
+        document.querySelectorAll('.notice-switch,.config-row,.param-row').forEach(function(el){
+            el.style.borderColor='rgba(100,150,220,0.2)';
+        });
+    }
+    window._applyInlineTheme = applyInlineTheme;
+    var isLt = document.documentElement.classList.contains('light-theme');
+    if (isLt) {
+        if (document.readyState==='loading') {
+            document.addEventListener('DOMContentLoaded', function(){applyInlineTheme(true);});
+        } else { setTimeout(function(){applyInlineTheme(true);},50); }
+    }
+})();
+</script>
+<script src="common.js?v=20260315"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>能效与运营监测 - 青川县庄子上工业园区智慧园区平台</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        body { background: var(--bg-primary); }
+        .module-hero { background: linear-gradient(135deg, #101838, #162969); border-radius: 12px; padding: 40px; margin-bottom: 24px; border: 1px solid var(--border-color); position: relative; overflow: hidden; }
+        .module-hero::before { content: ''; position: absolute; top: -50%; right: -20%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(64, 196, 255, 0.1) 0%, transparent 70%); pointer-events: none; }
+        .module-hero h1 { font-size: 28px; color: var(--primary-color); margin-bottom: 8px; }
+        .module-hero p { color: var(--text-secondary); font-size: 14px; }
+        .module-hero .hero-stats { display: flex; gap: 32px; margin-top: 24px; }
+        .hero-stat { text-align: center; }
+        .hero-stat .num { font-size: 32px; font-weight: bold; color: var(--primary-color); }
+        .hero-stat .label { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
+        .sub-module-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-bottom: 24px; }
+        .sub-module-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.3s ease; }
+        .sub-module-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(64, 196, 255, 0.2); border-color: var(--primary-color); }
+        .sub-module-card .card-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 16px; }
+        .sub-module-card h3 { font-size: 16px; color: var(--text-primary); margin-bottom: 8px; }
+        .sub-module-card p { font-size: 12px; color: var(--text-tertiary); line-height: 1.6; }
+        .fci-sky { background: rgba(64, 196, 255, 0.15); color: #40c4ff; }
+        .fci-green { background: rgba(76, 217, 100, 0.15); color: #4cd964; }
+        .fci-orange { background: rgba(255, 149, 0, 0.15); color: #ff9500; }
+        .fci-red { background: rgba(255, 77, 79, 0.15); color: #ff4d4f; }
+        .fci-teal { background: rgba(0, 194, 184, 0.15); color: #00c2b8; }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>能效与运营监测</span></div>
+        <div class="header-actions">
+            <button class="btn-icon" onclick="location.href='../index.html'"><i class="fas fa-home"></i></button>
+        </div>
+    </div>
+    <div class="page-content">
+        <div class="module-hero">
+            <h1>⚡ 能效与运营监测</h1>
+            <p>建立园区运行指标模型，对亩均效益、能耗排放、就业贡献等进行动态评估，实现能效精细化管理与异常预警</p>
+            <div class="hero-stats">
+                <div class="hero-stat"><div class="num">28</div><div class="label">入驻企业</div></div>
+                <div class="hero-stat"><div class="num">¥128万</div><div class="label">月均产值</div></div>
+                <div class="hero-stat"><div class="num">98.5%</div><div class="label">设备运行率</div></div>
+                <div class="hero-stat"><div class="num">-12%</div><div class="label">能耗同比</div></div>
+            </div>
+        </div>
+        <div class="sub-module-grid">
+            <div class="sub-module-card" onclick="location.href='energy_monitor.html'">
+                <div class="card-icon fci-sky">⚡</div>
+                <h3>企业用能监测</h3>
+                <p>实时监测企业用电、用水、用气数据，支持分项计量与能耗趋势分析</p>
+            </div>
+            <div class="sub-module-card" onclick="location.href='mu_efficiency.html'">
+                <div class="card-icon fci-green">🏆</div>
+                <h3>亩均论英雄</h3>
+                <p>构建亩均税收、亩均产值等评估体系，综合评价企业发展质量与贡献度</p>
+            </div>
+            <div class="sub-module-card" onclick="location.href='efficiency_analysis.html'">
+                <div class="card-icon fci-orange">📊</div>
+                <h3>能效分析</h3>
+                <p>对标行业标准，分析园区整体及企业能效水平，挖掘节能潜力</p>
+            </div>
+            <div class="sub-module-card" onclick="location.href='anomaly_warning.html'">
+                <div class="card-icon fci-red">🚨</div>
+                <h3>异常预警</h3>
+                <p>基于历史数据与算法模型，实时监测用能异常并自动触发预警</p>
+            </div>
+        </div>
+    </div>
+    <script src="common.js"></script>
+</body>
+</html>

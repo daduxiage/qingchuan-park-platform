@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>信息发布 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+<link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+:root {
+    --c-dark:#1B4332; --c-dk:#1B4332; --c-mid:#40916C; --c-light:#D8F3DC;
+    --c-bg:#F5FBF7; --c-white:#fff; --c-text:#2d3748; --c-sub:#718096;
+    --shadow-sm:0 2px 8px rgba(27,67,50,0.06); --shadow-md:0 4px 16px rgba(27,67,50,0.1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box }
+body { background:var(--c-bg); color:var(--c-text); font-family:"Microsoft YaHei","微软雅黑",sans-serif; min-height:100vh }
+
+/* ===== 顶部导航 ===== */
+.top-nav {background:var(--c-white);height:64px;display:flex;align-items:center;padding:0 32px;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--c-light)}
+.top-nav-logo {display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:var(--c-dark)}
+.top-nav-logo svg{width:34px;height:34px}
+.top-nav-menu {display:flex;gap:32px;margin-left:48px;list-style:none}
+.top-nav-menu a {color:var(--c-sub);text-decoration:none;font-size:14px;padding:8px 0;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.top-nav-menu a:hover,.top-nav-menu a.active {color:var(--c-mid);border-bottom-color:var(--c-mid)}
+.top-nav-right {margin-left:auto;display:flex;align-items:center;gap:16px}
+.top-nav-right a {color:var(--c-sub);font-size:13px;text-decoration:none}
+.top-nav-right .btn-login {background:var(--c-mid);color:#fff;padding:6px 20px;border-radius:20px;font-weight:600;font-size:13px;text-decoration:none;border:none;transition:all .2s}
+.top-nav-right .btn-login:hover {background:var(--c-dark)}
+
+/* ===== Banner 轮播 ===== */
+.carousel {position:relative;width:100%;height:400px;overflow:hidden;background:var(--c-dark)}
+.carousel-track {display:flex;height:100%;transition:transform .6s cubic-bezier(.4,0,.2,1)}
+.carousel-slide {min-width:100%;height:100%;position:relative;overflow:hidden}
+.carousel-slide img {width:100%;height:100%;object-fit:cover;opacity:.65}
+.carousel-slide .slide-overlay {position:absolute;inset:0;background:linear-gradient(to right,rgba(27,67,50,.7) 0%,rgba(27,67,50,.3) 50%,rgba(27,67,50,.1) 100%);display:flex;align-items:center;padding:0 80px}
+.carousel-slide .slide-text {max-width:540px;z-index:1}
+.carousel-slide .slide-text h2 {font-size:36px;color:#fff;font-weight:700;line-height:1.3;margin-bottom:12px}
+.carousel-slide .slide-text p {font-size:16px;color:var(--c-light);line-height:1.6;margin-bottom:20px}
+.carousel-slide .slide-text .slide-btn {display:inline-block;background:var(--c-mid);color:#fff;padding:10px 28px;border-radius:24px;text-decoration:none;font-size:14px;font-weight:600;transition:all .2s}
+.carousel-slide .slide-text .slide-btn:hover {background:#2d6a4f;transform:translateY(-1px)}
+/* dots */
+.carousel-dots {position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:2}
+.carousel-dots span {width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer;transition:all .3s}
+.carousel-dots span.active {background:#fff;width:28px;border-radius:5px}
+/* arrows */
+.carousel-arrow {position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.carousel-arrow:hover {background:rgba(255,255,255,.3)}
+.carousel-arrow.left {left:20px}.carousel-arrow.right {right:20px}
+
+/* ===== 公告跑马灯 ===== */
+.notice-strip {max-width:1200px;margin:-20px auto 0;padding:0 20px;position:relative;z-index:3}
+.notice-strip-inner {background:var(--c-white);border-radius:12px;box-shadow:var(--shadow-md);padding:14px 20px;display:flex;align-items:center;gap:14px}
+.notice-strip-inner .ns-icon {flex-shrink:0;width:40px;height:40px;border-radius:50%;background:var(--c-mid);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px}
+.notice-strip-inner .ns-scroll {flex:1;overflow:hidden;height:22px}
+.notice-strip-inner .ns-list {animation:nsSlide 18s infinite linear}
+.notice-strip-inner .ns-item {color:var(--c-text);font-size:13px;line-height:22px;height:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.notice-strip-inner .ns-more {color:var(--c-mid);font-size:13px;text-decoration:none;white-space:nowrap;font-weight:600}
+@keyframes nsSlide {0%,20%{transform:translateY(0)}25%,45%{transform:translateY(-22px)}50%,70%{transform:translateY(-44px)}75%,95%{transform:translateY(-66px)}100%{transform:translateY(0)}}
+
+/* ===== 区块通用 ===== */
+.sec {max-width:1200px;margin:0 auto;padding:36px 20px}
+.sec-head {display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px}
+.sec-head .title {display:flex;align-items:baseline;gap:12px}
+.sec-head .title h3 {font-size:20px;color:var(--c-dark);font-weight:700}
+.sec-head .title .en {font-size:12px;color:var(--c-mid);letter-spacing:2px;text-transform:uppercase}
+.sec-head .more {color:var(--c-mid);font-size:13px;text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px;transition:all .2s}
+.sec-head .more:hover {color:var(--c-dark)}
+.sec-head .more i {font-size:12px}
+
+/* ---- 样式A: 服务九宫格 ---- */
+.cardA-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.cardA {background:var(--c-white);border-radius:14px;padding:28px 24px;cursor:pointer;transition:all .3s;text-decoration:none;display:flex;align-items:center;gap:18px;border:1px solid transparent;box-shadow:var(--shadow-sm)}
+.cardA:hover {border-color:var(--c-mid);transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.cardA .ca-graphic {width:68px;height:68px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.cardA .ca-graphic svg{width:56px;height:56px}
+.cardA .ca-info h4 {color:var(--c-dark);font-size:16px;margin-bottom:4px}
+.cardA .ca-info p {color:var(--c-sub);font-size:13px}
+
+/* ---- 样式C: 列表型 ---- */
+.cardC-list {display:flex;flex-direction:column;gap:1px;background:var(--c-white);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.cardC {display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--c-white);text-decoration:none;transition:all .2s;border-left:4px solid transparent}
+.cardC:hover {background:#f0faf5;border-left-color:var(--c-mid)}
+.cardC .cc-date {color:var(--c-sub);font-size:12px;min-width:56px}
+.cardC .cc-title {color:var(--c-dark);font-size:14px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cardC .cc-tag {font-size:11px;padding:2px 8px;border-radius:3px;white-space:nowrap}
+.cc-hot{background:#fff3cd;color:#856404}.cc-new{background:var(--c-light);color:var(--c-dark)}
+
+/* ---- 岗位卡片 (与用工信息页面一致) ---- */
+.job-grid {display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.job-card{background:var(--c-white);border-radius:12px;padding:18px 16px;box-shadow:var(--shadow-sm);cursor:pointer;transition:.2s;border:1px solid transparent;text-decoration:none;display:block}
+.job-card:hover{border-color:var(--c-mid);box-shadow:var(--shadow-md)}
+.job-card .jc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.job-card .jc-title{font-size:14px;font-weight:600;color:var(--c-dark)}
+.job-card .jc-status{font-size:10px;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.st-open{background:#e8f5e9;color:#2e7d32}.st-closed{background:#fafafa;color:#9e9e9e}.st-pause{background:#fff3e0;color:#e65100}
+.job-card .jc-company{font-size:13px;font-weight:700;margin-bottom:4px}
+.job-card .jc-meta{display:flex;gap:12px;font-size:12px;color:var(--c-sub);margin-bottom:8px}
+.job-card .jc-tags{display:flex;gap:4px;flex-wrap:wrap}
+.job-card .jc-tags span{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--c-light);color:var(--c-dark)}
+
+/* ---- 样式E: 竖版信息卡 ---- */
+.cardE-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.cardE {background:var(--c-white);border-radius:14px;padding:0;overflow:hidden;box-shadow:var(--shadow-sm);text-decoration:none;display:block;transition:all .3s}
+.cardE:hover {transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.cardE .ce-head {padding:20px 22px 14px;background:linear-gradient(135deg,#f0faf5,var(--c-light));display:flex;align-items:center;gap:12px}
+.cardE .ce-icon {width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cardE .ce-head h4 {color:var(--c-dark);font-size:15px}
+.cardE .ce-body {padding:16px 22px}
+.cardE .ce-body p {color:var(--c-sub);font-size:12px;line-height:1.7}
+.cardE .ce-foot {padding:12px 22px;border-top:1px solid var(--c-light);display:flex;gap:6px;flex-wrap:wrap}
+.cardE .ce-foot span {font-size:11px;padding:3px 10px;border-radius:10px;background:var(--c-light);color:var(--c-dark)}
+
+@media(max-width:900px){
+    .top-nav-menu{display:none}
+    .cardA-grid,.job-grid{grid-template-columns:1fr 1fr}
+    .footer-inner{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+    .cardA-grid,.job-grid,.cardB-grid,.cardF-grid{grid-template-columns:1fr}
+}
+
+/* 特色产品水平滚动画廊 */
+#featured .fp-track{display:flex;gap:20px;animation:fpScroll 40s linear infinite;width:max-content}
+#featured .fp-track:hover{animation-play-state:paused}
+#featured .fp-wrap{overflow:hidden;margin-top:8px}
+.fp-card{width:240px;flex-shrink:0;border-radius:14px;padding:24px 20px;text-decoration:none;display:flex;flex-direction:column;transition:.2s;border:1px solid transparent}
+.fp-card:hover{border-color:rgba(255,255,255,.3);transform:translateY(-3px)}
+.fp-card .fp-icon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:28px}
+.fp-card h4{font-size:15px;font-weight:700;margin-bottom:6px;color:#fff}
+.fp-card p{font-size:12px;line-height:1.5;color:rgba(255,255,255,.75);flex:1}
+.fp-card .fp-tag{display:inline-block;font-size:10px;padding:3px 10px;border-radius:10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.7);margin-top:10px;align-self:flex-start}
+@keyframes fpScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* 园区餐饮水平滚动 */
+#catering .cr-track{display:flex;gap:20px;animation:crScroll 35s linear infinite;width:max-content}
+#catering .cr-track:hover{animation-play-state:paused}
+#catering .cr-wrap{overflow:hidden;margin-top:8px}
+.cr-card{width:260px;flex-shrink:0;border-radius:14px;text-decoration:none;display:flex;flex-direction:column;overflow:hidden;transition:.2s;border:1px solid #eee;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.cr-card:hover{transform:translateY(-3px);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.cr-card .cr-banner{height:90px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative}
+.cr-card .cr-banner .cr-sign{position:absolute;bottom:-14px;left:16px;background:#fff;border-radius:8px;padding:4px 14px;font-size:11px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.08);white-space:nowrap}
+.cr-card .cr-body{padding:14px 16px}
+.cr-card .cr-body h4{font-size:14px;font-weight:600;color:var(--c-dark);margin-bottom:2px}
+.cr-card .cr-body p{font-size:12px;color:var(--c-sub);line-height:1.4}
+.cr-card .cr-body .cr-meta{display:flex;gap:8px;margin-top:8px;font-size:11px;color:var(--c-sub)}
+.cr-card .cr-body .cr-meta span{background:var(--c-light);padding:2px 8px;border-radius:4px;color:var(--c-dark)}
+@keyframes crScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* 场馆/活动卡片 */
+#venue .ven-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+#venue .ven-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);text-decoration:none;display:block;border:1px solid #eee;transition:.2s}
+#venue .ven-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);border-color:var(--c-mid);transform:translateY(-2px)}
+#venue .ven-card .vc-head{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--c-light)}
+#venue .ven-card .vc-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;background:var(--c-light);color:var(--c-dark);flex-shrink:0}
+#venue .ven-card .vc-head h4{font-size:13px;font-weight:600;color:var(--c-dark)}
+#venue .ven-card .vc-body{padding:10px 16px;font-size:12px;color:var(--c-sub);line-height:1.6}
+#venue .ven-card .vc-foot{padding:8px 16px;border-top:1px solid var(--c-light);display:flex;justify-content:space-between;align-items:center;font-size:11px}
+#venue .ven-card .vc-foot .free{color:var(--c-mid);font-weight:600}
+#venue .ven-card .vc-foot .book{color:var(--c-sub)}
+#activities .act-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+#activities .act-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);display:flex;text-decoration:none;border:1px solid #eee;transition:.2s}
+#activities .act-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);border-color:var(--c-mid);transform:translateY(-2px)}
+#activities .act-card .ac-img{width:100px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:32px;position:relative}
+#activities .act-card .ac-img .ac-status{position:absolute;top:6px;right:6px;font-size:9px;padding:2px 6px;border-radius:3px;color:#fff;font-weight:600}
+#activities .act-card .ac-body{padding:12px 14px;flex:1;display:flex;flex-direction:column;justify-content:center}
+#activities .act-card .ac-body h4{font-size:14px;font-weight:600;color:var(--c-dark);margin-bottom:3px}
+#activities .act-card .ac-body p{font-size:12px;color:var(--c-sub);line-height:1.5;margin-bottom:6px}
+#activities .act-card .ac-body .ac-meta{font-size:11px;color:var(--c-sub)}
+#activities .act-card .ac-body .ac-meta i{color:var(--c-mid);width:12px}
+
+/* 页脚 */
+.footer{background:var(--c-dk);padding:40px 32px 20px;margin-top:40px}
+.footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:36px}
+.footer-col h5{color:var(--c-light);font-size:15px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.1)}
+.footer-col p,.footer-col a{color:rgba(255,255,255,.7);font-size:13px;line-height:2.2;text-decoration:none;display:block}
+.footer-col a:hover{color:#fff}
+.footer-bot{max-width:1200px;margin:24px auto 0;padding-top:16px;border-top:1px solid rgba(255,255,255,.1);text-align:center;color:rgba(255,255,255,.5);font-size:12px}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">加载中...</div></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- 导航 -->
+<div class="top-nav">
+    <div class="top-nav-logo">
+        <svg viewBox="0 0 34 34"><rect width="34" height="34" rx="8" fill="#1B4332"/><rect x="8" y="18" width="8" height="10" rx="2" fill="#D8F3DC"/><rect x="18" y="10" width="8" height="18" rx="2" fill="#40916C"/></svg>
+        青川庄子上智慧工业园
+    </div>
+    <ul class="top-nav-menu">
+        <li><a href="info_publish.html" class="active">首页</a></li>
+        <li><a href="employment_detail.html">用工信息</a></li>
+        <li><a href="logistics_supply.html">物流供需</a></li>
+        <li><a href="featured_supply.html">特色供需</a></li>
+        <li><a href="policy_detail.html">园区政策</a></li>
+        <li><a href="catering.html">园区餐饮</a></li>
+        <li><a href="parking_detail.html">停车服务</a></li>
+        <li><a href="venue_service.html">场馆服务</a></li>
+        <li><a href="activities_detail.html">园区活动</a></li>
+        <li><a href="notice_detail.html">园区公告</a></li>
+    </ul>
+    <div class="top-nav-right">
+        <a href="../login.html">登录</a>
+        <a href="#" class="btn-login">注册</a>
+    </div>
+</div>
+
+<!-- Banner 轮播 -->
+<div class="carousel" id="carousel">
+    <div class="carousel-track" id="carouselTrack">
+        <div class="carousel-slide">
+            <img src="img/banner_1.png" alt="" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#1B4332,#40916C)'">
+            <div class="slide-overlay">
+                <div class="slide-text">
+                    <h2>智慧园区·产城融合</h2>
+                    <p>青川县庄子上工业园区 —— 集生产、生活、生态于一体的现代化智慧产业新城，诚邀各界企业入驻发展。</p>
+                    <a href="employment_detail.html" class="slide-btn">了解详情</a>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-slide">
+            <img src="img/banner_2.png" alt="" onerror="this.parentElement.style.background='linear-gradient(135deg,#2d6a4f,#40916C)'">
+            <div class="slide-overlay">
+                <div class="slide-text">
+                    <h2>汇聚英才·共赢未来</h2>
+                    <p>园区重点企业火热招聘中！技术研发、生产制造、质量管理等多岗位虚位以待，期待您的加入。</p>
+                    <a href="employment_detail.html" class="slide-btn">查看岗位</a>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-slide">
+            <img src="img/banner_3.png" alt="" onerror="this.parentElement.style.background='linear-gradient(135deg,#52b788,#40916C)'">
+            <div class="slide-overlay">
+                <div class="slide-text">
+                    <h2>绿色发展·生态园区</h2>
+                    <p>践行两山理念，打造花园式绿色工厂。园区绿化覆盖率达42%，获评省级绿色低碳示范园区。</p>
+                    <a href="policy_detail.html" class="slide-btn">政策速览</a>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-slide">
+            <img src="img/banner_4.png" alt="" onerror="this.parentElement.style.background='linear-gradient(135deg,#1B4332,#2d6a4f)'">
+            <div class="slide-overlay">
+                <div class="slide-text">
+                    <h2>智慧物流·高效通达</h2>
+                    <p>依托青川区位优势，构建公铁联运智慧物流体系。园区至成都2小时经济圈，助力企业降本增效。</p>
+                    <a href="#logistics" class="slide-btn">物流服务</a>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-slide">
+            <img src="img/banner_5.png" alt="" onerror="this.parentElement.style.background='linear-gradient(135deg,#40916C,#52b788)'">
+            <div class="slide-overlay">
+                <div class="slide-text">
+                    <h2>创新驱动·产业升级</h2>
+                    <p>聚焦新材料、装备制造、清洁能源三大主导产业，打造川北地区高质量发展新引擎。</p>
+                    <a href="featured_supply.html" class="slide-btn">供需对接</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="carousel-dots" id="carouselDots"></div>
+    <button class="carousel-arrow left" onclick="slideCarousel(-1)">&#8249;</button>
+    <button class="carousel-arrow right" onclick="slideCarousel(1)">&#8250;</button>
+</div>
+
+<!-- 公告跑马灯 -->
+<div class="notice-strip">
+    <div class="notice-strip-inner">
+        <div class="ns-icon"><i class="fa fa-bullhorn"></i></div>
+        <div class="ns-scroll" onmouseenter="this.querySelector('.ns-list').style.animationPlayState='paused'" onmouseleave="this.querySelector('.ns-list').style.animationPlayState='running'">
+            <div class="ns-list">
+                <div class="ns-item">&#9670; 【公告】关于园区主干道临时封闭施工的通知（5月11日-5月15日）</div>
+                <div class="ns-item">&#9670; 【安全】关于加强园区消防安全检查的通知</div>
+                <div class="ns-item">&#9670; 【政策】2026年度园区企业技改补贴申报工作正式启动</div>
+                <div class="ns-item">&#9670; 【招聘】阜成新材、虹禾晶等企业火热招聘中 数十岗位虚位以待</div>
+            </div>
+        </div>
+        <a href="notice_detail.html" class="ns-more">更多 &rsaquo;</a>
+    </div>
+</div>
+
+<!-- ========== 九宫格服务入口 ========== -->
+<div class="sec">
+    <div class="sec-head">
+        <div class="title"><h3>信息发布服务</h3><span class="en">SERVICE PORTAL</span></div>
+        <a href="employment_detail.html" class="more">全部服务 <i class="fa fa-angle-right"></i></a>
+    </div>
+    <div class="cardA-grid">
+        <a href="employment_detail.html" class="cardA">
+            <div class="ca-graphic"><svg viewBox="0 0 56 56"><circle cx="28" cy="16" r="9" fill="none" stroke="#FF6B35" stroke-width="2.5"/><path d="M13 44c0-8.3 6.7-15 15-15s15 6.7 15 15" fill="none" stroke="#FF6B35" stroke-width="2.5" stroke-linecap="round"/><circle cx="28" cy="14" r="3.5" fill="#FF6B35"/></svg></div>
+            <div class="ca-info"><h4>用工信息</h4><p>园区企业招聘、人才对接服务</p></div>
+        </a>
+        <a href="logistics_supply.html" class="cardA">
+            <div class="ca-graphic"><svg viewBox="0 0 56 56"><rect x="6" y="20" width="44" height="20" rx="5" fill="none" stroke="#2979FF" stroke-width="2.5"/><circle cx="18" cy="42" r="5" fill="none" stroke="#2979FF" stroke-width="2"/><circle cx="38" cy="42" r="5" fill="none" stroke="#2979FF" stroke-width="2"/><rect x="18" y="8" width="20" height="14" rx="3" fill="#2979FF" opacity=".12"/><rect x="20" y="10" width="16" height="10" rx="2" fill="none" stroke="#2979FF" stroke-width="2.2"/></svg></div>
+            <div class="ca-info"><h4>物流供需</h4><p>货物运输、仓储配送对接</p></div>
+        </a>
+        <a href="featured_supply.html" class="cardA">
+            <div class="ca-graphic"><svg viewBox="0 0 56 56"><rect x="8" y="8" width="16" height="16" rx="4" fill="none" stroke="#FFD600" stroke-width="2.5"/><rect x="32" y="8" width="16" height="16" rx="4" fill="#FFD600" opacity=".12" stroke="#FFD600" stroke-width="2"/><rect x="8" y="30" width="40" height="18" rx="4" fill="#FFD600" opacity=".08" stroke="#FFD600" stroke-width="2.5"/><path d="M24 16h8" stroke="#FFD600" stroke-width="2" stroke-linecap="round"/><path d="M20 39h16" stroke="#FFD600" stroke-width="2" stroke-linecap="round"/></svg></div>
+            <div class="ca-info"><h4>特色供需</h4><p>原材料与产品供需对接平台</p></div>
+        </a>
+        <a href="policy_detail.html" class="cardA">
+            <div class="ca-graphic"><svg viewBox="0 0 56 56"><rect x="8" y="4" width="40" height="48" rx="5" fill="none" stroke="#AA00FF" stroke-width="2.5"/><rect x="14" y="12" width="28" height="4" rx="2" fill="#AA00FF" opacity=".15"/><rect x="14" y="20" width="20" height="4" rx="2" fill="#AA00FF" opacity=".1"/><rect x="14" y="28" width="28" height="4" rx="2" fill="#AA00FF" opacity=".15"/><rect x="14" y="36" width="16" height="4" rx="2" fill="#AA00FF" opacity=".1"/></svg></div>
+            <div class="ca-info"><h4>园区政策</h4><p>惠企政策、办事指南发布</p></div>
+        </a>
+        <a href="catering.html" class="cardA">
+            <div class="ca-graphic"><svg viewBox="0 0 56 56"><circle cx="28" cy="20" r="12" fill="#FF1744" opacity=".08" stroke="#FF1744" stroke-width="2.5"/><path d="M10 42v8h36v-8" fill="#FF1744" opacity=".12" stroke="#FF1744" stroke-width="2.5"/><circle cx="28" cy="16" r="4" fill="#FF1744"/><rect x="24" y="28" width="8" height="4" rx="2" fill="none" stroke="#FF1744" stroke-width="2"/></svg></div>
+            <div class="ca-info"><h4>园区餐饮</h4><p>食堂菜谱、餐饮商家推荐</p></div>
+        </a>
+        <a href="parking_detail.html" class="cardA">
+            <div class="ca-graphic"><svg viewBox="0 0 56 56"><rect x="6" y="10" width="44" height="36" rx="6" fill="none" stroke="#00C853" stroke-width="2.5"/><text x="28" y="36" text-anchor="middle" font-size="26" font-weight="900" fill="#00C853">P</text></svg></div>
+            <div class="ca-info"><h4>停车服务</h4><p>车位查询、车辆引导服务</p></div>
+        </a>
+        <a href="venue_service.html" class="cardA">
+            <div class="ca-graphic"><svg viewBox="0 0 56 56"><rect x="10" y="20" width="36" height="32" rx="4" fill="none" stroke="#00BFA5" stroke-width="2.5"/><polygon points="28,4 18,20 38,20" fill="#00BFA5" opacity=".12" stroke="#00BFA5" stroke-width="2.2"/><rect x="16" y="28" width="8" height="8" rx="2" fill="#00BFA5" opacity=".1"/><rect x="32" y="28" width="8" height="8" rx="2" fill="#00BFA5" opacity=".1"/></svg></div>
+            <div class="ca-info"><h4>场馆服务</h4><p>会议室、展厅、场地预约</p></div>
+        </a>
+        <a href="activities_detail.html" class="cardA">
+            <div class="ca-graphic"><svg viewBox="0 0 56 56"><circle cx="28" cy="24" r="16" fill="none" stroke="#FF6D00" stroke-width="2.5"/><polygon points="28,10 38,31 18,31" fill="#FF6D00" opacity=".15" stroke="#FF6D00" stroke-width="2.2"/><circle cx="28" cy="36" r="4" fill="#FF6D00" opacity=".2" stroke="#FF6D00" stroke-width="1.5"/></svg></div>
+            <div class="ca-info"><h4>园区活动</h4><p>文体赛事、商务交流资讯</p></div>
+        </a>
+        <a href="notice_detail.html" class="cardA">
+            <div class="ca-graphic"><svg viewBox="0 0 56 56"><rect x="8" y="6" width="26" height="28" rx="4" fill="#E91E63" opacity=".08" stroke="#E91E63" stroke-width="2.5"/><polygon points="34,8 48,22 34,22" fill="#E91E63" opacity=".12" stroke="#E91E63" stroke-width="2"/><rect x="8" y="40" width="16" height="8" rx="3" fill="#E91E63" opacity=".12" stroke="#E91E63" stroke-width="2"/></svg></div>
+            <div class="ca-info"><h4>园区公告</h4><p>重要通知、安全提示发布</p></div>
+        </a>
+    </div>
+</div>
+
+<!-- ========== 园区公告 #notice (样式C: 列表型) ========== -->
+<div class="sec" id="notice">
+    <div class="sec-head">
+        <div class="title"><h3>园区公告</h3><span class="en">NOTICE</span></div>
+        <a href="notice_detail.html" class="more">查看更多 <i class="fa fa-angle-right"></i></a>
+    </div>
+    <div class="cardC-list">
+        <a href="#" class="cardC"><span class="cc-date">05-11</span><span class="cc-title">关于园区主干道临时封闭施工的通知（5月11日-5月15日）</span><span class="cc-tag cc-hot">置顶</span></a>
+        <a href="#" class="cardC"><span class="cc-date">05-10</span><span class="cc-title">关于加强园区消防安全检查的通知</span><span class="cc-tag cc-new">新</span></a>
+        <a href="#" class="cardC"><span class="cc-date">05-09</span><span class="cc-title">园区2026年第二季度安全生产工作会议纪要</span></a>
+        <a href="#" class="cardC"><span class="cc-date">05-08</span><span class="cc-title">关于园区网络升级维护的温馨提示</span></a>
+        <a href="#" class="cardC"><span class="cc-date">05-07</span><span class="cc-title">园区环保督查整改情况通报</span></a>
+        <a href="#" class="cardC"><span class="cc-date">05-06</span><span class="cc-title">2026年度园区企业技改补贴申报通知</span><span class="cc-tag cc-new">新</span></a>
+        <a href="#" class="cardC"><span class="cc-date">05-05</span><span class="cc-title">园区供电线路检修停电通知</span></a>
+        <a href="#" class="cardC"><span class="cc-date">05-04</span><span class="cc-title">关于开展园区环境卫生大扫除的通知</span></a>
+    </div>
+</div>
+
+<!-- ========== 园区活动 #activities ========== -->
+<style>
+#activities .act-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+#activities .act-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);display:flex;text-decoration:none;border:1px solid #eee;transition:.2s}
+#activities .act-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);border-color:var(--c-mid);transform:translateY(-2px)}
+#activities .act-card .ac-img{width:100px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:32px;position:relative}
+#activities .act-card .ac-img .ac-status{position:absolute;top:6px;right:6px;font-size:9px;padding:2px 6px;border-radius:3px;color:#fff;font-weight:600}
+#activities .act-card .ac-body{padding:12px 14px;flex:1;display:flex;flex-direction:column;justify-content:center}
+#activities .act-card .ac-body h4{font-size:14px;font-weight:600;color:var(--c-dark);margin-bottom:3px}
+#activities .act-card .ac-body p{font-size:12px;color:var(--c-sub);line-height:1.5;margin-bottom:6px}
+#activities .act-card .ac-body .ac-meta{font-size:11px;color:var(--c-sub)}
+#activities .act-card .ac-body .ac-meta i{color:var(--c-mid);width:12px}
+</style>
+<div class="sec" id="activities">
+    <div class="sec-head">
+        <div class="title"><h3>园区活动</h3><span class="en">ACTIVITIES</span></div>
+        <a href="activities_detail.html" class="more">查看更多 <i class="fa fa-angle-right"></i></a>
+    </div>
+    <div class="act-grid">
+        <a href="activities_detail.html" class="act-card">
+            <div class="ac-img" style="background:linear-gradient(135deg,#1B4332,#40916C)">🏀<span class="ac-status" style="background:rgba(76,175,80,.85)">进行中</span></div>
+            <div class="ac-body"><h4>园区企业篮球联赛</h4><p>8支企业代表队参赛，冠军奖金¥5,000元</p><div class="ac-meta"><i class="fa fa-map-marker-alt"></i> B区体育馆</div></div>
+        </a>
+        <a href="activities_detail.html" class="act-card">
+            <div class="ac-img" style="background:linear-gradient(135deg,#2d6a4f,#52b788)">🛡️<span class="ac-status" style="background:rgba(33,150,243,.85)">即将开始</span></div>
+            <div class="ac-body"><h4>安全生产知识竞赛</h4><p>提升员工安全意识，各企业3人组队参赛</p><div class="ac-meta"><i class="fa fa-map-marker-alt"></i> C区多功能厅</div></div>
+        </a>
+        <a href="activities_detail.html" class="act-card">
+            <div class="ac-img" style="background:linear-gradient(135deg,#40916C,#95D5B2)">🌱<span class="ac-status" style="background:rgba(255,152,0,.85)">筹备中</span></div>
+            <div class="ac-body"><h4>园区植树公益活动</h4><p>共建绿色园区，提供树苗和工具</p><div class="ac-meta"><i class="fa fa-map-marker-alt"></i> 园区绿化区</div></div>
+        </a>
+        <a href="activities_detail.html" class="act-card">
+            <div class="ac-img" style="background:linear-gradient(135deg,#1B4332,#2d6a4f)">🤝<span class="ac-status" style="background:rgba(33,150,243,.85)">即将举行</span></div>
+            <div class="ac-body"><h4>园区企业交流会</h4><p>产业链上下游合作共赢</p><div class="ac-meta"><i class="fa fa-map-marker-alt"></i> C区会议中心</div></div>
+        </a>
+    </div>
+</div>
+
+<!-- ========== 用工信息 employment_detail.html ========== -->
+<div class="sec" id="employment">
+    <div class="sec-head">
+        <div class="title"><h3>用工信息</h3><span class="en">RECRUITMENT</span></div>
+        <a href="employment_detail.html" class="more">查看更多 <i class="fa fa-angle-right"></i></a>
+    </div>
+    <div class="job-grid">
+        <a href="employment_detail.html" class="job-card">
+            <div class="jc-header"><span class="jc-title">技术研发工程师</span><span class="jc-status st-open">招聘中</span></div>
+            <div class="jc-company" style="color:#1B4332">阜成新材</div>
+            <div class="jc-meta"><span><i class="fa fa-users"></i> 招5人</span><span><i class="fa fa-cny"></i> ¥8,000-15,000</span></div>
+            <div class="jc-tags"><span>本科+</span><span>材料/化工</span><span>3年经验</span></div>
+        </a>
+        <a href="employment_detail.html" class="job-card">
+            <div class="jc-header"><span class="jc-title">生产操作工</span><span class="jc-status st-open">招聘中</span></div>
+            <div class="jc-company" style="color:#2d6a4f">虹禾晶</div>
+            <div class="jc-meta"><span><i class="fa fa-users"></i> 招20人</span><span><i class="fa fa-cny"></i> ¥4,500-7,000</span></div>
+            <div class="jc-tags"><span>生产制造</span><span>倒班制</span></div>
+        </a>
+        <a href="employment_detail.html" class="job-card">
+            <div class="jc-header"><span class="jc-title">质量管理主管</span><span class="jc-status st-open">招聘中</span></div>
+            <div class="jc-company" style="color:#40916C">中能建</div>
+            <div class="jc-meta"><span><i class="fa fa-users"></i> 招2人</span><span><i class="fa fa-cny"></i> ¥10,000-18,000</span></div>
+            <div class="jc-tags"><span>质量管理</span><span>5年经验</span></div>
+        </a>
+        <a href="employment_detail.html" class="job-card">
+            <div class="jc-header"><span class="jc-title">工艺技术员</span><span class="jc-status st-open">招聘中</span></div>
+            <div class="jc-company" style="color:#6c4ce0">九晟新材</div>
+            <div class="jc-meta"><span><i class="fa fa-users"></i> 招2人</span><span><i class="fa fa-cny"></i> ¥6,000-9,000</span></div>
+            <div class="jc-tags"><span>大专+</span><span>化工工艺</span><span>2年经验</span></div>
+        </a>
+        <a href="employment_detail.html" class="job-card">
+            <div class="jc-header"><span class="jc-title">CNC操作工</span><span class="jc-status st-closed">已招满</span></div>
+            <div class="jc-company" style="color:#1565c0">星恒青源</div>
+            <div class="jc-meta"><span><i class="fa fa-users"></i> 招5人</span><span><i class="fa fa-cny"></i> ¥5,000-8,000</span></div>
+            <div class="jc-tags"><span>中专+</span><span>数控加工</span></div>
+        </a>
+        <a href="employment_detail.html" class="job-card">
+            <div class="jc-header"><span class="jc-title">生产班长</span><span class="jc-status st-open">招聘中</span></div>
+            <div class="jc-company" style="color:#c0392b">广袤新材</div>
+            <div class="jc-meta"><span><i class="fa fa-users"></i> 招4人</span><span><i class="fa fa-cny"></i> ¥6,000-9,000</span></div>
+            <div class="jc-tags"><span>生产管理</span><span>3年经验</span></div>
+        </a>
+        <a href="employment_detail.html" class="job-card">
+            <div class="jc-header"><span class="jc-title">行政专员</span><span class="jc-status st-open">招聘中</span></div>
+            <div class="jc-company" style="color:#e67e22">星恒青源</div>
+            <div class="jc-meta"><span><i class="fa fa-users"></i> 招1人</span><span><i class="fa fa-cny"></i> ¥5,000-8,000</span></div>
+            <div class="jc-tags"><span>行政人事</span><span>1年经验</span></div>
+        </a>
+        <a href="employment_detail.html" class="job-card">
+            <div class="jc-header"><span class="jc-title">市场营销经理</span><span class="jc-status st-open">招聘中</span></div>
+            <div class="jc-company" style="color:#34495e">华纳实业</div>
+            <div class="jc-meta"><span><i class="fa fa-users"></i> 招2人</span><span><i class="fa fa-cny"></i> ¥8,000-12,000</span></div>
+            <div class="jc-tags"><span>市场营销</span><span>B2B经验</span></div>
+        </a>
+    </div>
+</div>
+
+<!-- ========== 物流供需 #logistics ========== -->
+<div class="sec" id="logistics">
+    <div class="sec-head">
+        <div class="title"><h3>物流供需</h3><span class="en">LOGISTICS</span></div>
+        <a href="logistics_supply.html" class="more">查看更多 <i class="fa fa-angle-right"></i></a>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        <!-- 园区货源 -->
+        <a href="logistics_supply.html" style="text-decoration:none;background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid #eee;display:block;transition:.2s" onmouseover="this.style.borderColor='#40916C';this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.borderColor='#eee';this.style.boxShadow='0 2px 8px rgba(0,0,0,.04)'">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:11px;padding:2px 10px;border-radius:4px;background:#fff3e0;color:#e65100;font-weight:600">园区货源</span>
+                <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#fff3e0;color:#e65100">匹配中</span>
+            </div>
+            <div style="font-size:15px;font-weight:600;color:var(--c-dark);margin-bottom:4px">砂石原料 30吨</div>
+            <div style="font-size:13px;color:var(--c-sub);line-height:1.6">阜成新材 · 生产原料急需发车</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--c-sub);margin:6px 0;padding:6px 0;border-top:1px dashed #eee;border-bottom:1px dashed #eee">
+                <i class="fa fa-map-marker-alt" style="color:#40916C"></i> 青川竹园 → 成都
+            </div>
+            <div style="display:flex;gap:4px;margin-bottom:6px">
+                <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--c-light);color:var(--c-dark)">整车</span>
+                <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--c-light);color:var(--c-dark)">普货</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid #eee">
+                <span style="background:#e8f5e9;color:var(--c-dark);padding:2px 10px;border-radius:4px;font-size:12px;font-weight:700"><i class="fa fa-phone"></i> 张先生 13856785678</span>
+                <span style="font-size:11px;color:#999">有效至 2026-05-18</span>
+            </div>
+        </a>
+        <!-- 返程空车 -->
+        <a href="logistics_supply.html" style="text-decoration:none;background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid #eee;display:block;transition:.2s" onmouseover="this.style.borderColor='#2979FF';this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.borderColor='#eee';this.style.boxShadow='0 2px 8px rgba(0,0,0,.04)'">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:11px;padding:2px 10px;border-radius:4px;background:#e3f2fd;color:#1565c0;font-weight:600">返程空车</span>
+                <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#e8f5e9;color:#2e7d32">待配货</span>
+            </div>
+            <div style="font-size:15px;font-weight:600;color:var(--c-dark);margin-bottom:4px">空车待配货</div>
+            <div style="font-size:13px;color:var(--c-sub);line-height:1.6">川陕物流 · 成都下货空车回青川</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--c-sub);margin:6px 0;padding:6px 0;border-top:1px dashed #eee;border-bottom:1px dashed #eee">
+                <i class="fa fa-map-marker-alt" style="color:#2979FF"></i> 成都 → 青川
+            </div>
+            <div style="display:flex;gap:4px;margin-bottom:6px">
+                <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--c-light);color:var(--c-dark)">9.6m高栏</span>
+                <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--c-light);color:var(--c-dark)">载重25t</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid #eee">
+                <span style="background:#e8f5e9;color:var(--c-dark);padding:2px 10px;border-radius:4px;font-size:12px;font-weight:700"><i class="fa fa-phone"></i> 赵师傅 13865436543</span>
+                <span style="font-size:11px;color:#999">有效至 2026-05-13</span>
+            </div>
+        </a>
+        <!-- 车辆资源 -->
+        <a href="logistics_supply.html" style="text-decoration:none;background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid #eee;display:block;transition:.2s" onmouseover="this.style.borderColor='#40916C';this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.borderColor='#eee';this.style.boxShadow='0 2px 8px rgba(0,0,0,.04)'">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:11px;padding:2px 10px;border-radius:4px;background:#e8f5e9;color:#2e7d32;font-weight:600">车辆资源</span>
+                <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#e8f5e9;color:#2e7d32">可接单</span>
+            </div>
+            <div style="font-size:15px;font-weight:600;color:var(--c-dark);margin-bottom:4px">可承运各类散货</div>
+            <div style="font-size:13px;color:var(--c-sub);line-height:1.6">青川运通 · 自有车辆20+台</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--c-sub);margin:6px 0;padding:6px 0;border-top:1px dashed #eee;border-bottom:1px dashed #eee">
+                <i class="fa fa-map-marker-alt" style="color:#40916C"></i> 青川 → 全国
+            </div>
+            <div style="display:flex;gap:4px;margin-bottom:6px">
+                <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--c-light);color:var(--c-dark)">车队管理</span>
+                <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--c-light);color:var(--c-dark)">多车型</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid #eee">
+                <span style="background:#e8f5e9;color:var(--c-dark);padding:2px 10px;border-radius:4px;font-size:12px;font-weight:700"><i class="fa fa-phone"></i> 钱队长 18290129012</span>
+                <span style="font-size:11px;color:#999">有效至 2026-06-11</span>
+            </div>
+        </a>
+    </div>
+        </a>
+    </div>
+</div>
+
+<style>
+/* 特色产品水平滚动画廊 */
+#featured .fp-track{display:flex;gap:20px;animation:fpScroll 40s linear infinite;width:max-content}
+#featured .fp-track:hover{animation-play-state:paused}
+#featured .fp-wrap{overflow:hidden;margin-top:8px}
+.fp-card{width:240px;flex-shrink:0;border-radius:14px;padding:24px 20px;text-decoration:none;display:flex;flex-direction:column;transition:.2s;border:1px solid transparent}
+.fp-card:hover{border-color:rgba(255,255,255,.3);transform:translateY(-3px)}
+.fp-card .fp-icon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:28px}
+.fp-card h4{font-size:15px;font-weight:700;margin-bottom:6px;color:#fff}
+.fp-card p{font-size:12px;line-height:1.5;color:rgba(255,255,255,.75);flex:1}
+.fp-card .fp-tag{display:inline-block;font-size:10px;padding:3px 10px;border-radius:10px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.7);margin-top:10px;align-self:flex-start}
+@keyframes fpScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+</style>
+<div class="sec" id="featured">
+    <div class="sec-head">
+        <div class="title"><h3>特色供需</h3><span class="en">FEATURED SUPPLY</span></div>
+        <span style="font-size:11px;color:var(--c-sub);margin-left:auto;margin-right:12px">← 左右滑动查看更多 →</span>
+        <a href="featured_supply.html" class="more">查看更多 <i class="fa fa-angle-right"></i></a>
+    </div>
+    <div class="fp-wrap">
+        <div class="fp-track">
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#1a1a2e,#16213e)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#e0a800">🍄</div>
+                <h4>青川黑木耳</h4>
+                <p>国家地理标志产品，肉质厚实、口感爽脆，年产量超5000吨，远销海内外。</p>
+                <span class="fp-tag">国家地理标志</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#2d3436,#636e72)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#b2bec3">🌿</div>
+                <h4>青川天麻</h4>
+                <p>秦岭山脉野生天麻主产区，个头大、药效足，年产优质天麻200+吨。</p>
+                <span class="fp-tag">道地药材</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#1B4332,#2d6a4f)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#d4f5d4">🎍</div>
+                <h4>青川竹荪</h4>
+                <p>野生竹荪珍品，菌香浓郁、营养丰富，被誉为"山珍之王"。</p>
+                <span class="fp-tag">山珍之王</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#4a3728,#6f4e37)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#c8a96e">🍵</div>
+                <h4>七佛贡茶</h4>
+                <p>唐代贡茶传承，海拔800-1200米高山茶园，茶香馥郁、回甘悠长。</p>
+                <span class="fp-tag">历史名茶</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#0c2461,#0a3d62)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#74b9ff">🐟</div>
+                <h4>白龙湖银鱼</h4>
+                <p>白龙湖生态水域野生银鱼，肉质细嫩、营养丰富，国家地理标志产品。</p>
+                <span class="fp-tag">生态养殖</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#b8860b,#daa520)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.15);color:#fff3cd">🍯</div>
+                <h4>唐家河蜂蜜</h4>
+                <p>唐家河自然保护区蜂蜜，纯天然野生百花蜜，口感醇厚甜润。</p>
+                <span class="fp-tag">绿色食品</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#343a40,#495057)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#dee2e6">🥜</div>
+                <h4>青川核桃</h4>
+                <p>高山核桃皮薄仁大，出油率高，富含不饱和脂肪酸，年销3000+吨。</p>
+                <span class="fp-tag">高山特产</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#2e7d32,#4caf50)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#c8e6c9">🫒</div>
+                <h4>青川橄榄油</h4>
+                <p>大巴山南麓橄榄种植区，特级初榨橄榄油，酸度≤0.5%，品质上乘。</p>
+                <span class="fp-tag">特级初榨</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#5d4037,#8d6e63)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#efebe9">🍄</div>
+                <h4>羊肚菌</h4>
+                <p>青川高山羊肚菌示范基地培育，菌香独特、口感极佳，供不应求。</p>
+                <span class="fp-tag">珍稀菌类</span>
+            </a>
+            <!-- 重复一组实现无缝滚动 -->
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#1a1a2e,#16213e)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#e0a800">🍄</div>
+                <h4>青川黑木耳</h4>
+                <p>国家地理标志产品，肉质厚实、口感爽脆，年产量超5000吨，远销海内外。</p>
+                <span class="fp-tag">国家地理标志</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#2d3436,#636e72)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#b2bec3">🌿</div>
+                <h4>青川天麻</h4>
+                <p>秦岭山脉野生天麻主产区，个头大、药效足，年产优质天麻200+吨。</p>
+                <span class="fp-tag">道地药材</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#1B4332,#2d6a4f)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#d4f5d4">🎍</div>
+                <h4>青川竹荪</h4>
+                <p>野生竹荪珍品，菌香浓郁、营养丰富，被誉为"山珍之王"。</p>
+                <span class="fp-tag">山珍之王</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#4a3728,#6f4e37)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#c8a96e">🍵</div>
+                <h4>七佛贡茶</h4>
+                <p>唐代贡茶传承，海拔800-1200米高山茶园，茶香馥郁、回甘悠长。</p>
+                <span class="fp-tag">历史名茶</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#0c2461,#0a3d62)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#74b9ff">🐟</div>
+                <h4>白龙湖银鱼</h4>
+                <p>白龙湖生态水域野生银鱼，肉质细嫩、营养丰富，国家地理标志产品。</p>
+                <span class="fp-tag">生态养殖</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#b8860b,#daa520)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.15);color:#fff3cd">🍯</div>
+                <h4>唐家河蜂蜜</h4>
+                <p>唐家河自然保护区蜂蜜，纯天然野生百花蜜，口感醇厚甜润。</p>
+                <span class="fp-tag">绿色食品</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#343a40,#495057)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#dee2e6">🥜</div>
+                <h4>青川核桃</h4>
+                <p>高山核桃皮薄仁大，出油率高，富含不饱和脂肪酸，年销3000+吨。</p>
+                <span class="fp-tag">高山特产</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#2e7d32,#4caf50)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#c8e6c9">🫒</div>
+                <h4>青川橄榄油</h4>
+                <p>大巴山南麓橄榄种植区，特级初榨橄榄油，酸度≤0.5%，品质上乘。</p>
+                <span class="fp-tag">特级初榨</span>
+            </a>
+            <a href="#" class="fp-card" style="background:linear-gradient(135deg,#5d4037,#8d6e63)">
+                <div class="fp-icon" style="background:rgba(255,255,255,.1);color:#efebe9">🍄</div>
+                <h4>羊肚菌</h4>
+                <p>青川高山羊肚菌示范基地培育，菌香独特、口感极佳，供不应求。</p>
+                <span class="fp-tag">珍稀菌类</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 园区政策 #policy (样式C: 列表型) ========== -->
+<div class="sec" id="policy">
+    <div class="sec-head">
+        <div class="title"><h3>园区政策</h3><span class="en">POLICY</span></div>
+        <a href="policy_detail.html" class="more">查看更多 <i class="fa fa-angle-right"></i></a>
+    </div>
+    <div class="cardC-list">
+        <a href="#" class="cardC"><span class="cc-date">05-10</span><span class="cc-title">2026年度园区企业技术改造补贴申报指南</span><span class="cc-tag cc-hot">热门</span></a>
+        <a href="#" class="cardC"><span class="cc-date">05-08</span><span class="cc-title">关于进一步降低园区企业用电成本的通知</span></a>
+        <a href="#" class="cardC"><span class="cc-date">05-05</span><span class="cc-title">园区企业人才引进奖励办法（2026修订版）</span><span class="cc-tag cc-new">新</span></a>
+        <a href="#" class="cardC"><span class="cc-date">05-01</span><span class="cc-title">青川县招商引资优惠政策汇编</span></a>
+        <a href="#" class="cardC"><span class="cc-date">04-25</span><span class="cc-title">园区企业环保达标奖励实施细则</span></a>
+        <a href="#" class="cardC"><span class="cc-date">04-20</span><span class="cc-title">关于园区高新技术企业认定申报的通知</span></a>
+    </div>
+</div>
+
+<!-- ========== 园区餐饮 #catering (餐厅招牌水平滚动) ========== -->
+<style>
+#catering .cr-track{display:flex;gap:20px;animation:crScroll 35s linear infinite;width:max-content}
+#catering .cr-track:hover{animation-play-state:paused}
+#catering .cr-wrap{overflow:hidden;margin-top:8px}
+.cr-card{width:260px;flex-shrink:0;border-radius:14px;text-decoration:none;display:flex;flex-direction:column;overflow:hidden;transition:.2s;border:1px solid #eee;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.cr-card:hover{transform:translateY(-3px);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.cr-card .cr-banner{height:90px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative}
+.cr-card .cr-banner .cr-sign{position:absolute;bottom:-14px;left:16px;background:#fff;border-radius:8px;padding:4px 14px;font-size:11px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.08);white-space:nowrap}
+.cr-card .cr-body{padding:14px 16px}
+.cr-card .cr-body h4{font-size:14px;font-weight:600;color:var(--c-dark);margin-bottom:2px}
+.cr-card .cr-body p{font-size:12px;color:var(--c-sub);line-height:1.4}
+.cr-card .cr-body .cr-meta{display:flex;gap:8px;margin-top:8px;font-size:11px;color:var(--c-sub)}
+.cr-card .cr-body .cr-meta span{background:var(--c-light);padding:2px 8px;border-radius:4px;color:var(--c-dark)}
+@keyframes crScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+</style>
+<div class="sec" id="catering">
+    <div class="sec-head">
+        <div class="title"><h3>园区餐饮</h3><span class="en">CATERING</span></div>
+        <span style="font-size:11px;color:var(--c-sub);margin-left:auto;margin-right:12px">← 左右滑动 →</span>
+        <a href="catering.html" class="more">查看更多 <i class="fa fa-angle-right"></i></a>
+    </div>
+    <div class="cr-wrap">
+        <div class="cr-track">
+            <a href="catering.html" class="cr-card">
+                <div class="cr-banner" style="background:#e74c3c;padding:0"><svg width="260" height="90" viewBox="0 0 260 90" preserveAspectRatio="none"><rect width="260" height="90" fill="#e74c3c"/><rect x="0" y="65" width="260" height="25" fill="#c0392b"/><rect x="45" y="25" width="70" height="65" fill="#fff" opacity=".12" rx="2"/><rect x="140" y="25" width="70" height="65" fill="#fff" opacity=".12" rx="2"/><rect x="10" y="5" width="240" height="5" fill="#fff" opacity=".2" rx="2"/><rect x="98" y="70" width="55" height="5" fill="#fff" opacity=".25" rx="1"/></svg><span class="cr-sign" style="color:#c0392b">🍽 职工食堂</span></div>
+                <div class="cr-body"><h4>园区职工食堂</h4><p>A区一楼 · 供应三餐 · 可容纳500人</p><div class="cr-meta"><span>早餐6:30-8:30</span><span>午餐11:30-13:00</span></div></div>
+            </a>
+            <a href="catering.html" class="cr-card">
+                <div class="cr-banner" style="background:#e67e22;padding:0"><svg width="260" height="90" viewBox="0 0 260 90" preserveAspectRatio="none"><rect width="260" height="90" fill="#e67e22"/><rect x="10" y="0" width="240" height="65" fill="#d35400"/><rect x="95" y="5" width="70" height="45" fill="#fff" opacity=".1" rx="3"/><circle cx="130" cy="28" r="15" fill="#fff" opacity=".07"/><rect x="10" y="65" width="240" height="25" fill="#c0392b"/><rect x="115" y="73" width="28" height="5" fill="#fff" opacity=".2" rx="1"/></svg><span class="cr-sign" style="color:#d35400">🔥 川味小厨</span></div>
+                <div class="cr-body"><h4>川味小厨</h4><p>B区商业街 · 地道川菜 · 可外卖配送</p><div class="cr-meta"><span>⭐ 4.8分</span><span>人均¥25</span></div></div>
+            </a>
+            <a href="catering.html" class="cr-card">
+                <div class="cr-banner" style="background:#8e44ad;padding:0"><svg width="260" height="90" viewBox="0 0 260 90" preserveAspectRatio="none"><rect width="260" height="90" fill="#8e44ad"/><rect x="0" y="20" width="260" height="5" fill="#fff" opacity=".1"/><rect x="0" y="30" width="260" height="60" fill="#6c3483"/><rect x="70" y="35" width="120" height="45" fill="#fff" opacity=".07" rx="2"/><rect x="105" y="50" width="50" height="5" fill="#fff" opacity=".15" rx="1"/><circle cx="130" cy="42" r="10" fill="#fff" opacity=".07"/></svg><span class="cr-sign" style="color:#6c3483">🧋 园区咖啡</span></div>
+                <div class="cr-body"><h4>园区咖啡厅</h4><p>C区服务中心 · 现磨咖啡 · 商务洽谈</p><div class="cr-meta"><span>☕ 美式¥15</span><span>WiFi</span></div></div>
+            </a>
+            <a href="catering.html" class="cr-card">
+                <div class="cr-banner" style="background:#27ae60;padding:0"><svg width="260" height="90" viewBox="0 0 260 90" preserveAspectRatio="none"><rect width="260" height="90" fill="#27ae60"/><polygon points="72,5 108,45 36,45" fill="#fff" opacity=".08"/><polygon points="155,5 191,45 119,45" fill="#fff" opacity=".08"/><polygon points="113,5 149,45 77,45" fill="#fff" opacity=".06"/><rect x="0" y="45" width="260" height="45" fill="#1e8449"/><rect x="100" y="65" width="60" height="4" fill="#fff" opacity=".15" rx="1"/></svg><span class="cr-sign" style="color:#1e8449">🥟 面点坊</span></div>
+                <div class="cr-body"><h4>北方面点坊</h4><p>B区美食街 · 手工水饺包子面条</p><div class="cr-meta"><span>水饺¥12/份</span><span>早6点营业</span></div></div>
+            </a>
+            <a href="catering.html" class="cr-card">
+                <div class="cr-banner" style="background:#f39c12;padding:0"><svg width="260" height="90" viewBox="0 0 260 90" preserveAspectRatio="none"><rect width="260" height="90" fill="#f39c12"/><rect x="0" y="0" width="260" height="70" fill="#e67e22"/><rect x="55" y="5" width="150" height="30" fill="#fff" opacity=".08" rx="4"/><rect x="80" y="14" width="100" height="5" fill="#fff" opacity=".12" rx="1"/><rect x="0" y="70" width="260" height="20" fill="#d35400"/><rect x="110" y="74" width="40" height="4" fill="#fff" opacity=".15" rx="1"/></svg><span class="cr-sign" style="color:#e67e22">🍜 牛肉面馆</span></div>
+                <div class="cr-body"><h4>青川牛肉面馆</h4><p>A区商业街 · 秘制牛肉面</p><div class="cr-meta"><span>牛肉面¥15</span><span>小菜¥3</span></div></div>
+            </a>
+            <a href="catering.html" class="cr-card">
+                <div class="cr-banner" style="background:#2980b9;padding:0"><svg width="260" height="90" viewBox="0 0 260 90" preserveAspectRatio="none"><rect width="260" height="90" fill="#2980b9"/><rect x="0" y="5" width="260" height="85" fill="#1a5276"/><rect x="45" y="12" width="170" height="40" fill="#fff" opacity=".07" rx="3"/><circle cx="130" cy="22" r="10" fill="#fff" opacity=".06"/><rect x="0" y="60" width="260" height="30" fill="#154360"/><rect x="100" y="72" width="60" height="3" fill="#fff" opacity=".12" rx="1"/></svg><span class="cr-sign" style="color:#1a5276">🥗 轻食坊</span></div>
+                <div class="cr-body"><h4>健康轻食坊</h4><p>C区二楼 · 沙拉简餐 · 减脂餐</p><div class="cr-meta"><span>轻食套餐¥22</span><span>果蔬汁</span></div></div>
+            </a>
+            <!-- 重复一组 -->
+            <a href="catering.html" class="cr-card">
+                <div class="cr-banner" style="background:#e74c3c;padding:0"><svg width="260" height="90" viewBox="0 0 260 90" preserveAspectRatio="none"><rect width="260" height="90" fill="#e74c3c"/><rect x="0" y="65" width="260" height="25" fill="#c0392b"/><rect x="45" y="25" width="70" height="65" fill="#fff" opacity=".12" rx="2"/><rect x="140" y="25" width="70" height="65" fill="#fff" opacity=".12" rx="2"/><rect x="10" y="5" width="240" height="5" fill="#fff" opacity=".2" rx="2"/><rect x="98" y="70" width="55" height="5" fill="#fff" opacity=".25" rx="1"/></svg><span class="cr-sign" style="color:#c0392b">🍽 职工食堂</span></div>
+                <div class="cr-body"><h4>园区职工食堂</h4><p>A区一楼 · 供应三餐 · 可容纳500人</p><div class="cr-meta"><span>早餐6:30-8:30</span><span>午餐11:30-13:00</span></div></div>
+            </a>
+            <a href="catering.html" class="cr-card">
+                <div class="cr-banner" style="background:#e67e22;padding:0"><svg width="260" height="90" viewBox="0 0 260 90" preserveAspectRatio="none"><rect width="260" height="90" fill="#e67e22"/><rect x="10" y="0" width="240" height="65" fill="#d35400"/><rect x="95" y="5" width="70" height="45" fill="#fff" opacity=".1" rx="3"/><circle cx="130" cy="28" r="15" fill="#fff" opacity=".07"/><rect x="10" y="65" width="240" height="25" fill="#c0392b"/><rect x="115" y="73" width="28" height="5" fill="#fff" opacity=".2" rx="1"/></svg><span class="cr-sign" style="color:#d35400">🔥 川味小厨</span></div>
+                <div class="cr-body"><h4>川味小厨</h4><p>B区商业街 · 地道川菜 · 可外卖配送</p><div class="cr-meta"><span>⭐ 4.8分</span><span>人均¥25</span></div></div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 停车服务 #parking ========== -->
+<div class="sec" id="parking">
+    <div class="sec-head">
+        <div class="title"><h3>停车服务</h3><span class="en">PARKING</span></div>
+        <a href="parking_detail.html" class="more">查看更多 <i class="fa fa-angle-right"></i></a>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:16px;text-align:center">
+        <a href="parking_detail.html" style="text-decoration:none">
+            <div style="margin-bottom:6px"><svg viewBox="0 0 42 42" style="width:44px;height:44px"><rect x="3" y="6" width="36" height="30" rx="4" fill="none" stroke="#FF6B35" stroke-width="2.5"/><text x="21" y="29" text-anchor="middle" font-size="20" font-weight="900" fill="#FF6B35">P</text></svg></div>
+            <div style="font-size:12px;font-weight:600;color:var(--c-text)">停车场</div>
+        </a>
+        <a href="parking_detail.html" style="text-decoration:none">
+            <div style="margin-bottom:6px"><svg viewBox="0 0 42 42" style="width:44px;height:44px"><rect x="10" y="3" width="12" height="26" rx="3" fill="none" stroke="#00C853" stroke-width="2.5"/><rect x="8" y="26" width="16" height="8" rx="2" fill="none" stroke="#00C853" stroke-width="2.5"/><polygon points="25,8 25,20 30,14 25,14" fill="none" stroke="#00C853" stroke-width="2"/></svg></div>
+            <div style="font-size:12px;font-weight:600;color:var(--c-text)">充电站</div>
+        </a>
+        <a href="parking_detail.html" style="text-decoration:none">
+            <div style="margin-bottom:6px"><svg viewBox="0 0 42 42" style="width:44px;height:44px"><rect x="8" y="10" width="26" height="22" rx="5" fill="none" stroke="#2979FF" stroke-width="2.5"/><rect x="14" y="14" width="14" height="14" rx="2" fill="none" stroke="#2979FF" stroke-width="2"/><path d="M17 21h8M21 17v8" stroke="#2979FF" stroke-width="2" stroke-linecap="round"/></svg></div>
+            <div style="font-size:12px;font-weight:600;color:var(--c-text)">换电站</div>
+        </a>
+        <a href="parking_detail.html" style="text-decoration:none">
+            <div style="margin-bottom:6px"><svg viewBox="0 0 42 42" style="width:44px;height:44px"><rect x="4" y="12" width="34" height="24" rx="4" fill="none" stroke="#F9A825" stroke-width="2.5"/><line x1="4" y1="20" x2="38" y2="20" stroke="#F9A825" stroke-width="1.5" stroke-dasharray="4,3" opacity=".5"/><line x1="16" y1="12" x2="16" y2="36" stroke="#F9A825" stroke-width="1.5" stroke-dasharray="4,3" opacity=".5"/></svg></div>
+            <div style="font-size:12px;font-weight:600;color:var(--c-text)">路面车位</div>
+        </a>
+        <a href="parking_detail.html" style="text-decoration:none">
+            <div style="margin-bottom:6px"><svg viewBox="0 0 42 42" style="width:44px;height:44px"><rect x="6" y="5" width="30" height="32" rx="4" fill="none" stroke="#AA00FF" stroke-width="2.5"/><line x1="6" y1="14" x2="36" y2="14" stroke="#AA00FF" stroke-width="1.8"/><rect x="12" y="19" width="18" height="5" rx="1.5" fill="none" stroke="#AA00FF" stroke-width="1.5"/></svg></div>
+            <div style="font-size:12px;font-weight:600;color:var(--c-text)">预约</div>
+        </a>
+        <a href="parking_detail.html" style="text-decoration:none">
+            <div style="margin-bottom:6px"><svg viewBox="0 0 42 42" style="width:44px;height:44px"><circle cx="21" cy="21" r="16" fill="none" stroke="#FF1744" stroke-width="2.5"/><text x="21" y="26" text-anchor="middle" font-size="18" font-weight="900" fill="#FF1744">¥</text></svg></div>
+            <div style="font-size:12px;font-weight:600;color:var(--c-text)">缴费</div>
+        </a>
+        <a href="parking_detail.html" style="text-decoration:none">
+            <div style="margin-bottom:6px"><svg viewBox="0 0 42 42" style="width:44px;height:44px"><rect x="7" y="10" width="28" height="22" rx="5" fill="none" stroke="#00BFA5" stroke-width="2.5"/><path d="M15 22h12M21 16v12" stroke="#00BFA5" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+            <div style="font-size:12px;font-weight:600;color:var(--c-text)">充值</div>
+        </a>
+    </div>
+</div>
+
+<!-- ========== 场馆服务 #venue ========== -->
+<style>
+#venue .ven-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+#venue .ven-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);text-decoration:none;display:block;border:1px solid #eee;transition:.2s}
+#venue .ven-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);border-color:var(--c-mid);transform:translateY(-2px)}
+#venue .ven-card .vc-head{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--c-light)}
+#venue .ven-card .vc-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;background:var(--c-light);color:var(--c-dark);flex-shrink:0}
+#venue .ven-card .vc-head h4{font-size:13px;font-weight:600;color:var(--c-dark)}
+#venue .ven-card .vc-body{padding:10px 16px;font-size:12px;color:var(--c-sub);line-height:1.6}
+#venue .ven-card .vc-foot{padding:8px 16px;border-top:1px solid var(--c-light);display:flex;justify-content:space-between;align-items:center;font-size:11px}
+#venue .ven-card .vc-foot .free{color:var(--c-mid);font-weight:600}
+#venue .ven-card .vc-foot .book{color:var(--c-sub)}
+</style>
+<div class="sec" id="venue">
+    <div class="sec-head">
+        <div class="title"><h3>场馆服务</h3><span class="en">VENUE SERVICE</span></div>
+        <a href="venue_service.html" class="more">查看更多 <i class="fa fa-angle-right"></i></a>
+    </div>
+    <div class="ven-grid">
+        <a href="venue_service.html" class="ven-card">
+            <div class="vc-head"><div class="vc-icon"><i class="fa fa-users"></i></div><h4>多功能会议厅</h4></div>
+            <div class="vc-body">📍 C区综合楼3F · 容纳200人<br>🎥 投影/音响/视频会议系统</div>
+            <div class="vc-foot"><span class="free">免费预约</span><span class="book">立即预约 →</span></div>
+        </a>
+        <a href="venue_service.html" class="ven-card">
+            <div class="vc-head"><div class="vc-icon"><i class="fa fa-eye"></i></div><h4>园区展厅</h4></div>
+            <div class="vc-body">📍 A区服务中心1F · 300m²<br>🖼️ 可移动展板 · 产品展示</div>
+            <div class="vc-foot"><span class="free">免费预约</span><span class="book">立即预约 →</span></div>
+        </a>
+        <a href="venue_service.html" class="ven-card">
+            <div class="vc-head"><div class="vc-icon"><i class="fa fa-futbol"></i></div><h4>园区体育馆</h4></div>
+            <div class="vc-body">📍 B区运动中心 · 篮球场<br>🏸 4个羽毛球场 · 更衣室</div>
+            <div class="vc-foot"><span class="free">企业免费</span><span class="book">立即预约 →</span></div>
+        </a>
+        <a href="venue_service.html" class="ven-card">
+            <div class="vc-head"><div class="vc-icon"><i class="fa fa-chalkboard-teacher"></i></div><h4>培训教室</h4></div>
+            <div class="vc-body">📍 C区综合楼2F · 共3间<br>📐 每间50人 · 桌椅可调</div>
+            <div class="vc-foot"><span class="free">免费使用</span><span class="book">立即预约 →</span></div>
+        </a>
+    </div>
+</div>
+
+<!-- ========== 页脚 ========== -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-col">
+            <h5>联系我们</h5>
+            <p>青川县庄子上工业园区管委会</p>
+            <p>地址：四川省广元市青川县竹园镇</p>
+            <p>电话：0839-xxxxxxx</p>
+            <p>邮箱：park@zhuangzishang.gov.cn</p>
+            <p>工作时间：周一至周五 8:30-17:30</p>
+        </div>
+        <div class="footer-col">
+            <h5>快速链接</h5>
+            <a href="../index.html">智慧园区</a>
+        </div>
+        <div class="footer-col">
+            <h5>关于平台</h5>
+            <p>青川县庄子上工业园区智慧园区平台，为园区企业提供一站式信息发布与综合服务。覆盖用工招聘、物流对接、政策解读、场馆预约等全方位功能，助力园区企业高效运营。</p>
+        </div>
+    </div>
+    <div class="footer-bot">
+        Copyright &copy; 2026 青川县庄子上工业园区管委会 All Rights Reserved | 蜀ICP备XXXXXXXX号-1 | 技术支持：青迅科技
+    </div>
+</footer>
+
+<script src="/pages/common.js">
+<script src="/pages/tracker.js"></script></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+// Banner轮播
+(function(){
+    var track=document.getElementById('carouselTrack');
+    var dots=document.getElementById('carouselDots');
+    var slides=track.querySelectorAll('.carousel-slide');
+    var total=slides.length, cur=0;
+    // dots
+    for(var i=0;i<total;i++){
+        var d=document.createElement('span');
+        if(i===0)d.className='active';
+        (function(idx){d.onclick=function(){goTo(idx);};})(i);
+        dots.appendChild(d);
+    }
+    function update(){track.style.transform='translateX(-'+cur+'00%)';dots.querySelectorAll('span').forEach(function(d,i){d.classList.toggle('active',i===cur);});}
+    window.slideCarousel=function(dir){cur=(cur+dir+total)%total;update();};
+    window.goTo=function(idx){cur=idx;update();};
+    setInterval(function(){slideCarousel(1);},5000);
+})();
+
+// 平滑滚动
+document.addEventListener('DOMContentLoaded',function(){
+    var hash=window.location.hash;
+    if(hash){setTimeout(function(){var el=document.querySelector(hash);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},400);}
+    document.querySelectorAll('a[href^="#"]').forEach(function(a){
+        a.addEventListener('click',function(e){
+            var href=this.getAttribute('href');if(href==='#')return;
+            var t=document.querySelector(href);
+            if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});history.pushState(null,null,href);}
+        });
+    });
+});
+</script>
+</body>
+</html>

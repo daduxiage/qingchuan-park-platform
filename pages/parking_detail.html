@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>停车服务 · 青川庄子上智慧工业园</title>
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+:root{--c-dk:#1B4332;--c-mid:#40916C;--c-light:#D8F3DC;--c-text:#2d3748;--c-sub:#718096;--sidebar-w:240px;--top-h:64px;--sub-h:40px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f5f5;color:var(--c-text);font-family:"Microsoft YaHei","微软雅黑",sans-serif;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+
+/* ===== 顶部导航（同 info_publish）===== */
+.top-nav{flex-shrink:0;background:var(--c-dk);height:var(--top-h);display:flex;align-items:center;padding:0 32px;border-bottom:2px solid var(--c-mid)}
+.top-nav-logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;color:#fff;text-decoration:none}
+.top-nav-logo svg{width:34px;height:34px}
+.top-nav-menu{display:flex;gap:32px;margin-left:48px;list-style:none}
+.top-nav-menu a{color:rgba(255,255,255,.65);text-decoration:none;font-size:14px;padding:8px 0;border-bottom:2px solid transparent;transition:.2s;white-space:nowrap}
+.top-nav-menu a:hover,.top-nav-menu a.active{color:#fff;border-bottom-color:var(--c-mid)}
+.top-nav-right{margin-left:auto;display:flex;align-items:center;gap:16px}
+.top-nav-right a{color:rgba(255,255,255,.65);font-size:13px;text-decoration:none}
+.top-nav-right .btn-login{background:var(--c-mid);color:#fff;padding:6px 20px;border-radius:20px;font-weight:600;font-size:13px;border:none;cursor:pointer}
+.top-nav-right .btn-login:hover{background:#2d6a4f}
+
+/* ===== 面包屑导航 ===== */
+.sub-header{flex-shrink:0;background:#fff;height:var(--sub-h);display:flex;align-items:center;padding:0 32px;border-bottom:1px solid #e8e8e8}
+.sub-header a{color:var(--c-mid);text-decoration:none;font-size:12px;display:flex;align-items:center;gap:6px;font-weight:500}
+.sub-header a:hover{color:var(--c-dk)}
+.sub-header .sep{color:#ccc;margin:0 6px;font-size:12px}
+
+
+/* ===== 主体 ===== */
+.main-wrap{flex:1;display:flex;min-height:0}
+
+/* 左侧栏 */
+.sidebar{width:var(--sidebar-w);background:#fff;border-right:1px solid #e0e0e0;overflow-y:auto;flex-shrink:0;padding-top:20px}
+.side-btn{display:flex;align-items:center;gap:10px;padding:14px 20px;cursor:pointer;transition:.15s;border-left:3px solid transparent;font-size:13px;font-weight:500;color:var(--c-text)}
+.side-btn:hover{background:#f0faf5}
+.side-btn.active{background:rgba(64,145,108,.08);border-left-color:var(--c-mid);color:var(--c-dk);font-weight:600}
+.side-btn .sb-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.side-btn .sb-icon svg{width:22px;height:22px}
+
+/* 右侧 */
+.content{flex:1;display:flex;flex-direction:column;height:100%;overflow:hidden}
+.content-panel{display:none;flex:1;flex-direction:column}
+.content-panel.show{display:flex}
+
+/* 卡片条 - 地图上方 */
+.cards-bar{display:flex;gap:12px;overflow-x:auto;padding:12px 16px;background:#fff;border-bottom:1px solid #e8e8e8;flex-shrink:0;min-height:80px;align-items:stretch}
+.cards-bar::-webkit-scrollbar{height:4px}.cards-bar::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px}
+.poi-card{background:#f9f9f9;border:1px solid #e8e8e8;border-radius:10px;padding:10px 14px;min-width:180px;flex-shrink:0;cursor:pointer;transition:.15s;display:flex;flex-direction:column;justify-content:center}
+.poi-card:hover{border-color:var(--c-mid);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.poi-card .pc-name{font-size:13px;font-weight:600;margin-bottom:3px;white-space:nowrap}
+.poi-card .pc-stats{display:flex;align-items:baseline;gap:6px}
+.poi-card .pc-num{font-size:24px;font-weight:800}
+.poi-card .pc-label{font-size:11px;color:var(--c-sub);white-space:nowrap}
+.poi-card .pc-bar{height:3px;border-radius:2px;margin-top:4px;background:#e0e0e0;overflow:hidden}
+.poi-card .pc-bar-fill{height:100%;border-radius:2px;transition:width .5s}
+.pc-green{color:#00C853}.pc-yellow{color:#F9A825}.pc-red{color:#FF5252}
+.bg-green{background:#00C853}.bg-yellow{background:#F9A825}.bg-red{background:#FF5252}
+
+/* 地图 */
+.map-wrap{flex:1;position:relative;min-height:0}
+.map-wrap>div{width:100%;height:100%}
+
+/* 表单 - 桌面版 */
+.form-panel{max-width:600px;margin:32px auto;padding:0 24px;flex:1;display:flex;flex-direction:column;justify-content:center;width:100%}
+.form-panel h3{font-size:20px;margin-bottom:28px;color:var(--c-dk);padding-bottom:12px;border-bottom:2px solid var(--c-light)}
+.form-row{display:flex;gap:16px;margin-bottom:16px}
+.form-group{flex:1;display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:12px;font-weight:600;color:var(--c-sub);text-transform:uppercase;letter-spacing:.5px}
+.form-control{width:100%;padding:10px 14px;border:1px solid #d0d0d0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:.15s;background:#fff}
+.form-control:focus{border-color:var(--c-mid);box-shadow:0 0 0 3px rgba(64,145,108,.08)}
+.btn{padding:10px 24px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--c-mid);color:#fff}.btn-primary:hover{background:var(--c-dk)}
+.btn-outline{background:#fff;border:1px solid #d0d0d0;color:var(--c-text)}.btn-outline:hover{border-color:var(--c-mid)}
+.btn-lg{padding:14px 32px;font-size:15px;border-radius:10px}
+.amount-grid{display:flex;gap:10px;flex-wrap:wrap}
+.amount-grid .btn{min-width:90px;justify-content:center}
+.info-table{width:100%;border-collapse:collapse;margin:16px 0 24px}
+.info-table td{padding:12px 0;border-bottom:1px solid #eee;font-size:14px}
+.info-table td:last-child{text-align:right;font-weight:600;color:var(--c-dk)}
+.total-row td{border-bottom:2px solid var(--c-dk);padding-top:16px;font-size:16px}
+
+@media(max-width:900px){
+    .top-nav-menu{display:none}
+    .form-row{flex-direction:column}
+    .sidebar{width:200px}
+    .side-btn{padding:12px 14px;font-size:12px}
+}
+.page-footer{flex-shrink:0;background:var(--c-dk);padding:28px 32px 16px}
+.footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:36px}
+.fcol h5{color:var(--c-light);font-size:14px;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.1)}
+.fcol p,.fcol a{color:rgba(255,255,255,.6);font-size:13px;line-height:2;text-decoration:none;display:block}
+.fcol a:hover{color:#fff}
+.footer-bot{max-width:1200px;margin:20px auto 0;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);text-align:center;color:rgba(255,255,255,.4);font-size:12px}
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<div class="top-nav">
+    <a href="info_publish.html" class="top-nav-logo">
+        <svg viewBox="0 0 34 34"><rect width="34" height="34" rx="8" fill="#40916C"/><rect x="8" y="18" width="8" height="10" rx="2" fill="#fff"/><rect x="18" y="10" width="8" height="18" rx="2" fill="#fff" opacity=".6"/></svg>
+        青川庄子上智慧工业园
+    </a>
+    <ul class="top-nav-menu">
+        <li><a href="info_publish.html">首页</a></li>
+        <li><a href="employment_detail.html">用工信息</a></li>
+        <li><a href="logistics_supply.html">物流供需</a></li>
+        <li><a href="featured_supply.html">特色供需</a></li>
+        <li><a href="policy_detail.html">园区政策</a></li>
+        <li><a href="catering.html">园区餐饮</a></li>
+        <li><a href="parking_detail.html" class="active">停车服务</a></li>
+        <li><a href="venue_service.html">场馆服务</a></li>
+        <li><a href="activities_detail.html">园区活动</a></li>
+        <li><a href="notice_detail.html">园区公告</a></li>
+    </ul>
+    <div class="top-nav-right">
+        <a href="../login.html">登录</a>
+        <a href="#" class="btn-login">注册</a>
+    </div>
+</div>
+
+<!-- 面包屑 -->
+<div class="sub-header">
+    <a href="info_publish.html"><i class="fa fa-arrow-left"></i> 返回信息发布</a>
+    <span class="sep">/</span>
+    <span class="current">停车服务</span>
+</div>
+
+<div class="main-wrap">
+    <div class="sidebar" id="sidebar">
+        <div class="side-btn active" data-panel="parking">
+            <span class="sb-icon"><svg viewBox="0 0 22 22"><rect x="2" y="4" width="18" height="15" rx="2" fill="none" stroke="#FF6B35" stroke-width="2"/><text x="11" y="16" text-anchor="middle" font-size="10" font-weight="900" fill="#FF6B35">P</text></svg></span>停车场
+        </div>
+        <div class="side-btn" data-panel="charging">
+            <span class="sb-icon"><svg viewBox="0 0 22 22"><rect x="5" y="2" width="6" height="12" rx="1.5" fill="none" stroke="#00C853" stroke-width="2"/><polygon points="12,4 18,10 13,7" fill="none" stroke="#00C853" stroke-width="1.5"/></svg></span>充电站
+        </div>
+        <div class="side-btn" data-panel="swap">
+            <span class="sb-icon"><svg viewBox="0 0 22 22"><rect x="4" y="6" width="14" height="12" rx="3" fill="none" stroke="#2979FF" stroke-width="2"/><path d="M8 12h6M11 9v6" stroke="#2979FF" stroke-width="1.5"/></svg></span>换电站
+        </div>
+        <div class="side-btn" data-panel="street">
+            <span class="sb-icon"><svg viewBox="0 0 22 22"><rect x="2" y="6" width="18" height="13" rx="2" fill="none" stroke="#F9A825" stroke-width="2"/><line x1="8" y1="6" x2="8" y2="19" stroke="#F9A825" stroke-width="1" stroke-dasharray="2,1"/></svg></span>路面车位
+        </div>
+        <div class="side-btn" data-panel="book">
+            <span class="sb-icon"><svg viewBox="0 0 22 22"><rect x="3" y="3" width="16" height="16" rx="2" fill="none" stroke="#AA00FF" stroke-width="2"/><line x1="3" y1="8" x2="19" y2="8" stroke="#AA00FF" stroke-width="1.5"/></svg></span>预约
+        </div>
+        <div class="side-btn" data-panel="pay">
+            <span class="sb-icon"><svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9" fill="none" stroke="#FF1744" stroke-width="2"/><text x="11" y="14" text-anchor="middle" font-size="9" font-weight="900" fill="#FF1744">¥</text></svg></span>缴费
+        </div>
+        <div class="side-btn" data-panel="topup">
+            <span class="sb-icon"><svg viewBox="0 0 22 22"><rect x="4" y="6" width="14" height="11" rx="3" fill="none" stroke="#00BFA5" stroke-width="2"/><path d="M8 11h6M11 8v6" stroke="#00BFA5" stroke-width="2"/></svg></span>充值
+        </div>
+    </div>
+
+    <!-- 右侧内容 -->
+    <div class="content" id="content">
+
+        <!-- 停车场 -->
+        <div class="content-panel show" id="panel-parking">
+            <div class="cards-bar" id="cardsBar_p"></div>
+            <div class="map-wrap"><div id="mapParking" style="width:100%;height:100%"></div></div>
+        </div>
+
+        <!-- 充电站 -->
+        <div class="content-panel" id="panel-charging">
+            <div class="cards-bar" id="cardsBar_c"></div>
+            <div class="map-wrap"><div id="mapCharging" style="width:100%;height:100%"></div></div>
+        </div>
+
+        <!-- 换电站 -->
+        <div class="content-panel" id="panel-swap">
+            <div class="cards-bar" id="cardsBar_s"></div>
+            <div class="map-wrap"><div id="mapSwap" style="width:100%;height:100%"></div></div>
+        </div>
+
+        <!-- 路面车位 -->
+        <div class="content-panel" id="panel-street">
+            <div class="cards-bar" id="cardsBar_st"></div>
+            <div class="map-wrap"><div id="mapStreet" style="width:100%;height:100%"></div></div>
+        </div>
+
+        <!-- 预约 -->
+        <div class="content-panel" id="panel-book">
+            <div class="form-panel">
+                <h3>车位预约</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>选择停车场</label><select class="form-control"><option>A区停车场（156空余）</option><option>B区货运停车场（23空余）</option><option>C区地下车库（142空余）</option></select></div>
+                    <div class="form-group"><label>预约日期</label><input class="form-control" type="date"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>预约时段</label><select class="form-control"><option>08:00 - 12:00</option><option>12:00 - 16:00</option><option>16:00 - 20:00</option><option>20:00 - 次日08:00</option></select></div>
+                    <div class="form-group"><label>车牌号码</label><input class="form-control" placeholder="例：川H·12345"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>联系电话</label><input class="form-control" placeholder="请输入手机号"></div>
+                    <div class="form-group"><label>预约类型</label><select class="form-control"><option>临时停车</option><option>长期月租</option><option>企业年卡</option></select></div>
+                </div>
+                <div style="margin-top:20px"><button class="btn btn-primary btn-lg" onclick="alert('预约成功！')"><i class="fa fa-check"></i> 确认预约</button></div>
+            </div>
+        </div>
+
+        <!-- 缴费 -->
+        <div class="content-panel" id="panel-pay">
+            <div class="form-panel">
+                <h3>停车缴费</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>车牌号码</label><input class="form-control" id="payPlate" placeholder="请输入车牌号查询"></div>
+                    <div class="form-group" style="justify-content:flex-end;flex-direction:row;align-items:flex-end"><button class="btn btn-outline" style="height:40px">查询</button></div>
+                </div>
+                <table class="info-table">
+                    <tr><td>停车场</td><td>A区停车场</td></tr>
+                    <tr><td>入场时间</td><td>2026-05-11 08:30</td></tr>
+                    <tr><td>停车时长</td><td>3小时25分钟</td></tr>
+                    <tr><td>收费标准</td><td>¥4.00/小时</td></tr>
+                    <tr class="total-row"><td>应缴金额</td><td style="color:#FF1744">¥12.00</td></tr>
+                </table>
+                <div style="text-align:right"><button class="btn btn-primary btn-lg" onclick="alert('支付成功！')"><i class="fa fa-credit-card"></i> 立即支付</button></div>
+            </div>
+        </div>
+
+        <!-- 充值 -->
+        <div class="content-panel" id="panel-topup">
+            <div class="form-panel">
+                <h3>账户充值</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>账户手机号</label><input class="form-control" placeholder="请输入注册手机号"></div>
+                </div>
+                <div class="form-group"><label>充值金额</label>
+                    <div class="amount-grid" style="margin-top:4px">
+                        <button class="btn btn-outline">¥50</button>
+                        <button class="btn btn-outline">¥100</button>
+                        <button class="btn btn-primary">¥200</button>
+                        <button class="btn btn-outline">¥300</button>
+                        <button class="btn btn-outline">¥500</button>
+                        <input class="form-control" placeholder="自定义金额" style="width:140px">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>支付方式</label><select class="form-control"><option>微信支付</option><option>支付宝</option><option>银行卡</option></select></div>
+                </div>
+                <div style="margin-top:20px"><button class="btn btn-primary btn-lg" onclick="alert('充值成功！')"><i class="fa fa-plus-circle"></i> 确认充值</button></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+window._AMapSecurityConfig = { securityJsCode: '8cc1e17e87bd8d7f80d303d6e7bdbc0a' };
+</script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=7d2674ce8375986e20c048ead06989d0&plugin=AMap.Marker,AMap.InfoWindow,AMap.Geocoder,AMap.Polygon"></script>
+<script>
+var ZHUYUAN = [105.298, 32.201];
+
+var parkingPOIs = [
+    {name:'庄子上园区A区停车场',lng:105.301,lat:32.205,total:320,avail:156,color:'#00C853'},
+    {name:'庄子上园区B区货运停车场',lng:105.292,lat:32.198,total:80,avail:23,color:'#F9A825'},
+    {name:'庄子上园区C区地下车库',lng:105.305,lat:32.199,total:200,avail:142,color:'#00C853'},
+    {name:'竹园镇便民停车场',lng:105.295,lat:32.203,total:60,avail:12,color:'#FF5252'},
+    {name:'竹园客运站停车场',lng:105.290,lat:32.200,total:45,avail:30,color:'#F9A825'},
+    {name:'竹园镇政府停车场',lng:105.296,lat:32.202,total:30,avail:8,color:'#FF5252'}
+];
+
+var chargingPOIs = [
+    {name:'A区充电站',lng:105.302,lat:32.204,total:12,avail:8,color:'#00C853'},
+    {name:'B区充电站',lng:105.293,lat:32.199,total:8,avail:4,color:'#F9A825'},
+    {name:'C区充电站',lng:105.304,lat:32.198,total:16,avail:10,color:'#00C853'},
+    {name:'竹园充电站(国网)',lng:105.289,lat:32.201,total:20,avail:15,color:'#00C853'},
+    {name:'高速公路服务区充电站',lng:105.310,lat:32.207,total:8,avail:2,color:'#FF5252'}
+];
+
+var swapPOIs = [
+    {name:'A区换电站',lng:105.300,lat:32.206,total:4,avail:3,color:'#00C853'},
+    {name:'C区换电站',lng:105.306,lat:32.200,total:4,avail:2,color:'#F9A825'},
+    {name:'竹园换电站(蔚来)',lng:105.287,lat:32.202,total:6,avail:4,color:'#00C853'}
+];
+
+var streetParking = [];
+var roadNames = ['竹园大道','兴业路','滨河路','园区一路','园区二路','建设路','人民路','文化路','站前路','龙江路'];
+for(var i=0;i<10;i++){
+    var lng=105.28+Math.random()*0.04;
+    var lat=32.195+Math.random()*0.015;
+    streetParking.push({name:roadNames[i]+'路边车位',lng:lng,lat:lat,total:Math.floor(15+Math.random()*30),avail:Math.floor(3+Math.random()*25),color:'#F9A825'});
+}
+
+function addCards(barId, pois, map){
+    var bar = document.getElementById(barId);
+    if(!bar) return;
+    bar.innerHTML='';
+    pois.forEach(function(p,i){
+        var cc = p.avail/p.total > 0.5 ? 'pc-green' : (p.avail/p.total > 0.2 ? 'pc-yellow' : 'pc-red');
+        var bc = p.avail/p.total > 0.5 ? 'bg-green' : (p.avail/p.total > 0.2 ? 'bg-yellow' : 'bg-red');
+        var pct = Math.round(p.avail/p.total*100);
+        var card = document.createElement('div');
+        card.className = 'poi-card';
+        card.onclick = function(){ map.setCenter([p.lng,p.lat]); map.setZoom(16); };
+        card.innerHTML = '<div class="pc-name">'+p.name+'</div><div class="pc-stats"><span class="pc-num '+cc+'">'+p.avail+'</span><span class="pc-label">空余 / 共'+p.total+'个</span></div><div class="pc-bar"><div class="pc-bar-fill '+bc+'" style="width:'+pct+'%"></div></div>';
+        bar.appendChild(card);
+    });
+}
+
+function initMap(containerId, pois, barId){
+    var map = new AMap.Map(containerId, { center: ZHUYUAN, zoom: 14, mapStyle: 'amap://styles/light', resizeEnable: true });
+    pois.forEach(function(p,i){
+        var marker = new AMap.Marker({
+            position: [p.lng, p.lat],
+            icon: new AMap.Icon({
+                size: new AMap.Size(32,40), imageSize: new AMap.Size(32,40),
+                image: 'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40"><path d="M16 0C8.3 0 2 6.3 2 14c0 10.5 14 26 14 26s14-15.5 14-26C30 6.3 23.7 0 16 0z" fill="'+p.color+'"/><circle cx="16" cy="14" r="6" fill="#fff"/><text x="16" y="17" text-anchor="middle" font-size="9" font-weight="bold" fill="'+p.color+'">'+p.avail+'</text></svg>'),
+                anchor: 'center'
+            }), offset: new AMap.Pixel(0,-20), zIndex: 100
+        });
+        marker.setMap(map);
+        var info = new AMap.InfoWindow({ content: '<div style="padding:10px 14px;font-size:13px"><b>'+p.name+'</b><br>总车位：'+p.total+' | 空余：<b style="color:'+p.color+'">'+p.avail+'</b></div>', offset: new AMap.Pixel(0,-36) });
+        marker.on('click', function(){ info.open(map, marker.getPosition()); });
+    });
+    addCards(barId, pois, map);
+    return map;
+}
+
+function initStreetMap(containerId, pois, barId){
+    var map = new AMap.Map(containerId, { center: ZHUYUAN, zoom: 14, mapStyle: 'amap://styles/light', resizeEnable: true });
+    pois.forEach(function(p,i){
+        var d=0.0008;
+        var polygon = new AMap.Polygon({
+            path: [[p.lng-d,p.lat-d],[p.lng+d,p.lat-d],[p.lng+d,p.lat+d],[p.lng-d,p.lat+d]],
+            fillColor: p.avail/p.total>0.5?'#e8f5e9':(p.avail/p.total>0.2?'#fffde7':'#ffebee'),
+            fillOpacity:0.3, strokeColor: p.color, strokeWeight:1.5, strokeStyle:'dashed'
+        });
+        polygon.setMap(map);
+        var marker = new AMap.Marker({
+            position:[p.lng,p.lat],
+            icon:new AMap.Icon({
+                size:new AMap.Size(32,40), imageSize:new AMap.Size(32,40),
+                image:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40"><rect x="2" y="8" width="28" height="24" rx="4" fill="'+p.color+'"/><text x="16" y="26" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">'+p.avail+'</text></svg>'),
+                anchor:'center'
+            }), offset:new AMap.Pixel(0,-20), zIndex:100
+        });
+        marker.setMap(map);
+        var info = new AMap.InfoWindow({ content: '<div style="padding:10px 14px;font-size:13px"><b>'+p.name+'</b><br>路边车位：'+p.total+' | 空余：<b style="color:'+p.color+'">'+p.avail+'</b></div>', offset:new AMap.Pixel(0,-36) });
+        marker.on('click',function(){ info.open(map, marker.getPosition()); });
+    });
+    addCards(barId, pois, map);
+    return map;
+}
+
+var maps = {};
+document.getElementById('sidebar').addEventListener('click',function(e){
+    var btn = e.target.closest('.side-btn');
+    if(!btn) return;
+    var panel = btn.getAttribute('data-panel');
+    document.querySelectorAll('.side-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    document.querySelectorAll('.content-panel').forEach(function(p){p.classList.remove('show');});
+    var tp = document.getElementById('panel-'+panel);
+    if(tp) tp.classList.add('show');
+    setTimeout(function(){
+        if(panel==='parking' && !maps.parking){ maps.parking = initMap('mapParking', parkingPOIs, 'cardsBar_p'); }
+        if(panel==='charging' && !maps.charging){ maps.charging = initMap('mapCharging', chargingPOIs, 'cardsBar_c'); }
+        if(panel==='swap' && !maps.swap){ maps.swap = initMap('mapSwap', swapPOIs, 'cardsBar_s'); }
+        if(panel==='street' && !maps.street){ maps.street = initStreetMap('mapStreet', streetParking, 'cardsBar_st'); }
+    },200);
+});
+
+setTimeout(function(){ maps.parking = initMap('mapParking', parkingPOIs, 'cardsBar_p'); }, 400);
+</script>
+<div class="page-footer">
+    <div class="footer-inner">
+        <div class="fcol"><h5>联系我们</h5><p>青川县庄子上工业园区管委会</p><p>地址：四川省广元市青川县竹园镇</p><p>电话：0839-xxxxxxx</p><p>邮箱：park@zhuangzishang.gov.cn</p><p>工作时间：周一至周五 8:30-17:30</p></div>
+        <div class="fcol"><h5>快速链接</h5><a href="../index.html">智慧园区</a></div>
+        <div class="fcol"><h5>关于平台</h5><p>青川县庄子上工业园区智慧园区平台，为园区企业提供一站式信息发布与综合服务。覆盖用工招聘、物流对接、政策解读、场馆预约等全方位功能，助力园区企业高效运营。</p></div>
+    </div>
+    <div class="footer-bot">
+        Copyright &copy; 2026 青川县庄子上工业园区管委会 All Rights Reserved | 蜀ICP备XXXXXXXX号-1 | 技术支持：青迅科技
+    </div>
+</div>
+</body>
+</html>
