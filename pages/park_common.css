@@ -1,0 +1,267 @@
+:root {
+            --primary-color: #40c4ff;
+            --secondary-color-1: #2b68e0;
+            --border-color: #2b68e0;
+            --bg-primary: #0a1024;
+            --text-secondary: #a0cfff;
+            --text-primary: #fff;
+            --text-tertiary: #80bfff;
+            --success-color: #4cd964;
+            --sidebar-width: 240px;
+            --split-color: rgba(50,100,204,0.2);
+            --border-radius: 8px;
+            --title-height: 8%;
+            --container-padding: 10px;
+            --universal-gap: 8px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            font-family: "Microsoft YaHei","微软雅黑",sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ===== 大屏布局容器 ===== */
+        .screen-container {
+            width: 100vw; height: 100vh;
+            padding: var(--container-padding);
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: var(--title-height) 1fr;
+            grid-gap: var(--universal-gap);
+        }
+
+        /* ===== 顶部标题栏 ===== */
+        .title-box {
+            background: linear-gradient(135deg, #101838, #162969);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; height: 100%; position: relative;
+            box-shadow: 0 2px 20px rgba(43,104,224,0.3);
+        }
+        .title-left, .title-right {
+            display: flex; align-items: center; gap: 15px; z-index: 1;
+        }
+        .title-box .time {
+            font-size: 14px; color: var(--text-secondary);
+        }
+        .time { font-size: 14px; color: var(--text-secondary); }
+        .title-center {
+            position: absolute; left: 0; top: 0;
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none; z-index: 0;
+        }
+        .title-box h1 {
+            font-size: clamp(22px, 2.5vw, 32px); font-weight: 700;
+            background: linear-gradient(90deg, #40c4ff, #7b61ff, #40c4ff);
+            background-size: 200% 100%;
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            animation: titleGradient 5s ease infinite;
+            letter-spacing: 2px;
+        }
+        @keyframes titleGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* 按钮 */
+        .common-btn {
+            width: 38px; height: 38px;
+            border-radius: var(--border-radius);
+            background: linear-gradient(135deg, rgba(64,196,255,0.2), rgba(43,104,224,0.4));
+            border: 1px solid var(--border-color);
+            color: var(--primary-color); cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+        }
+        .common-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(64,196,255,0.6);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color-1));
+            color: #fff;
+        }
+        .back-btn {
+            width: 38px; height: 38px;
+            border-radius: var(--border-radius);
+            background: linear-gradient(135deg, rgba(64,196,255,0.15), rgba(43,104,224,0.3));
+            border: 1px solid rgba(64,196,255,0.4);
+            color: var(--primary-color);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; text-decoration: none; cursor: pointer;
+            transition: all 0.3s ease; flex-shrink: 0;
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(64,196,255,0.6);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color-1));
+            color: #fff;
+        }
+
+        /* 地图容器 */
+        .map-wrapper {
+            position: relative;
+            width: 100%; height: 100%;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(43,104,224,0.4);
+            overflow: hidden;
+        }
+        #amap {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+        }
+
+        /* 右下控制栏 */
+        .control-bar {
+            position: absolute; right: 16px; bottom: 20px; z-index: 100;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .ctrl-btn {
+            width: 44px; height: 44px;
+            border: 1px solid rgba(43,104,224,0.45);
+            border-radius: 8px;
+            background: rgba(10,16,36,0.85);
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            font-size: 18px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            backdrop-filter: blur(8px);
+        }
+        .ctrl-btn:hover {
+            background: rgba(43,104,224,0.35);
+            border-color: var(--primary-color);
+            color: #fff;
+        }
+        .ctrl-btn.active {
+            background: rgba(64,196,255,0.2);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* 城市标注闪烁 */
+        @keyframes blinkMarker {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.6); }
+        }
+        @keyframes blinkBorder {
+            0%, 100% { border-color: rgba(64,196,255,0.8); box-shadow: 0 0 10px rgba(64,196,255,0.4); }
+            50% { border-color: rgba(64,196,255,0.15); box-shadow: 0 0 3px rgba(64,196,255,0.1); }
+        }
+
+        /* 加载动画 */
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
+            background: #0a1024;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .loading-title {
+            font-size: 20px; font-weight: 700; letter-spacing: 3px;
+            background: linear-gradient(90deg, #40c4ff, #7b61ff);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            margin-bottom: 20px;
+        }
+        .loading-bar-bg {
+            width: 200px; height: 4px;
+            background: rgba(43,104,224,0.2);
+            border-radius: 2px; overflow: hidden;
+        }
+        .loading-bar {
+            width: 0%; height: 100%;
+            background: linear-gradient(90deg, #40c4ff, #7b61ff);
+            border-radius: 2px;
+            animation: loadBar 1.5s ease forwards;
+        }
+        @keyframes loadBar { 0% { width: 0%; } 60% { width: 75%; } 100% { width: 100%; } }
+        .loading-tip {
+            font-size: 12px; color: #80bfff;
+            margin-top: 12px; letter-spacing: 1px;
+        }
+        .loading-overlay.hide { display: none !important; }
+
+/* 底部圆形切换按钮组 */
+        .bottom-tabs {
+            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 110;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .tab-btn {
+            position: relative;
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: rgba(10, 22, 50, 0.18);
+            border: 2px dashed rgba(64, 196, 255, 0.5);
+            color: rgba(255,255,255,0.55);
+            font-size: 27px; font-weight: 800;
+            letter-spacing: 3px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(3px);
+            font-family: "Microsoft YaHei","微软雅黑",sans-serif;
+            text-decoration: none;
+        }
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: -8px; left: -8px; right: -8px; bottom: -8px;
+            border-radius: 50%;
+            border: 2px dotted rgba(64, 196, 255, 0.5);
+            pointer-events: none;
+            animation: tabRotate 35s linear infinite;
+        }
+        @keyframes tabRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .tab-btn:hover {
+            background: rgba(43, 104, 224, 0.25);
+            border-color: rgba(64, 196, 255, 0.85);
+            border-style: solid;
+            color: #fff;
+            box-shadow: 0 0 28px rgba(64, 196, 255, 0.4), inset 0 0 20px rgba(64, 196, 255, 0.12);
+            transform: scale(1.07);
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(43, 104, 224, 0.28), rgba(22, 60, 140, 0.35));
+            border: 2px solid var(--primary-color);
+            border-style: solid;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(64, 196, 255, 0.3), inset 0 0 15px rgba(64, 196, 255, 0.08);
+            transform: scale(1.06);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            width: 100%; height: 100%; border-radius: 50%;
+            border: 1.5px solid rgba(64, 196, 255, 0.5);
+            animation: tabPulse 2s ease-in-out infinite;
+        }
+        @keyframes tabPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.03); }
+        }
+        /* ===== 数据可视化 ===== */
+
+        /* 规则1: 每个图表必须是独立 .map-overlay-panel，放在 .chart-col 列容器中 */
+        .chart-col {
+            position: absolute; top: 14px; bottom: 10px;
+            display: flex; flex-direction: column; gap: 8px;
+            z-index: 55;
+        }
+        .chart-col-left { left: 14px; width: 22vw; min-width: 300px; }
+        .chart-col-right { right: 14px; width: 22vw; min-width: 300px; }
+        .chart-col .map-overlay-panel {
+            position: relative !important;
+            top: auto !important; left: auto !important;
+            right: auto !important; bottom: auto !important;
+            width: 100% !important; height: auto !important;
+            flex: 1 1 0%; min-height: 0; overflow: hidden;
+        }

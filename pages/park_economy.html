@@ -1,0 +1,2525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>园区经济概览 - 青川县庄子上工业园区</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="park_common.css">
+    <script src="/pages/echarts.min.js"></script>
+    <script src="park_charts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            font-family: "Microsoft YaHei","微软雅黑",sans-serif;
+            overflow: hidden;
+            height: 100vh; width: 100vw;
+        }
+
+        /* ========== 企业列表面板 ========== */
+        .enterprise-panel {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 50;
+            background: rgba(6, 12, 28, 0.82);
+            backdrop-filter: blur(10px);
+            flex-direction: column;
+            padding: 16px 20px;
+            overflow-y: auto;
+        }
+        .enterprise-panel.show {
+            display: flex;
+        }
+
+        /* 搜索栏 */
+        .ent-search-bar {
+            display: flex; align-items: center; gap: 14px;
+            padding: 12px 16px;
+            background: rgba(15, 25, 55, 0.55);
+            border: 1px solid rgba(43,104,224,0.25);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .search-item {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .search-label {
+            color: #80bfff; font-size: 13px; white-space: nowrap;
+        }
+        .search-input {
+            background: rgba(10, 18, 40, 0.8);
+            border: 1px solid rgba(64,196,255,0.25);
+            border-radius: 4px;
+            color: #cfe8ff; font-size: 13px;
+            padding: 6px 12px; width: 200px;
+            outline: none; transition: border-color 0.2s;
+        }
+        .search-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(64,196,255,0.2);
+        }
+        .search-select {
+            background: rgba(10, 18, 40, 0.8);
+            border: 1px solid rgba(64,196,255,0.25);
+            border-radius: 4px;
+            color: #cfe8ff; font-size: 13px;
+            padding: 6px 30px 6px 12px;
+            outline: none; cursor: pointer;
+            min-width: 120px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2340c4ff'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+        .btn-query {
+            background: linear-gradient(135deg, #40c4ff, #2b68e0);
+            border: none; border-radius: 4px;
+            color: #fff; font-size: 13px; font-weight: 600;
+            padding: 6px 22px; cursor: pointer;
+            transition: all 0.2s; letter-spacing: 1px;
+        }
+        .btn-query:hover {
+            box-shadow: 0 0 16px rgba(64,196,255,0.5);
+            transform: translateY(-1px);
+        }
+        .btn-reset {
+            background: rgba(43,104,224,0.2);
+            border: 1px solid rgba(64,196,255,0.35);
+            border-radius: 4px;
+            color: #a0cfff; font-size: 13px;
+            padding: 6px 18px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-reset:hover {
+            background: rgba(43,104,224,0.35);
+            color: #fff;
+        }
+        .more-query {
+            margin-left: auto;
+            color: #80bfff; font-size: 13px;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        /* 企业卡片网格 */
+        .ent-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            grid-gap: 16px;
+            flex: 1;
+            align-content: start;
+        }
+
+        /* 分页跳转 - 与重置按钮同款 */
+        .btn-jump {
+            background: rgba(43,104,224,0.2);
+            border: 1px solid rgba(64,196,255,0.35);
+            border-radius: 4px;
+            color: #a0cfff; font-size: 13px;
+            padding: 6px 18px; cursor: pointer;
+            transition: all 0.2s; position: relative; letter-spacing: 1px;
+        }
+        .btn-jump:hover {
+            background: rgba(43,104,224,0.35); color: #fff;
+        }
+        .page-popup {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10, 16, 36, 0.82);
+            border: 1px solid rgba(64,196,255,0.4);
+            border-radius: 12px;
+            padding: 24px 28px;
+            z-index: 9999;
+            min-width: 260px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(64,196,255,0.08);
+            backdrop-filter: blur(16px);
+        }
+        .page-popup.show { display: block; animation: popIn 0.25s ease-out; }
+        @keyframes popIn { from{opacity:0;transform:translate(-50%,-45%) scale(0.92)} to{opacity:1;transform:translate(-50%,-50%) scale(1)} }
+        .page-popup-title {
+            color: #e8f4ff; font-size: 15px; font-weight: 700;
+            margin-bottom: 18px; text-align: center; letter-spacing: 2px;
+        }
+        .page-options {
+            display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+        }
+        .page-opt {
+            width: 48px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(64,196,255,0.3);
+            border-radius: 6px;
+            color: #cfe8ff; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: all 0.15s; background: transparent;
+        }
+        .page-opt:hover {
+            background: rgba(64,196,255,0.15); border-color: #40c4ff; color: #fff;
+            transform: scale(1.06);
+        }
+        .page-opt.active {
+            background: linear-gradient(135deg, #40c4ff, #2b68e0);
+            border-color: transparent; color: #fff;
+        }
+
+        /* 企业卡片水波边框效果 */
+        .ent-card {
+            background: linear-gradient(145deg, rgba(12, 24, 55, 0.75), rgba(18, 32, 68, 0.68));
+            border: 1px solid rgba(43,104,224,0.25);
+            border-radius: 8px;
+            padding: 18px 20px;
+            position: relative;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        /* 水波流光层 - 略大于卡片形成边框宽度 */
+        .ent-card::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 10px;
+            /* 水波纹渐变：多段透明→青色→亮青→青色→透明 模拟波浪起伏 */
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent 0px,
+                rgba(64, 196, 255, 0.08) 6px,
+                rgba(64, 196, 255, 0.35) 10px,
+                rgba(120, 220, 255, 0.75) 14px,
+                #40c4ff 17px,
+                rgba(120, 220, 255, 0.75) 20px,
+                rgba(64, 196, 255, 0.35) 24px,
+                rgba(64, 196, 255, 0.08) 28px,
+                transparent 32px,
+                transparent 52px
+            );
+            background-size: 52px 52px;
+            z-index: -2;
+            pointer-events: none;
+            animation: waterBorderFlow 3s linear infinite;
+        }
+        /* 内层遮罩 - 盖住中间只留边缘可见（~2px边框） */
+        .ent-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 8px;
+            background: linear-gradient(145deg, rgba(12, 24, 55, 0.80), rgba(18, 32, 68, 0.75));
+            z-index: -1;
+            pointer-events: none;
+        }
+        .ent-card:hover::before {
+            animation-duration: 1.8s;
+            filter: brightness(1.4) saturate(1.3);
+        }
+        .ent-card:hover {
+            border-color: rgba(64,196,255,0.45);
+            box-shadow: 0 0 24px rgba(64,196,255,0.12);
+            transform: translateY(-2px);
+        }
+        /* 水波纹位移动画 - 沿对角线方向流动 */
+        @keyframes waterBorderFlow {
+            0%   { background-position: 0 0; }
+            100% { background-position: 52px 52px; }
+        }
+        @keyframes cardBorderFlow {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .ent-card-title {
+            color: #e8f4ff; font-size: 17px; font-weight: 700;
+            margin-bottom: 14px;
+            letter-spacing: 1px;
+        }
+        .ent-card-body {
+            display: flex; gap: 16px;
+        }
+        .ent-logo-wrap {
+            width: 90px; height: 90px; flex-shrink: 0;
+            border-radius: 50%;
+            border: 2px solid rgba(64,196,255,0.35);
+            background: rgba(20, 38, 75, 0.8);
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .ent-logo-wrap::before {
+            content: '';
+            position: absolute;
+            top: -4px; left: -4px; right: -4px; bottom: -4px;
+            border-radius: 50%;
+            border: 1px dashed rgba(64,196,255,0.2);
+        }
+        .ent-logo-text {
+            color: #40c4ff; font-size: 15px; font-weight: 700;
+            letter-spacing: 2px; opacity: 0.7;
+        }
+        .ent-info {
+            flex: 1; display: flex; flex-direction: column; justify-content: space-between;
+            min-width: 0;
+        }
+        .ent-info-row {
+            display: flex; align-items: baseline; gap: 8px;
+            font-size: 13px; line-height: 1.8;
+        }
+        .info-label {
+            color: #78909c; white-space: nowrap;
+            min-width: 72px;
+        }
+        .info-value {
+            color: #cfe8ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .ent-tag {
+            display: inline-flex;
+            align-self: flex-start;
+            margin-top: 10px;
+            padding: 3px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(64,196,255,0.4);
+            background: rgba(43,104,224,0.2);
+            color: #80d0ff; font-size: 12px; letter-spacing: 1px;
+        }
+
+        /* ========== 企业详情面板 ========== */
+        .ent-detail-panel {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, #0a1229 0%, #0d1838 50%, #0a1024 100%);
+            z-index: 300;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            animation: detailFadeIn 0.3s ease;
+        }
+        .ent-detail-panel.show { display: flex; }
+        @keyframes detailFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 详情头部 */
+        .detail-header {
+            padding: 20px 28px 16px;
+            display: flex; gap: 18px;
+            border-bottom: 1px solid rgba(43,104,224,0.2);
+            flex-shrink: 0;
+        }
+        .detail-logo {
+            width: 90px; height: 90px; flex-shrink: 0;
+            border-radius: 50%;
+            border: 2px solid rgba(64,196,255,0.35);
+            background: linear-gradient(145deg, rgba(20,38,75,0.95), rgba(30,55,110,0.85));
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .detail-logo::before {
+            content:''; position:absolute; top:-5px;left:-5px;right:-5px;bottom:-5px;
+            border-radius:50%; border:1.5px dashed rgba(64,196,255,0.15);
+        }
+        .detail-logo span { color:#40c4ff; font-size:14px; font-weight:700; letter-spacing:2px; opacity:0.7; }
+
+        .detail-header-info { flex:1; min-width:0; }
+        .detail-title-row {
+            display:flex; align-items:center; gap:10px; margin-bottom:6px;
+        }
+        .detail-name {
+            color:#e8f4ff; font-size:20px; font-weight:700; letter-spacing:1px;
+        }
+        .detail-type-tag {
+            padding:2px 10px; border-radius:10px;
+            background:rgba(43,104,224,0.25); border:1px solid rgba(64,196,255,0.35);
+            color:#80d0ff; font-size:11px; white-space:nowrap;
+        }
+        .detail-score {
+            display:inline-flex; align-items:center; gap:4px;
+            padding:3px 12px; border-radius:12px;
+            background:linear-gradient(135deg,rgba(255,140,0,0.25),rgba(255,100,0,0.15));
+            border:1px solid rgba(255,150,0,0.45); color:#ffb347; font-size:12px; font-weight:600;
+            margin-top:4px; align-self:flex-start;
+        }
+
+        /* 头部信息行 */
+        .detail-info-grid {
+            display:grid; grid-template-columns:auto 1fr auto 1fr auto 1fr;
+            gap:4px 16px; font-size:13px; line-height:2;
+            margin-top:8px;
+        }
+        .dil-label { color:#78909c; white-space:nowrap; min-width:72px; }
+        .dil-value { color:#cfe8ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .dil-more { color:#40c4ff; cursor:pointer; font-size:12px; margin-left:2px; }
+        .dil-expand { color:#40c4ff; cursor:pointer; font-size:12px; margin-left:4px; }
+        .dil-long { grid-column:span 5; white-space:normal; line-height:1.6; max-height:42px; overflow:hidden; text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+
+        .detail-close-btn {
+            align-self:flex-start; margin-top:4px;
+            width:32px;height:32px;border-radius:6px;
+            background:rgba(220,60,60,0.15);border:1px solid rgba(220,80,80,0.35);
+            color:#f08080;font-size:16px;cursor:pointer;
+            display:flex;align-items:center;justify-content:center;
+            transition:all 0.25s;
+        }
+        .detail-close-btn:hover { background:rgba(220,60,60,0.3); transform:scale(1.08); }
+
+        /* 企业预警 */
+        .detail-warning-bar {
+            padding:10px 28px;
+            border-bottom:1px solid rgba(43,104,224,0.15);
+            flex-shrink:0;
+        }
+        .warning-title {
+            color:#40c4ff; font-size:16px; font-weight:700;
+            display:inline-flex; align-items:center; gap:8px;
+        }
+        .warning-title::before {
+            content:''; display:inline-block; width:3px; height:16px;
+            background:linear-gradient(180deg,#40c4ff,#2b68e0); border-radius:2px;
+        }
+
+        /* 区块标题 */
+        .section-title {
+            padding:14px 28px 8px;
+            font-size:15px; font-weight:700; color:#e0ecff;
+            display:flex;align-items:center;gap:8px;
+        }
+        .section-title::before {
+            content:''; display:inline-block; width:3px; height:16px;
+            background:linear-gradient(180deg,#40c4ff,#2b68e0); border-radius:2px;
+        }
+        .section-title::after {
+            content:''; flex:1; height:1px; margin-left:12px;
+            background:linear-gradient(90deg,rgba(64,196,255,0.3),transparent);
+        }
+        .sub-section-title {
+            padding:10px 32px 6px;
+            font-size:13.5px; font-weight:600; color:#b8d4ff;
+            display:flex;align-items:center;gap:7px;
+        }
+        .sub-section-title::before {
+            content:''; display:inline-block;width:2.5px;height:13px;
+            background:linear-gradient(180deg,rgba(64,196,255,0.7),rgba(64,196,255,0.3)); border-radius:2px;
+        }
+        .sub-section-title::after {
+            content:''; flex:1; height:1px; margin-left:10px;
+            background:linear-gradient(90deg,rgba(64,196,255,0.2),transparent);
+        }
+
+        /* 数据表格 */
+        .detail-table-wrap { padding:0 24px 16px; }
+        .dt-table {
+            width:100%; border-collapse:separate; border-spacing:0;
+            border:1px solid rgba(43,104,224,0.25); border-radius:6px; overflow:hidden;
+            font-size:13px;
+        }
+        .dt-table th {
+            background:linear-gradient(180deg,rgba(43,104,224,0.3),rgba(30,70,160,0.25));
+            color:#a0cfff; font-weight:600; padding:9px 10px;
+            border-bottom:1px solid rgba(64,196,255,0.2);
+            text-align:left; white-space:nowrap; font-size:12.5px;
+        }
+        .dt-table td {
+            padding:9px 10px; border-bottom:1px solid rgba(43,104,224,0.12);
+            color:#d0e0f0; line-height:1.5; font-size:12.5px;
+        }
+        .dt-table tr:last-child td { border-bottom:none; }
+        .dt-table tr:nth-child(even) td { background:rgba(15,28,58,0.4); }
+        .dt-key { color:#88a4c4; white-space:nowrap; min-width:88px; }
+        .dt-val { color:#dceef8; word-break:break-all; }
+
+        /* 暂无数据 */
+        .empty-data-row td { text-align:center; color:#5a7a98; padding:18px !important; }
+
+        /* ========== 服务面板 ========== */
+        .service-panel {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 50;
+            background:
+                radial-gradient(ellipse 120% 100% at 50% 50%, rgba(15, 35, 80, 0.95) 0%, rgba(6, 12, 28, 0.97) 70%, rgba(4, 8, 20, 0.99) 100%);
+            backdrop-filter: blur(10px);
+            padding: 16px 20px;
+            overflow-y: auto;
+        }
+        .service-panel.show { display: block; }
+
+        .energy-panel {
+            display: none;
+            position: absolute;
+            top: 74px; left: 0; right: 0; bottom: 78px;
+            z-index: 5;
+            overflow: hidden;
+            background: linear-gradient(180deg, #0a1024 0%, #101838 50%, #0a1024 100%);
+        }
+        .energy-panel.show { display: block; }
+        .eng-full-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .eng-hud { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 55; }
+        .eng-hud .top-digital-card { width: 140px; }
+        .eng-overlay-col { position: absolute; top: 65px; bottom: 8px; width: 260px; z-index: 55; display: flex; flex-direction: column; gap: 8px; }
+        .eng-overlay-col-left { left: 14px; }
+        .eng-overlay-col-right { right: 14px; }
+        .eng-overlay-col .map-overlay-panel { position: relative !important; top: auto !important; left: auto !important; right: auto !important; bottom: auto !important; width: 100% !important; height: auto !important; flex: 1 1 0%; min-height: 0; overflow: hidden; }
+        .service-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            grid-template-rows: 1fr 1fr 0.85fr;
+            gap: 10px;
+            height: 100%;
+            min-height: 0;
+        }
+        .svc-card {
+            background: linear-gradient(145deg, rgba(10, 20, 48, 0.78), rgba(15, 28, 60, 0.70));
+            border: 1px solid rgba(43, 104, 224, 0.25);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow:
+                0 0 15px rgba(43, 104, 224, 0.08),
+                inset 0 1px 0 rgba(64, 196, 255, 0.05);
+        }
+        .svc-title {
+            font-size: 17px; font-weight: 700; color: #40c4ff;
+            padding: 8px 14px 6px;
+            position: relative;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, rgba(43,104,224,0.35), rgba(43,104,224,0.12) 60%, transparent 100%);
+            border-bottom: 1px solid rgba(43,104,224,0.18);
+            flex-shrink: 0;
+        }
+        .svc-title::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0;
+            width: 4px; height: 100%;
+            background: linear-gradient(180deg, #40c4ff, #2b68e0);
+            border-radius: 0 2px 2px 0;
+        }
+        .svc-title::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 0;
+            width: 60px; height: 100%;
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 3px,
+                rgba(64,196,255,0.08) 3px,
+                rgba(64,196,255,0.08) 6px
+            );
+        }
+        .svc-chart {
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* 区域定位 */
+        .svc-left-top { grid-row: 1; grid-column: 1; }
+        .svc-center {
+            grid-row: 1 / span 3; grid-column: 2;
+            background:
+                radial-gradient(ellipse 100% 95% at 50% 50%,
+                    rgba(20, 45, 90, 0.5) 0%,
+                    rgba(10, 25, 55, 0.3) 40%,
+                    rgba(6, 14, 35, 0.2) 70%,
+                    transparent 100%
+                ),
+                linear-gradient(145deg, rgba(10, 20, 48, 0.92), rgba(15, 28, 60, 0.85));
+            border-color: rgba(43, 104, 224, 0.2);
+            overflow: hidden;
+        }
+        .svc-right-top { grid-row: 1; grid-column: 3; }
+        /* 左列拆成3行：产业协作(row1) + 惠企圆柱(row2) + 惠企图表(row3) */
+        .svc-left-mid { grid-row: 2; grid-column: 1; }
+        .svc-left-bottom { grid-row: 3; grid-column: 1; display:flex; flex-direction:column; }
+        .svc-right-mid { grid-row: 2; grid-column: 3; }
+        .svc-right-bottom { grid-row: 3; grid-column: 3; }
+
+        /* ========== 中间 HUD 科技风雷达圆环 ========== */
+        .svc-gauge-wrap {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            position: relative; min-height: 0;
+            overflow: hidden;
+        }
+        /* 多层雷达背景 */
+        .svc-gauge-wrap::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background:
+                /* 最外层发光圈 */
+                radial-gradient(circle at 50% 50%,
+                    transparent 44%,
+                    rgba(64, 196, 255, 0.04) 46%,
+                    rgba(64, 196, 255, 0.08) 47%,
+                    rgba(64, 196, 255, 0.03) 48%,
+                    transparent 50%
+                ),
+                /* 第二层雷达圈 */
+                radial-gradient(circle at 50% 50%,
+                    transparent 56%,
+                    rgba(64, 196, 255, 0.05) 58%,
+                    rgba(64, 196, 255, 0.10) 60%,
+                    rgba(64, 196, 255, 0.04) 62%,
+                    transparent 65%
+                ),
+                /* 第三层雷达圈 */
+                radial-gradient(circle at 50% 50%,
+                    transparent 68%,
+                    rgba(64, 196, 255, 0.04) 70%,
+                    rgba(64, 196, 255, 0.09) 72%,
+                    rgba(64, 196, 255, 0.03) 74%,
+                    transparent 77%
+                ),
+                /* 最内层 */
+                radial-gradient(circle at 50% 50%,
+                    transparent 80%,
+                    rgba(64, 196, 255, 0.06) 82%,
+                    rgba(64, 196, 255, 0.12) 84%,
+                    rgba(64, 196, 255, 0.04) 86%,
+                    transparent 89%
+                );
+            pointer-events: none; z-index: 0;
+            animation: hudPulse 4s ease-in-out infinite;
+        }
+        @keyframes hudPulse {
+            0%, 100% { opacity: 0.6; filter: brightness(1); }
+            50% { opacity: 1; filter: brightness(1.3); }
+        }
+        /* 雷达扫描刻度线 - 外圈 */
+        .svc-gauge-wrap::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background:
+                /* 主刻度线 */
+                repeating-conic-gradient(
+                    from 0deg,
+                    rgba(64, 196, 255, 0.18) 0deg 1.5deg,
+                    transparent 1.5deg 10deg
+                ),
+                /* 次刻度线 */
+                repeating-conic-gradient(
+                    from 5deg,
+                    rgba(64, 196, 255, 0.08) 0deg 0.8deg,
+                    transparent 0.8deg 5deg
+                );
+            mask: radial-gradient(circle, transparent 42%, black 43%, black 94%, transparent 95%);
+            -webkit-mask: radial-gradient(circle, transparent 42%, black 43%, black 94%, transparent 95%);
+            pointer-events: none; z-index: 0;
+            animation: radarSweep 20s linear infinite;
+        }
+        @keyframes radarSweep {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        /* HUD 中心数据区 */
+        .svc-gauge-center {
+            text-align: center; z-index: 3; position: relative;
+            animation: centerGlow 3s ease-in-out infinite;
+        }
+        @keyframes centerGlow {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(64,196,255,0.3)); }
+            50% { filter: drop-shadow(0 0 20px rgba(64,196,255,0.6)); }
+        }
+        .svc-gauge-label {
+            color: #80d0ff; font-size: 15px; font-weight: 700; letter-spacing: 4px;
+            text-shadow: 0 0 10px rgba(64,196,255,0.5), 0 0 20px rgba(64,196,255,0.2);
+        }
+        .svc-gauge-num {
+            color: #40c4ff; font-size: clamp(40px, 8vw, 64px); font-weight: 800;
+            line-height: 1.1;
+            text-shadow:
+                0 0 15px rgba(64,196,255,0.6),
+                0 0 30px rgba(64,196,255,0.3),
+                0 0 60px rgba(64,196,255,0.15);
+            animation: numFlicker 2s ease-in-out infinite;
+        }
+        @keyframes numFlicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.7; }
+            94% { opacity: 1; }
+        }
+        .svc-gauge-sub {
+            color: #a0cfff; font-size: clamp(11px, 1.5vw, 14px); margin-top: 2px; letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(160,207,255,0.3);
+        }
+        .svc-gauge-subnum {
+            color: #40c4ff; font-size: clamp(28px, 5vw, 42px); font-weight: 700;
+            line-height: 1.1;
+            text-shadow:
+                0 0 12px rgba(64,196,255,0.5),
+                0 0 25px rgba(64,196,255,0.25);
+        }
+        /* 环形分布指标项 - HUD风格 */
+        .svc-gauge-items {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 92%; height: 92%; pointer-events: none; z-index: 2;
+        }
+        .gauge-item {
+            position: absolute; display: flex; align-items: center; gap: 5px;
+            white-space: nowrap;
+            animation: itemFloat 3s ease-in-out infinite;
+        }
+        @keyframes itemFloat {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+            50% { transform: translate(-50%, -50%) translateY(-3px); }
+        }
+        /* 每个指标项错开动画延迟 */
+        .gauge-item:nth-child(2) { animation-delay: -0.5s; }
+        .gauge-item:nth-child(3) { animation-delay: -1s; }
+        .gauge-item:nth-child(4) { animation-delay: -1.5s; }
+        .gauge-item:nth-child(5) { animation-delay: -2s; }
+        .gauge-item:nth-child(6) { animation-delay: -2.5s; }
+
+        .gauge-dot {
+            width: 10px; height: 10px; border-radius: 50%; background: #40c4ff;
+            box-shadow:
+                0 0 8px rgba(64,196,255,0.9),
+                0 0 18px rgba(64,196,255,0.5),
+                0 0 35px rgba(64,196,255,0.2);
+            flex-shrink: 0;
+            animation: dotPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes dotPulse {
+            0%, 100% { box-shadow: 0 0 6px rgba(64,196,255,0.8), 0 0 15px rgba(64,196,255,0.4); transform: scale(1); }
+            50% { box-shadow: 0 0 10px rgba(64,196,255,1), 0 0 25px rgba(64,196,255,0.6), 0 0 40px rgba(64,196,255,0.2); transform: scale(1.2); }
+        }
+        .gauge-name {
+            color: #d0e8ff; font-size: clamp(12px, 1.6vw, 16px);
+            text-shadow: 0 0 8px rgba(184,216,248,0.4), 0 0 16px rgba(64,196,255,0.2);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .gauge-val {
+            color: #40c4ff; font-size: clamp(22px, 3.5vw, 32px); font-weight: 900; margin-left: 2px;
+            text-shadow:
+                0 0 12px rgba(64,196,255,0.7),
+                0 0 28px rgba(64,196,255,0.35),
+                0 0 45px rgba(64,196,255,0.15);
+            font-family: 'DIN Alternate', 'Helvetica Neue', 'Microsoft YaHei', monospace;
+        }
+
+        /* ========== HUD 雷达扫描线 ========== */
+        .hud-scan-line {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%; height: 90%;
+            border-radius: 50%;
+            z-index: 1; pointer-events: none;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                rgba(64, 196, 255, 0.15) 20deg,
+                rgba(64, 196, 255, 0.35) 40deg,
+                transparent 60deg,
+                transparent 360deg
+            );
+            animation: scanRotate 4s linear infinite;
+            mask: radial-gradient(circle, transparent 30%, black 31%, black 90%, transparent 91%);
+            -webkit-mask: radial-gradient(circle, transparent 30%, black 31%, black 90%, transparent 91%);
+        }
+        @keyframes scanRotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* HUD 脉冲环 */
+        .hud-pulse-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2px solid rgba(64, 196, 255, 0);
+            pointer-events: none; z-index: 1;
+        }
+        .hud-pulse-1 {
+            width: 30%; height: 30%;
+            animation: pulseExpand 3s ease-out infinite;
+        }
+        .hud-pulse-2 {
+            width: 30%; height: 30%;
+            animation: pulseExpand 3s ease-out infinite 1s;
+        }
+        .hud-pulse-3 {
+            width: 30%; height: 30%;
+            animation: pulseExpand 3s ease-out infinite 2s;
+        }
+        @keyframes pulseExpand {
+            0% { width: 25%; height: 25%; border-color: rgba(64, 196, 255, 0.6); opacity: 1; }
+            100% { width: 95%; height: 95%; border-color: rgba(64, 196, 255, 0); opacity: 0; }
+        }
+
+        /* HUD 内圈旋转装饰 */
+        .hud-inner-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 35%; height: 35%;
+            border-radius: 50%;
+            border: 2px dashed rgba(64, 196, 255, 0.25);
+            pointer-events: none; z-index: 1;
+            animation: innerRingSpin 12s linear infinite reverse;
+        }
+        /* HUD 外圈旋转装饰 */
+        .hud-outer-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 96%; height: 96%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: rgba(64, 196, 255, 0.3);
+            border-bottom-color: rgba(64, 196, 255, 0.1);
+            border-left-color: rgba(64, 196, 255, 0.15);
+            border-right-color: rgba(64, 196, 255, 0.05);
+            pointer-events: none; z-index: 1;
+            animation: outerRingSpin 8s linear infinite;
+        }
+        @keyframes innerRingSpin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(-360deg); }
+        }
+        @keyframes outerRingSpin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* ========== 惠企政策 - 科技风3D圆柱 ========== */
+        .policy-cylinders {
+            display: flex; justify-content: space-around; align-items: center;
+            padding: 16px 8px; gap: 16px;
+        }
+        .policy-cylinder {
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            position: relative;
+        }
+        .cylinder-body { position: relative; width: 58px; height: 56px; }
+        /* 圆柱底座 */
+        .cylinder-base {
+            position: absolute; bottom: -3px; left: 2px;
+            width: 54px; height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, rgba(30,60,120,0.8), rgba(15,30,60,0.95));
+            border: 1px solid rgba(64,196,255,0.25);
+            box-shadow:
+                0 0 12px rgba(64,196,255,0.15),
+                0 3px 8px rgba(0,0,0,0.4),
+                inset 0 1px 3px rgba(64,196,255,0.1);
+            z-index: -1;
+        }
+        .cylinder-top {
+            position: absolute; top: 0; left: 5px;
+            width: 48px; height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #6eb5ff 0%, #3a8ef0 50%, #2563eb 100%);
+            border: 1.5px solid rgba(130,180,255,0.5);
+            box-shadow:
+                0 0 15px rgba(74,158,255,0.45),
+                0 0 30px rgba(74,158,255,0.2),
+                inset 0 2px 4px rgba(255,255,255,0.25),
+                inset 0 -3px 6px rgba(0,0,0,0.25);
+            animation: cylinderTopGlow 2.5s ease-in-out infinite;
+        }
+        @keyframes cylinderTopGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(74,158,255,0.45), 0 0 30px rgba(74,158,255,0.2), inset 0 2px 4px rgba(255,255,255,0.25); }
+            50% { box-shadow: 0 0 22px rgba(74,158,255,0.65), 0 0 40px rgba(74,158,255,0.3), inset 0 2px 4px rgba(255,255,255,0.35); }
+        }
+        .cylinder-side {
+            position: absolute; top: 8px; left: 5px;
+            width: 48px; height: 44px;
+            background: linear-gradient(90deg,
+                #163a8a 0%,
+                #2a6fd9 20%,
+                #4a9eff 45%,
+                #3a8ef0 55%,
+                #1e50bb 80%,
+                #143d7a 100%
+            );
+            border-radius: 0 0 7px 7px;
+            border-left: 1.5px solid rgba(110,170,255,0.4);
+            border-right: 1.5px solid rgba(110,170,255,0.4);
+            border-bottom: 1.5px solid rgba(110,170,255,0.35);
+            box-shadow:
+                inset 3px 0 8px rgba(255,255,255,0.08),
+                inset -3px 0 8px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        /* 圆柱侧面光泽条纹 */
+        .cylinder-side::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 8px;
+            width: 3px; height: 100%;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                rgba(255,255,255,0.2) 20%,
+                rgba(255,255,255,0.35) 50%,
+                rgba(255,255,255,0.2) 80%,
+                transparent 100%
+            );
+            border-radius: 0 0 3px 3px;
+        }
+
+        /* 绿色圆柱变体 */
+        .cylinder-green .cylinder-top {
+            background: linear-gradient(180deg, #7eea9e 0%, #34d058 50%, #16a34a 100%);
+            border-color: rgba(110,230,140,0.5);
+            box-shadow:
+                0 0 15px rgba(74,222,128,0.45),
+                0 0 30px rgba(74,222,128,0.2),
+                inset 0 2px 4px rgba(255,255,255,0.25),
+                inset 0 -3px 6px rgba(0,0,0,0.25);
+            animation-name: cylinderGreenGlow;
+        }
+        @keyframes cylinderGreenGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(74,222,128,0.45), 0 0 30px rgba(74,222,128,0.2), inset 0 2px 4px rgba(255,255,255,0.25); }
+            50% { box-shadow: 0 0 22px rgba(74,222,128,0.65), 0 0 40px rgba(74,222,128,0.3), inset 0 2px 4px rgba(255,255,255,0.35); }
+        }
+        .cylinder-green .cylinder-side {
+            background: linear-gradient(90deg,
+                #0f6333 0%,
+                #1fa84a 20%,
+                #4ade80 45%,
+                #34d058 55%,
+                #166534 80%,
+                #0d5128 100%
+            );
+            border-color: rgba(110,220,120,0.4);
+        }
+
+        /* 青色圆柱变体 */
+        .cylinder-cyan .cylinder-top {
+            background: linear-gradient(180deg, #8af0fb 0%, #22d3ee 50%, #06b6d4 100%);
+            border-color: rgba(110,235,250,0.5);
+            box-shadow:
+                0 0 15px rgba(103,232,249,0.45),
+                0 0 30px rgba(103,232,249,0.2),
+                inset 0 2px 4px rgba(255,255,255,0.25),
+                inset 0 -3px 6px rgba(0,0,0,0.25);
+            animation-name: cylinderCyanGlow;
+        }
+        @keyframes cylinderCyanGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(103,232,249,0.45), 0 0 30px rgba(103,232,249,0.2), inset 0 2px 4px rgba(255,255,255,0.25); }
+            50% { box-shadow: 0 0 22px rgba(103,232,249,0.65), 0 0 40px rgba(103,232,249,0.3), inset 0 2px 4px rgba(255,255,255,0.35); }
+        }
+        .cylinder-cyan .cylinder-side {
+            background: linear-gradient(90deg,
+                #0a6b82 0%,
+                #14b8c4 20%,
+                #67e8f9 45%,
+                #22d3ee 55%,
+                #0d9488 80%,
+                #085a66 100%
+            );
+            border-color: rgba(100,230,250,0.4);
+        }
+        .cylinder-val {
+            color: #e8f4ff; font-size: clamp(16px, 2.5vw, 20px); font-weight: 800;
+            text-shadow:
+                0 0 8px rgba(200,230,255,0.4),
+                0 0 15px rgba(200,230,255,0.2);
+            font-family: 'DIN Alternate', 'Helvetica Neue', 'Microsoft YaHei', monospace;
+            letter-spacing: -0.5px;
+        }
+        .cylinder-label {
+            color: #7a9fc4; font-size: clamp(10px, 1.3vw, 12px); white-space: nowrap;
+            letter-spacing: 1px;
+        }
+        /* 惠企政策柱线图独立卡片，使用默认 svc-chart flex:1 填充 */
+
+        /* ========== 地图默认页 - 半透明悬浮图表面板 ========== */
+        .map-overlay-panel {
+            position: absolute;
+            background: linear-gradient(145deg, rgba(6,14,35,0.42), rgba(10,20,48,0.35));
+            border: 1px solid rgba(43,104,224,0.25);
+            border-radius: 8px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow:
+                0 4px 24px rgba(0,0,0,0.15),
+                inset 0 1px 0 rgba(64,196,255,0.08);
+        }
+        .map-overlay-title {
+            font-size: 16px; font-weight: 700; color: #40c4ff;
+            padding: 7px 12px 5px;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, rgba(43,104,224,0.22), rgba(43,104,224,0.06) 60%, transparent);
+            border-bottom: 1px solid rgba(43,104,224,0.15);
+            flex-shrink: 0;
+            position: relative;
+        }
+        .map-overlay-title::before {
+            content:''; position:absolute; left:0; top:0;
+            width:3px; height:100%;
+            background:linear-gradient(180deg,#40c4ff,#2b68e0);
+            border-radius:0 2px 2px 0;
+        }
+        .map-overlay-title::after {
+            content:''; position:absolute; right:0; top:0;
+            width:45px; height:100%;
+            background:repeating-linear-gradient(-45deg,transparent,transparent 3px,rgba(64,196,255,0.07) 3px,rgba(64,196,255,0.07) 6px);
+        }
+        .map-overlay-body {
+            flex: 1; min-height: 0;
+            padding: 4px;
+        }
+
+        /* ===== 左右图表列容器（Flex等分撑满）===== */
+        .chart-col {
+            position: absolute;
+            top: 14px;
+            bottom: 10px; /* 拉满到接近底部 */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chart-col-left  { left: 14px; width: 22vw; min-width: 300px; }
+        .chart-col-right { right: 14px; width: 22vw; min-width: 300px; }
+
+        /* ===== 图表面板（flex子项，自动填满）===== */
+        .panel-left-top, .panel-left-mid, .panel-left-btm,
+        .panel-right-top, .panel-right-mid, .panel-right-btm {
+            position: relative !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            bottom: auto !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0;
+            flex: 1 1 0%;
+            overflow: hidden;
+        }
+
+        /* ===== 顶部数字卡片 ===== */
+        .panel-top-center {
+            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+            z-index: 50;
+            display: flex; gap: 20px;
+        }
+        .top-digital-card {
+            background: linear-gradient(145deg, rgba(6,14,35,0.50), rgba(10,20,48,0.42));
+            border: 1px solid rgba(64,196,255,0.25);
+            border-radius: 8px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 14px 48px;
+            text-align: center;
+            min-width: 300px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.25), inset 0 1px 0 rgba(64,196,255,0.06);
+        }
+        .top-card-label { color: #7a9fc4; font-size: 13px; letter-spacing: 1px; margin-bottom: 3px; }
+        .top-card-value {
+            color: #4ade80; font-size: clamp(28px, 3vw, 38px); font-weight: 900;
+            font-family: 'DIN Alternate','Helvetica Neue','Microsoft YaHei',monospace;
+            text-shadow: 0 0 10px rgba(74,222,128,0.5), 0 0 20px rgba(74,222,128,0.2);
+            line-height: 1;
+        }
+        .top-card-unit { color: #5a8ab8; font-size: 11px; margin-left: 2px; }
+    </style>
+    <script>
+    window._AMapSecurityConfig = { securityJsCode: '8cc1e17e87bd8d7f80d303d6e7bdbc0a' };
+    </script>
+
+</head>
+<body>
+<div class="screen-container">
+    <div class="title-box">
+        <div class="title-left">
+            <span class="time" id="currentTime"></span>
+        </div>
+        <div class="title-center">
+            <h1>园区经济概览</h1>
+        </div>
+        <div class="title-right">
+            <button class="common-btn" onclick="location.reload()" title="刷新">
+                <i class="fa fa-refresh"></i>
+            </button>
+            <a href="../index.html" class="back-btn" title="返回主页">
+                <i class="fa fa-home"></i>
+            </a>
+        </div>
+    </div>
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-title">🏭 青川县庄子上工业园区</div>
+    <div class="loading-bar-bg"><div class="loading-bar"></div></div>
+    <div class="loading-tip" id="loadingTip">正在加载园区总览...</div>
+</div>
+
+    <div class="map-wrapper">
+        <div id="amap"></div>
+
+        <!-- ===== 地图默认页 - 悬浮图表面板 ===== -->
+        <!-- 顶部数字卡片 -->
+        <div class="panel-top-center">
+            <div class="top-digital-card">
+                <div class="top-card-label">企业总数</div>
+                <div><span class="top-card-value">948</span><span class="top-card-unit">(家)</span></div>
+            </div>
+            <div class="top-digital-card">
+                <div class="top-card-label">规上工企</div>
+                <div><span class="top-card-value" style="color:#40c4ff;text-shadow:0 0 10px rgba(64,196,255,0.5),0 0 20px rgba(64,196,255,0.2);">216</span><span class="top-card-unit">(家)</span></div>
+            </div>
+        </div>
+
+        <!-- 左侧3个图表面板 -->
+        <div class="chart-col chart-col-left">
+            <!-- 产业分布 -->
+            <div class="map-overlay-panel panel-left-top">
+                <div class="map-overlay-title">产业分布</div>
+                <div class="map-overlay-body"><div id="mapChartIndustry" style="width:100%;height:100%;"></div></div>
+            </div>
+            <!-- 产业产值 -->
+            <div class="map-overlay-panel panel-left-mid">
+                <div class="map-overlay-title">产业产值</div>
+                <div class="map-overlay-body"><div id="mapChartOutput" style="width:100%;height:100%;"></div></div>
+            </div>
+            <!-- 税收 -->
+            <div class="map-overlay-panel panel-left-btm">
+                <div class="map-overlay-title">税收 (2023)</div>
+                <div class="map-overlay-body"><div id="mapChartTax" style="width:100%;height:100%;"></div></div>
+            </div>
+        </div>
+
+        <!-- 右侧3个图表面板 -->
+        <div class="chart-col chart-col-right">
+            <!-- 工业总产值 -->
+            <div class="map-overlay-panel panel-right-top">
+                <div class="map-overlay-title">工业总产值（2023）</div>
+                <div class="map-overlay-body"><div id="mapChartGross" style="width:100%;height:100%;"></div></div>
+            </div>
+            <!-- 工业投资 -->
+            <div class="map-overlay-panel panel-right-mid">
+                <div class="map-overlay-title">工业投资</div>
+                <div class="map-overlay-body"><div id="mapChartInvest" style="width:100%;height:100%;"></div></div>
+            </div>
+            <!-- 研发机构 -->
+            <div class="map-overlay-panel panel-right-btm">
+                <div class="map-overlay-title">省级及以上研发机构数量</div>
+                <div class="map-overlay-body"><div id="mapChartRd" style="width:100%;height:100%;"></div></div>
+            </div>
+        </div>
+
+        
+        <div class="bottom-tabs">
+            <a class="tab-btn" href="park_sandbox.html">沙盘</a>
+            <a class="tab-btn active" style="pointer-events:none;opacity:0.8" href="park_economy.html">经济</a>
+            <a class="tab-btn" href="park_land.html">用地</a>
+            <a class="tab-btn" href="park_enterprise.html">企业</a>
+            <a class="tab-btn" href="park_service.html">服务</a>
+            <a class="tab-btn" href="park_energy.html">能耗</a>
+            <a class="tab-btn" href="park_safety.html">安全</a>
+        </div>        <!-- 企业列表面板 -->
+        <div class="enterprise-panel" id="entPanel">
+            <!-- 搜索栏 -->
+            <div class="ent-search-bar">
+                <div class="search-item">
+                    <span class="search-label">关键字：</span>
+                    <input type="text" class="search-input" placeholder="请输入企业名称、企业..." id="entKeyword"/>
+                    <i class="fa fa-search" style="color:#5a8fc7;font-size:14px;cursor:pointer;margin-left:-24px;"></i>
+                </div>
+                <div class="search-item">
+                    <span class="search-label">现上企业：</span>
+                    <select class="search-select"><option>全部</option><option>是</option><option>否</option></select>
+                </div>
+                <div class="search-item">
+                    <span class="search-label">行业规模：</span>
+                    <select class="search-select"><option>全部</option><option>大型</option><option>中型</option><option>小型</option></select>
+                </div>
+                <div class="search-item">
+                    <span class="search-label">亩均评级：</span>
+                    <select class="search-select"><option>请选择</option><option>A类</option><option>B类</option><option>C类</option></select>
+                </div>
+                <button class="btn-query" onclick="queryEnterprise()">查询</button>
+                <button class="btn-reset" onclick="resetEntSearch()">重置</button>
+                <button class="btn-jump" onclick="togglePagePopup(event)">跳转</button>
+                <div class="more-query">更多查询 ▼</div>
+            </div>
+
+            <!-- 企业卡片网格 -->
+            <div class="ent-grid" id="entGrid"></div>
+        </div>
+
+        <!-- 服务面板 -->
+        <div class="service-panel" id="servicePanel">
+            <div class="service-grid">
+                <!-- 产业协作 - 左上 -->
+                <div class="svc-card svc-left-top">
+                    <div class="svc-title">产业协作</div>
+                    <div class="svc-chart" id="svcIndustryCollab"></div>
+                </div>
+                <!-- 中间圆形仪表盘区域 -->
+                <div class="svc-card svc-center">
+                    <div class="svc-gauge-wrap">
+                        <!-- 雷达扫描线层 -->
+                        <div class="hud-scan-line"></div>
+                        <!-- 粒子容器 -->
+                        <div id="hudParticles"></div>
+<!-- 脉冲环层 -->
+                        <div class="hud-pulse-ring hud-pulse-1"></div>
+                        <div class="hud-pulse-ring hud-pulse-2"></div>
+                        <div class="hud-pulse-ring hud-pulse-3"></div>
+                        <!-- 内圈旋转装饰 -->
+                        <div class="hud-inner-ring"></div>
+                        <!-- 外圈旋转装饰 -->
+                        <div class="hud-outer-ring"></div>
+                        <div class="svc-gauge-center">
+                            <div class="svc-gauge-label">平台服务种类</div>
+                            <div class="svc-gauge-num">6</div>
+                            <div class="svc-gauge-sub">今年累计服务次数</div>
+                            <div class="svc-gauge-subnum">9</div>
+                        </div>
+                        <div class="svc-gauge-items" id="svcGaugeItems"></div>
+                    </div>
+                </div>
+                <!-- 服务类型 - 右上 -->
+                <div class="svc-card svc-right-top">
+                    <div class="svc-title">服务类型</div>
+                    <div class="svc-chart" id="svcServiceType"></div>
+                </div>
+                <!-- 惠企政策-3D圆柱 - 左中 -->
+                <div class="svc-card svc-left-mid">
+                    <div class="svc-title">惠企政策</div>
+                    <div class="policy-cylinders">
+                        <div class="policy-cylinder">
+                            <div class="cylinder-body"><div class="cylinder-base"></div><div class="cylinder-top"></div><div class="cylinder-side"></div></div>
+                            <div class="cylinder-val">1,726</div>
+                            <div class="cylinder-label">政策总量</div>
+                        </div>
+                        <div class="policy-cylinder">
+                            <div class="cylinder-body cylinder-green"><div class="cylinder-base"></div><div class="cylinder-top"></div><div class="cylinder-side"></div></div>
+                            <div class="cylinder-val">1,811</div>
+                            <div class="cylinder-label">惠及企业</div>
+                        </div>
+                        <div class="policy-cylinder">
+                            <div class="cylinder-body cylinder-cyan"><div class="cylinder-base"></div><div class="cylinder-top"></div><div class="cylinder-side"></div></div>
+                            <div class="cylinder-val">603</div>
+                            <div class="cylinder-label">推送人次</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 惠企政策-柱线图 - 左下 -->
+                <div class="svc-card svc-left-bottom">
+                    <div class="svc-title">政策趋势</div>
+                    <div class="svc-chart" id="svcPolicyChart"></div>
+                </div>
+                <!-- 服务状态 - 右中 -->
+                <div class="svc-card svc-right-mid">
+                    <div class="svc-title">服务状态</div>
+                    <div class="svc-chart" id="svcServiceStatus"></div>
+                </div>
+                <!-- 行业监管 - 右下 -->
+                <div class="svc-card svc-right-bottom">
+                    <div class="svc-title">行业监管</div>
+                    <div class="svc-chart" id="svcSupervision"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页码选择弹窗 -->
+        <div class="page-popup" id="pagePopup">
+            <div class="page-popup-title">选择页码</div>
+            <div class="page-options" id="pageOptions"></div>
+        </div>
+
+        <!-- 企业详情面板 -->
+        <div class="ent-detail-panel" id="entDetailPanel">
+            <!-- 头部 -->
+            <div class="detail-header">
+                <div class="detail-logo"><span>LOGO</span></div>
+                <div class="detail-header-info">
+                    <div class="detail-title-row">
+                        <span class="detail-name" id="dName"></span>
+                        <span class="detail-type-tag" id="dTypeTag"></span>
+                    </div>
+                    <span class="detail-score" id="dScore"></span>
+                    <div class="detail-info-grid" id="dInfoGrid"></div>
+                </div>
+                <button class="detail-close-btn" onclick="closeEntDetail()">✕</button>
+            </div>
+
+            <!-- 企业预警 -->
+            <div class="detail-warning-bar">
+                <span class="warning-title">企业预警</span>
+            </div>
+
+            <!-- 基本信息 -->
+            <div class="section-title">基本信息</div>
+            <div class="sub-section-title">工商信息</div>
+            <div class="detail-table-wrap">
+                <table class="dt-table" id="dtBusinessInfo"></table>
+            </div>
+
+            <!-- 股东信息 -->
+            <div class="sub-section-title">股东信息</div>
+            <div class="detail-table-wrap">
+                <table class="dt-table" id="dtShareholder"></table>
+            </div>
+
+            <!-- 对外投资 -->
+            <div class="sub-section-title">对外投资</div>
+            <div class="detail-table-wrap">
+                <table class="dt-table" id="dtInvestment"></table>
+            </div>
+
+            <!-- 企业发展 -->
+            <div class="section-title">企业发展</div>
+            <div class="sub-section-title">融资信息</div>
+            <div class="detail-table-wrap">
+                <table class="dt-table" id="dtFinance"></table>
+            </div>
+
+            <!-- 知识产权 -->
+            <div class="section-title">知识产权</div>
+            <div class="sub-section-title">专利信息</div>
+            <div class="detail-table-wrap">
+                <table class="dt-table" id="dtPatent"></table>
+            </div>
+
+            <!-- 资质证书 -->
+            <div class="sub-section-title">资质证书</div>
+            <div class="detail-table-wrap">
+                <table class="dt-table" id="dtCert"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="energy-panel" id="energyPanel">
+    <div class="eng-full-map" id="engMap"></div>
+
+    <div class="eng-hud">
+        <div class="top-digital-card"><div class="top-card-label">监测企业</div><div><span class="top-card-value" id="engKpiCo" style="color:#40c4ff">9</span><span class="top-card-unit">(家)</span></div></div>
+        <div class="top-digital-card"><div class="top-card-label">本月总费用</div><div><span class="top-card-value" id="engKpiTotal" style="color:#4cd964">0</span><span class="top-card-unit">(万元)</span></div></div>
+        <div class="top-digital-card"><div class="top-card-label">能耗增长</div><div><span class="top-card-value" id="engKpiUp" style="color:#ff9500">0</span><span class="top-card-unit">(家)</span></div></div>
+        <div class="top-digital-card"><div class="top-card-label">已填报</div><div><span class="top-card-value" id="engKpiRep" style="color:#7b61ff">0</span><span class="top-card-unit">(家)</span></div></div>
+    </div>
+
+    <div class="eng-overlay-col eng-overlay-col-left">
+        <div class="map-overlay-panel"><div class="map-overlay-title">用电趋势</div><div class="map-overlay-body"><div id="engPower" style="width:100%;height:100%"></div></div></div>
+        <div class="map-overlay-panel"><div class="map-overlay-title">用水趋势</div><div class="map-overlay-body"><div id="engWater" style="width:100%;height:100%"></div></div></div>
+        <div class="map-overlay-panel"><div class="map-overlay-title">用气趋势</div><div class="map-overlay-body"><div id="engGas" style="width:100%;height:100%"></div></div></div>
+    </div>
+    <div class="eng-overlay-col eng-overlay-col-right">
+        <div class="map-overlay-panel"><div class="map-overlay-title">能耗排名</div><div class="map-overlay-body"><div id="engRank" style="width:100%;height:100%"></div></div></div>
+        <div class="map-overlay-panel"><div class="map-overlay-title">成本占比</div><div class="map-overlay-body"><div id="engPie" style="width:100%;height:100%"></div></div></div>
+    </div>
+</div>
+
+<script>
+var map=null,locaContainer=null,buildingLayer=null,visible=true,centerPos=null;
+var RNG_SEED=42;
+function seededRand(){RNG_SEED=(RNG_SEED*9301+49297)%233280;return RNG_SEED/233280;}
+function seededRandom(a,b){return a+seededRand()*(b-a);}
+
+// ===== 多边形生成 =====
+function rectP(cx,cy,w,h){return[[[parseFloat((cx-w/2).toFixed(6)),parseFloat((cy-h/2).toFixed(6))],[parseFloat((cx+w/2).toFixed(6)),parseFloat((cy-h/2).toFixed(6))],[parseFloat((cx+w/2).toFixed(6)),parseFloat((cy+h/2).toFixed(6))],[parseFloat((cx-w/2).toFixed(6)),parseFloat((cy+h/2).toFixed(6))],[parseFloat((cx-w/2).toFixed(6)),parseFloat((cy-h/2).toFixed(6))]]];}
+function irrP(cx,cy,r){var n=5+Math.floor(seededRand()*3),p=[];for(var i=0;i<n;i++){var a=i/n*Math.PI*2+(seededRand()-0.5)*0.4,rr=r*(0.5+seededRand()*0.5);p.push([parseFloat((cx+Math.cos(a)*rr).toFixed(6)),parseFloat((cy+Math.sin(a)*rr).toFixed(6))]);}p.push(p[0]);return[p];}
+function lShape(cx,cy,w,h,rot){var w1=w*(0.5+seededRand()*0.2),h1=h*(0.5+seededRand()*0.2),pts;if(rot===0){pts=[[0,0],[w,0],[w,h],[w1,h],[w1,h1],[0,h1]];}else if(rot===1){pts=[[0,0],[w,0],[w,h1],[w1,h1],[w1,h],[0,h]];}else if(rot===2){pts=[[0,h1],[w1,h1],[w1,0],[w,0],[w,h],[0,h]];}else{pts=[[0,0],[w1,0],[w1,h1],[w,h1],[w,h],[0,h]];}var r=[];for(var i=0;i<pts.length;i++)r.push([parseFloat((cx+pts[i][0]-w/2).toFixed(6)),parseFloat((cy+pts[i][1]-h/2).toFixed(6))]);r.push(r[0]);return[r];}
+function circleP(cx,cy,r){var pts=[];for(var i=0;i<24;i++){var a=i/24*Math.PI*2;pts.push([parseFloat((cx+Math.cos(a)*r).toFixed(6)),parseFloat((cy+Math.sin(a)*r*0.85).toFixed(6))]);}pts.push(pts[0]);return[pts];}
+
+// ===== 种子点法 =====
+function genPositions(cx,cy,maxR){
+  var pts=[],GRID={};
+  function canPlace(l,l2,md){var gi=Math.round(l/0.0002),gj=Math.round(l2/0.0002);for(var di=-1;di<=1;di++)for(var dj=-1;dj<=1;dj++){var k=(gi+di)+'_'+(gj+dj);if(GRID[k])for(var t=0;t<GRID[k].length;t++)if(Math.sqrt(Math.pow(l-GRID[k][t][0],2)+Math.pow(l2-GRID[k][t][1],2))<md) return false;}return true;}
+  function mark(l,l2){var k=Math.round(l/0.0002)+'_'+Math.round(l2/0.0002);if(!GRID[k])GRID[k]=[];GRID[k].push([l,l2]);}
+  var SEEDS=[];
+  var corePts=[{dx:0,dy:0},{dx:-.003,dy:.002},{dx:.004,dy:-.001},{dx:-.002,dy:-.004},{dx:.003,dy:.003},{dx:-.005,dy:-.001},{dx:.001,dy:-.003},{dx:-.001,dy:.005},{dx:.006,dy:.001},{dx:-.004,dy:.004},{dx:.002,dy:-.005},{dx:-.006,dy:.003},{dx:.005,dy:.005},{dx:-.003,dy:-.006},{dx:.000,dy:.006}];
+  corePts.forEach(function(s){SEEDS.push({lng:cx+s.dx,lat:cy+s.dy,type:'core',r:0.0025+seededRand()*0.0015});});
+  for(var i=0;i<45;i++){var a=seededRand()*Math.PI*2,d=seededRandom(0.008,0.025);SEEDS.push({lng:cx+Math.cos(a)*d,lat:cy+Math.sin(a)*d,type:seededRand()<0.4?'factory':'residential',r:0.003+seededRand()*0.003});}
+  for(var i=0;i<30;i++){var a=seededRand()*Math.PI*2,d=seededRandom(0.025,0.04);SEEDS.push({lng:cx+Math.cos(a)*d,lat:cy+Math.sin(a)*d,type:'factory',r:0.0025+seededRand()*0.003});}
+  var CFG={core:{minSep:0.00018,cnt:25},factory:{minSep:0.00022,cnt:20},residential:{minSep:0.00018,cnt:14}};
+  SEEDS.forEach(function(s){var c=CFG[s.type]||CFG.core;var d=Math.sqrt(Math.pow(s.lng-cx,2)+Math.pow(s.lat-cy,2));var df=1-Math.min(1,d/(maxR*0.5))*0.4;var cnt=Math.floor(c.cnt*df),tries=cnt*5,pl=0;for(var i=0;i<tries&&pl<cnt;i++){var a2=seededRand()*Math.PI*2,rad=Math.sqrt(seededRand())*s.r;var bl=s.lng+Math.cos(a2)*rad,blt=s.lat+Math.sin(a2)*rad*0.85;if(Math.sqrt(Math.pow(bl-cx,2)+Math.pow(blt-cy,2))>maxR) continue;var ms=c.minSep*(0.8+seededRand()*0.4);if(canPlace(bl,blt,ms)){pts.push({lng:bl,lat:blt,type:s.type});mark(bl,blt);pl++;}}});
+  pts.push({lng:cx,lat:cy,type:'landmark',force:true});
+  return pts;
+}
+
+// ===== 生成特征（楼层分解）=====
+function genFeatures(pts,cx,cy){
+  var feats=[],maxH=0,FH=3.5,GP=0.3;
+  pts.forEach(function(p){
+    var lng=p.lng,lat=p.lat,dist=Math.sqrt(Math.pow(lng-cx,2)+Math.pow(lat-cy,2));
+    var type,height,shape;
+    if(p.force){type='landmark';height=100+seededRand()*20;shape=rectP(lng,lat,0.0008,0.0008);} else {
+      var r=seededRand(),bias=Math.max(0,0.5-dist*7),th=r+bias*0.5;
+      if(th>1.2){type='high';height=seededRandom(35,80);}else if(th>0.8){type='mid';height=seededRandom(18,40);}else if(th>0.3){type='fact';var hr=seededRand();height=hr<0.35?seededRandom(3,7):hr<0.7?seededRandom(8,18):seededRandom(20,35);}else{type='low';height=seededRandom(6,16);}
+    }
+    if(type!=='landmark'&&type!=='high'&&dist>0.03)height=Math.min(height,seededRandom(6,22));
+    if(type!=='landmark'&&type!=='high'&&dist>0.04)height=Math.min(height,seededRandom(4,14));
+    if(height>maxH)maxH=height;
+    if(type==='landmark') shape=rectP(lng,lat,0.0008,0.0008);
+    else if(type==='fact'&&seededRand()>0.45){var fw=seededRandom(0.0004,0.0009),fh=seededRandom(0.0003,0.0007);shape=lShape(lng,lat,fw,fh,Math.floor(seededRand()*4));}
+    else if(type==='fact'){shape=rectP(lng,lat,seededRandom(0.0004,0.0009),seededRandom(0.0003,0.0007));}
+    else if(type==='high'){shape=rectP(lng,lat,seededRandom(0.00012,0.00025),seededRandom(0.00012,0.00025));}
+    else if((type==='mid'||type==='low')&&seededRand()>0.6){shape=circleP(lng,lat,seededRandom(0.00008,0.0002));}
+    else{shape=irrP(lng,lat,seededRandom(0.00008,0.00025));}
+    var color;
+    if(type==='landmark') color='#ff1744';
+    else if(type==='high') color='#40c4ff';
+    else if(type==='mid') color='#69f0ae';
+    else if(type==='fact'){color=height<7?'#ffd54f':height<18?'#ffb300':'#ff8f00';}
+    else color='#b388ff';
+    if(height<5){feats.push({type:'Feature',geometry:{type:'Polygon',coordinates:shape},properties:{alt:0,h:height,color:color}});}else{
+      var floors=Math.max(2,Math.min(25,Math.round(height/(FH+GP))));var step=height/floors,gfh=Math.max(2.5,step-0.3),sg=gfh+0.3;
+      for(var f=0;f<floors;f++){var alt=f*sg,hf=(f===floors-1)?height-alt:gfh;feats.push({type:'Feature',geometry:{type:'Polygon',coordinates:shape},properties:{alt:Math.round(alt*10)/10,h:Math.round(Math.max(1.5,hf)*10)/10,color:color}});}
+    }
+  });
+  return{features:feats,maxHeight:maxH,count:feats.length};
+}
+
+// ===== Loca =====
+var locaLoaded=false;
+function loadLoca(cb){
+  if(typeof Loca!=='undefined'){locaLoaded=true;if(cb)cb();return;}
+  var s=document.createElement('script');s.src='https://webapi.amap.com/loca?v=2.0.0&key=7d2674ce8375986e20c048ead06989d0';
+  s.onload=function(){locaLoaded=true;debug('Loca loaded');if(cb)cb();};
+  s.onerror=function(){};document.head.appendChild(s);
+}
+function renderLayer(data){
+  if(typeof Loca==='undefined')return;
+  locaContainer=new Loca.Container({map:map});
+  buildingLayer=new Loca.PolygonLayer({loca:locaContainer,zIndex:1,opacity:0.88,shininess:12,hasSide:true,hasTop:true});
+  buildingLayer.setSource(new Loca.GeoJSONSource({data:{type:'FeatureCollection',features:data.features}}));
+  buildingLayer.setStyle({topColor:function(i,f){return f.properties.color||'#40c4ff';},sideTopColor:function(i,f){return(f.properties.color||'#40c4ff')+'cc';},sideBottomColor:function(i,f){return(f.properties.color||'#40c4ff')+'44';},altitude:function(i,f){return f.properties.alt||0;},height:function(i,f){return f.properties.h||3.5;}});
+  locaContainer.add(buildingLayer);locaContainer.animate.start();
+  debug('Done: '+data.count+' floors, max '+data.maxHeight.toFixed(0)+'m');
+  document.getElementById('loadingOverlay').classList.add('hide');
+}
+
+function buildAll(lng,lat){centerPos=[lng,lat];RNG_SEED=42;
+  document.getElementById('loadingTip').textContent='正在生成园区3D建筑群...';
+  setTimeout(function(){
+    var positions=genPositions(lng,lat,0.045);
+    debug('Buildings: '+positions.length);
+    var data=genFeatures(positions,lng,lat);
+    debug('Floors: '+data.count+', maxH: '+data.maxHeight);
+    loadLoca(function(){renderLayer(data);});
+  },50);
+}
+
+function locateJiaXing(){debug('Searching...');
+  document.getElementById('loadingTip').textContent='正在搜索佳兴铝业...';
+  AMap.plugin(['AMap.PlaceSearch'],function(){var ps=new AMap.PlaceSearch({city:'广元',citylimit:true,pageSize:1,pageIndex:1});
+    ps.search('青川佳兴铝业',function(s,r){if(s==='complete'&&r.poiList&&r.poiList.pois.length>0){
+      var p=r.poiList.pois[0],lng=p.location.lng||p.location.getLng(),lat=p.location.lat||p.location.getLat();
+      debug('Found: '+p.name);
+      map.setZoomAndCenter(15,[lng,lat]);setTimeout(function(){map.setPitch(55);},500);setTimeout(function(){buildAll(lng,lat);},1200);
+    }else{debug('Fallback');
+      map.setZoomAndCenter(15,[105.238,32.328]);setTimeout(function(){map.setPitch(55);},500);setTimeout(function(){buildAll(105.238,32.328);},1200);}});});}
+
+function initMap(){debug('AMap loaded');
+  map=new AMap.Map('amap',{zoom:15,pitch:50,center:[105.238,32.328],viewMode:'3D',mapStyle:'amap://styles/blue',showLabel:true,features:['bg','road','building','point'],resizeEnable:true});
+  map.on('complete',function(){debug('Map ready');
+    AMap.plugin(['AMap.DistrictSearch'],function(){
+      drawBoundary();
+    });
+    locateJiaXing();
+    // 初始化地图默认页悬浮图表面板
+    setTimeout(function(){initMapOverlays();},500);
+  });}
+
+// ===== 绘制青川县边界 + 竹园镇范围 =====
+var boundaryLines=[];
+function drawBoundary(){
+  debug('Searching boundaries...');
+  AMap.plugin(['AMap.DistrictSearch'],function(){
+    // 获取青川县边界（AMap有县级数据）
+    var ds=new AMap.DistrictSearch({subdistrict:0,extensions:'all',level:'district'});
+    ds.search('510822',function(s,r){
+      if(s==='complete'&&r.districtList&&r.districtList.length>0){
+        var county=r.districtList[0];
+        if(county.boundaries&&county.boundaries.length>0){
+          drawBoundaryLines(county.boundaries,'#40c4ff',3);
+          debug('County boundary drawn ✓');
+        }
+        // 尝试获取竹园镇子级边界
+        if(county.districtList){
+          for(var i=0;i<county.districtList.length;i++){
+            var sub=county.districtList[i];
+            if(sub.name.indexOf('竹园')>=0&&sub.boundaries&&sub.boundaries.length>0){
+              drawBoundaryLines(sub.boundaries,'#ff1744',5);
+              debug('竹园镇 boundary ✓');
+              return;
+            }
+          }
+        }
+        // 子级无边界数据 → 跳过
+        debug('竹园镇无精确边界数据（AMap未提供镇级边界）');
+      } else {debug('Search failed');}
+    });
+  });
+}
+
+// 竹园镇估算边界（基于已知坐标和地理范围）
+function drawBoundaryLines(rings,color,weight){
+  weight=weight||3;
+  rings.forEach(function(ring){
+    var path=[];
+    for(var i=0;i<ring.length;i++){
+      var p=ring[i];
+      if(p&&p.length>=2) path.push([p[0],p[1]]);
+      else if(p&&p.lng!=null&&p.lat!=null) path.push([p.lng,p.lat]);
+    }
+    if(path.length>3){
+      var line=new AMap.Polyline({
+        path:path,strokeColor:color,
+        strokeWeight:weight,strokeOpacity:1,strokeStyle:'solid',zIndex:300
+      });
+      line.setMap(map);
+      boundaryLines.push(line);
+    }
+  });
+}
+
+// ===== 地图默认页 - 悬浮图表面板初始化 =====
+var mapOverlayCharts={}, mapOverlayInited=false;
+function initMapOverlays(){
+  if(mapOverlayInited){Object.keys(mapOverlayCharts).forEach(function(k){if(mapOverlayCharts[k])mapOverlayCharts[k].resize();});return;}
+  mapOverlayInited=true;
+
+  // 1. 产业分布 - 南丁格尔玫瑰图（左上）- 自动旋转
+  mapOverlayCharts.industry = ParkCharts.pieRose('mapChartIndustry',{
+    name:'产业分布',
+    data:[
+      {value:16,name:'电子信息'},{value:38,name:'轨道交通'},
+      {value:60,name:'生物医'},{value:79,name:'通用航空'},
+      {value:79,name:'绿色食品'},{value:128,name:'高端装备'}
+    ]
+  });
+
+  // 2. 产业产值 - 环形统计图+中心总和（左中）- 自动旋转
+  mapOverlayCharts.output = ParkCharts.pieRing('mapChartOutput',{
+    name:'产业产值',
+    unit:'亿元',
+    data:[
+      {value:70,name:'高端装备'},{value:80,name:'生物医'},
+      {value:57,name:'绿色食品'},{value:40,name:'轨道交'},
+      {value:7,name:'通用航空'}
+    ]
+  });
+
+  // 3. 税收 - 趋势曲线图（左下）
+  mapOverlayCharts.tax = ParkCharts.trendLine('mapChartTax',{
+    data:[2100,2800,1500,3200,3800,2200,5000],
+    name:'税收',
+    unit:'万元',
+    color:'#40c4ff'
+  });
+
+  // 4. 工业总产值 - 柱状标注图（右上）
+  mapOverlayCharts.gross = ParkCharts.barMark('mapChartGross',{
+    data:[310,360,420,400,450,480,370,430,490],
+    name:'工业总产值',
+    unit:'万元',
+    xData:['1月','2月','3月','4月','5月','6月','7月','8月','9月']
+  });
+
+  // 5. 工业投资 - 柱状图（右中）
+  mapOverlayCharts.invest=echarts.init(document.getElementById('mapChartInvest'));
+  mapOverlayCharts.invest.setOption({
+    grid:{left:45,right:15,top:22,bottom:24,containLabel:true},
+    xAxis:{type:'category',data:['2019','2020','2021','2022'],
+      axisLine:{lineStyle:{color:'rgba(64,196,255,0.2)'}},axisTick:{show:false},
+      axisLabel:{color:'#88a4c4',fontSize:9}},
+    yAxis:{type:'value',name:'单位：亿元',nameTextStyle:{color:'#78909c',fontSize:9},
+      axisLine:{show:false},splitLine:{lineStyle:{color:'rgba(64,196,255,0.06)'}},axisLabel:{color:'#78909c',fontSize:9}},
+    tooltip:{trigger:'axis'},
+    series:[{
+      type:'bar',barWidth:18,itemStyle:{
+        color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(103,232,249,0.85)'},{offset:1,color:'rgba(6,182,212,0.55)'}]),
+        borderRadius:[2,2,0,0]
+      },data:[2.8,5.2,9.6,4.8]
+    }]
+  });
+
+  // 6. 研发机构数量 - 环形统计图+中心总和（右下）- 自动旋转
+  mapOverlayCharts.rd = ParkCharts.pieRing('mapChartRd',{
+    name:'研发机构',
+    unit:'个',
+    data:[
+      {value:32,name:'国家级'},{value:28,name:'省级'},
+      {value:19,name:'市级'},{value:12,name:'企业技术中心'},
+      {value:8,name:'工程研究中心'},{value:5,name:'重点实验室'}
+    ]
+  });
+
+  window.addEventListener('resize',function(){Object.keys(mapOverlayCharts).forEach(function(k){if(mapOverlayCharts[k])mapOverlayCharts[k].resize();});});
+}
+
+function refreshData(){window.location.reload();}
+function toggleBuildings(){if(!locaContainer)return;visible=!visible;if(visible){locaContainer.add(buildingLayer);document.getElementById('toggleBtn').classList.add('active');}else{locaContainer.remove(buildingLayer);document.getElementById('toggleBtn').classList.remove('active');}}
+function resetView(){if(centerPos){map.setZoomAndCenter(15,centerPos);map.setPitch(55);}}
+function debug(m){console.log('[ParkOverview]',m);}
+function switchTab(el){
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');
+  var tab=el.getAttribute('data-tab');
+  var panel=document.getElementById('entPanel');
+  var svcPanel=document.getElementById('servicePanel');
+  var engPanel=document.getElementById('energyPanel');
+  // 隐藏所有子面板和默认覆盖层
+  panel.classList.remove('show'); svcPanel.classList.remove('show');
+  if(engPanel) engPanel.classList.remove('show');
+  var ovCols=document.querySelectorAll('.chart-col');
+  ovCols.forEach(function(c){c.style.display='none';});
+  var ovTop=document.querySelectorAll('.panel-top-center');
+  ovTop.forEach(function(c){c.style.display='none';});
+  var ovBtm=document.querySelectorAll('.bottom-tabs');
+  // bottom-tabs 始终可见，不做隐藏
+  var amapEl=document.getElementById('amap');
+  if(tab==='energy'){
+    if(amapEl) amapEl.style.display='none';
+    if(engPanel){ engPanel.classList.add('show'); initEnergyPanel(); }
+  } else if(tab==='enterprise'){
+    if(amapEl) amapEl.style.display='';
+    panel.classList.add('show'); renderEnterpriseList();
+  } else if(tab==='service'){
+    if(amapEl) amapEl.style.display='';
+    svcPanel.classList.add('show'); initServiceDashboard();
+  } else {
+    if(amapEl) amapEl.style.display='';
+    ovCols.forEach(function(c){c.style.display='';});
+    ovTop.forEach(function(c){c.style.display='';});
+  }
+  debug('Switch to tab: '+tab);
+}
+
+// ===== 服务面板初始化 =====
+var serviceCharts={};
+var serviceInited=false;
+function initServiceDashboard(){
+  if(serviceInited){/* 已初始化则resize*/Object.keys(serviceCharts).forEach(function(k){if(serviceCharts[k])serviceCharts[k].resize();});return;}
+  serviceInited=true;
+  renderGaugeItems();
+  initHUDParticles(); // 初始化HUD粒子效果
+  // 1. 产业协作 - 水平堆叠条形图
+  serviceCharts.industryCollab=echarts.init(document.getElementById('svcIndustryCollab'));
+  serviceCharts.industryCollab.setOption({
+    grid:{left:10,right:20,top:18,bottom:16,containLabel:true},
+    legend:{data:['总量','已完成'],top:0,textStyle:{color:'#a0cfff',fontSize:11},itemWidth:14,itemHeight:8},
+    xAxis:{type:'value',axisLine:{lineStyle:{color:'rgba(64,196,255,0.25)'}},splitLine:{show:false},axisLabel:{color:'#78909c',fontSize:10}},
+    yAxis:{type:'category',data:['服务','需求'],axisLine:{lineStyle:{color:'rgba(64,196,255,0.25)'}},axisTick:{show:false},axisLabel:{color:'#cfe8ff',fontSize:12}},
+    series:[
+      {name:'总量',type:'bar',barWidth:16,itemStyle:{
+        color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#40c4ff'},{offset:1,color:'#2b68e0'}]),
+        borderRadius:[0,3,3,0]
+      },label:{show:true,position:'right',color:'#cfe8ff',fontSize:11,fontWeight:600},data:[530,185]},
+      {name:'已完成',type:'bar',barWidth:16,itemStyle:{
+        color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#ffd54f'},{offset:1,color:'#ff8f00'}]),
+        borderRadius:[0,3,3,0]
+      },label:{show:true,position:'right',color:'#ffd54f',fontSize:11,fontWeight:600},data:[466,168]}
+    ]
+  });
+  // 2. 服务类型 - 3D风格旋转饼图
+  serviceCharts.serviceType=echarts.init(document.getElementById('svcServiceType'));
+  serviceCharts.serviceType.setOption({
+    color:['#40c4ff','#69f0ae','#ffd54f','#b388ff','#80d0ff','#ff8f00'],
+    tooltip:{trigger:'item',formatter:'{b}: {c} ({d}%)'},
+    series:[{
+      type:'pie',radius:['35%','65%'],center:['50%','50%'],
+      startAngle: 0,
+      roseType: false,
+      itemStyle:{
+        borderRadius:6,
+        borderColor:'rgba(6,12,28,0.7)',
+        borderWidth:2,
+        shadowBlur:15,
+        shadowColor:'rgba(0,0,0,0.4)',
+        shadowOffsetY:5
+      },
+      label:{color:'#cfe8ff',fontSize:10,formatter:'{b}\n{d}%',lineHeight:16},
+      emphasis:{
+        label:{show:true,fontSize:13,fontWeight:'bold'},
+        itemStyle:{shadowBlur:20}
+      },
+      animationType: 'scale',
+      animationEasing: 'elasticOut',
+      data:[
+        {value:2,name:'交通出行'},{value:2,name:'扩能调迁'},{value:2,name:'政策扶持'},
+        {value:1,name:'其他'},{value:1,name:'人才用工'},{value:1,name:'配套需求'}
+      ]
+    }]
+  });
+  // 3. 惠企政策 - 柱线组合图
+  serviceCharts.policyChart=echarts.init(document.getElementById('svcPolicyChart'));
+  var months=['2023-01','2023-02','2023-03','2023-04','2023-05','2023-06'];
+  serviceCharts.policyChart.setOption({
+    grid:{left:32,right:28,top:10,bottom:22,containLabel:true},
+    legend:{data:['政策总量','惠及企业','推送人次'],bottom:-2,textStyle:{color:'#a0cfff',fontSize:9},itemWidth:12,itemHeight:7},
+    xAxis:{type:'category',data:months,axisLine:{lineStyle:{color:'rgba(64,196,255,0.2)'}},axisTick:{show:false},axisLabel:{color:'#88a4c4',fontSize:9,rotate:30}},
+    yAxis:[
+      {type:'value',name:'单位：条',nameTextStyle:{color:'#78909c',fontSize:9},axisLine:{show:false},splitLine:{lineStyle:{color:'rgba(64,196,255,0.08)'}},axisLabel:{color:'#78909c',fontSize:9}},
+      {type:'value',name:'单位：个',nameTextStyle:{color:'#78909c',fontSize:9},axisLine:{show:false},splitLine:{show:false},axisLabel:{color:'#78909c',fontSize:9}}
+    ],
+    series:[
+      {name:'政策总量',type:'line',yAxisIndex:1,smooth:true,symbol:'circle',symbolSize:6,lineStyle:{color:'#d946ef',width:2.5,shadowColor:'rgba(217,70,239,0.4)',shadowBlur:4},itemStyle:{color:'#d946ef'},data:[6,12,5,17,23,8]},
+      {name:'惠及企业',type:'bar',yAxisIndex:0,barWidth:12,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(64,196,255,0.85)'},{offset:1,color:'rgba(43,104,224,0.7)'}]),borderRadius:[2,2,0,0]},data:[3,4,2,4,4,2]},
+      {name:'推送人次',type:'bar',yAxisIndex:0,barWidth:12,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(255,213,79,0.95)'},{offset:1,color:'rgba(255,143,0,0.8)'}]),borderRadius:[2,2,0,0]},data:[11,16,9,18,19,9]}
+    ]
+  });
+  // 4. 服务状态 - 3D旋转环形图
+  serviceCharts.serviceStatus=echarts.init(document.getElementById('svcServiceStatus'));
+  serviceCharts.serviceStatus.setOption({
+    color:['#4ade80','#f472b6','#67e8f9'],
+    tooltip:{trigger:'item',formatter:'{b}: {d}%'},
+    series:[{
+      type:'pie',radius:['42%','68%'],center:['50%','52%'],
+      startAngle: 0,
+      itemStyle:{
+        borderRadius:6,
+        borderColor:'rgba(6,12,28,0.8)',
+        borderWidth:2,
+        shadowBlur:12,
+        shadowColor:'rgba(0,0,0,0.35)',
+        shadowOffsetY:4
+      },
+      label:{color:'#cfe8ff',fontSize:11,formatter:'{b}\n{d}%',alignTo:'edge',edgeDistance:'8%',lineHeight:16},
+      emphasis:{label:{show:true,fontSize:13,fontWeight:'bold'},itemStyle:{shadowBlur:18}},
+      animationType: 'scale',
+      animationEasing: 'elasticOut',
+      data:[{value:2,name:'已解决'},{value:2,name:'待处理'},{value:5,name:'处理中'}]
+    }]
+  });
+  // 5. 行业监管 - 堆叠柱状图
+  serviceCharts.supervision=echarts.init(document.getElementById('svcSupervision'));
+  serviceCharts.supervision.setOption({
+    grid:{left:35,right:10,top:16,bottom:26,containLabel:true},
+    legend:{data:['安全检查','疫情检查','环保检查'],top:2,textStyle:{color:'#a0cfff',fontSize:9},itemWidth:12,itemHeight:7},
+    xAxis:{type:'category',data:months,axisLine:{lineStyle:{color:'rgba(64,196,255,0.2)'}},axisTick:{show:false},axisLabel:{color:'#88a4c4',fontSize:9,rotate:30}},
+    yAxis:{type:'value',name:'单位：次',nameTextStyle:{color:'#78909c',fontSize:9},axisLine:{show:false},splitLine:{lineStyle:{color:'rgba(64,196,255,0.08)'}},axisLabel:{color:'#78909c',fontSize:9}},
+    series:[
+      {name:'安全检查',type:'bar',stack:'total',barWidth:14,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#ffd54f'},{offset:1,color:'#ff8f00'}]),borderRadius:[0,0,0,0]},data:[7,2,1,9,6,3]},
+      {name:'疫情检查',type:'bar',stack:'total',barWidth:14,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#67e8f9'},{offset:1,color:'#06b6d4'}])},data:[32,24,11,19,15,6]},
+      {name:'环保检查',type:'bar',stack:'total',barWidth:14,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#f472b6'},{offset:1,color:'#d946ef'}]),borderRadius:[2,2,0,0]},data:[33,46,21,23,43,18]}
+    ]
+  });
+  /* 窗口resize时同步 */
+  window.addEventListener('resize',function(){Object.keys(serviceCharts).forEach(function(k){if(serviceCharts[k])serviceCharts[k].resize();});});
+
+  // ========== 饼图/环形图 平滑旋转动画 ==========
+  var _pieAngle = { svcType: 0, svcStatus: 0 };
+  var _pieLastTime = performance.now();
+  var _pieSpeed = { svcType: 12, svcStatus: -10 }; // 每秒旋转度数（慢速平缓）
+  function _pieAnimate(timestamp) {
+    var dt = (timestamp - _pieLastTime) / 1000; // 秒
+    _pieLastTime = timestamp;
+    if (dt > 0 && dt < 1) { // 防止标签页切换等异常
+      _pieAngle.svcType += _pieSpeed.svcType * dt;
+      _pieAngle.svcStatus += _pieSpeed.svcStatus * dt;
+      if (_pieAngle.svcType >= 360) _pieAngle.svcType -= 360;
+      if (_pieAngle.svcStatus <= -360) _pieAngle.svcStatus += 360;
+      if (_pieAngle.svcType < 0) _pieAngle.svcType += 360;
+      if (_pieAngle.svcStatus >= 360) _pieAngle.svcStatus -= 360;
+      if (serviceCharts.serviceType && !serviceCharts.serviceType.isDisposed()) {
+        serviceCharts.serviceType.setOption({
+          series: [{ startAngle: _pieAngle.svcType }]
+        });
+      }
+      if (serviceCharts.serviceStatus && !serviceCharts.serviceStatus.isDisposed()) {
+        serviceCharts.serviceStatus.setOption({
+          series: [{ startAngle: _pieAngle.svcStatus }]
+        });
+      }
+    }
+    requestAnimationFrame(_pieAnimate);
+  }
+  requestAnimationFrame(_pieAnimate);
+}
+var _energyInited=false,_engCharts={};
+function initEnergyPanel(){
+  if(_energyInited){resizeEngCharts();return;}
+  _energyInited=true;
+  initEngMap();
+  setTimeout(function(){initEngTrends();initEngRank();initEngPie();updateEngKPI();},200);
+}
+function resizeEngCharts(){Object.keys(_engCharts).forEach(function(k){var c=_engCharts[k];if(c&&typeof c.resize==='function'&&(!c.isDisposed||!c.isDisposed()))c.resize();});}
+
+var engComp={};
+function genEngData(){
+  if(engComp['佳兴铝业'])return;
+  var bn=['佳兴铝业','阜成新材','虹禾晶科技','中能建','星恒青源','九晟新材','华纳实业','新通鑫','广袤新材'];
+  var locs=[[105.24,32.58],[105.22,32.56],[105.27,32.59],[105.19,32.55],[105.31,32.57],[105.25,32.53],[105.29,32.56],[105.21,32.54],[105.26,32.52]];
+  bn.forEach(function(n,i){engComp[n]={name:n,loc:locs[i],power:(Math.random()*60+20).toFixed(1),water:Math.floor(Math.random()*3000+1000),gas:Math.floor(Math.random()*15000+5000),cost:(Math.random()*20+10).toFixed(1),yoy:((Math.random()*20)-5).toFixed(1)};});
+}
+
+function updateEngKPI(){
+  genEngData();var keys=Object.keys(engComp),total=0,up=0,rep=0;
+  keys.forEach(function(k){var e=engComp[k];total+=parseFloat(e.cost);if(parseFloat(e.yoy)>0)up++;rep+=e.power?1:0;});
+  document.getElementById('engKpiCo').textContent=keys.length;
+  document.getElementById('engKpiTotal').textContent=total.toFixed(1);
+  document.getElementById('engKpiUp').textContent=up;
+  document.getElementById('engKpiRep').textContent=keys.length;
+}
+
+function initEngMap(){
+  var mapEl=document.getElementById('engMap');
+  if(mapEl._echart_){mapEl._echart_.resize();if(typeof mapEl._echart_.setOption==='function')return;}
+  // 用 ECharts + GeoJSON 渲染青川边界（对齐疏浚监控的方式）
+  var ch=echarts.init(mapEl);_engCharts.engMap=ch;mapEl._echart_=ch;
+  axios.get('https://geo.datav.aliyun.com/areas_v3/bound/510822.json').then(function(resp){
+    echarts.registerMap('qingchuan',resp.data);
+    // 从GeoJSON自动计算边界范围
+    var features=resp.data.features;var coords=features[0].geometry.coordinates;
+    var minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    function walkCoord(arr){if(typeof arr[0]==='number'){minX=Math.min(minX,arr[0]);minY=Math.min(minY,arr[1]);maxX=Math.max(maxX,arr[0]);maxY=Math.max(maxY,arr[1]);}else{arr.forEach(walkCoord);}}
+    walkCoord(coords);var cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+    var spanLng=maxX-minX,spanLat=maxY-minY,span=Math.max(spanLng,spanLat);
+    var zoom=span<0.5?1.5:span<1?1.2:span<2?1:0.8;
+    ch.setOption({backgroundColor:'transparent',
+      geo:{map:'qingchuan',roam:'scale',center:[cx,cy],zoom:zoom,
+      // 3D 立体层次感：上层高亮 + 下层暗色投影
+      itemStyle:{
+        areaColor:{type:'linear',x:0.2,y:0,x2:0.8,y2:1,
+          colorStops:[
+            {offset:0,color:'rgba(40,80,180,0.7)'},
+            {offset:0.35,color:'rgba(24,55,130,0.6)'},
+            {offset:0.65,color:'rgba(14,35,90,0.45)'},
+            {offset:1,color:'rgba(6,18,50,0.35)'}
+          ]},
+        borderColor:'rgba(120,180,255,0.7)',borderWidth:1.5,
+        shadowColor:'rgba(20,40,100,0.8)',shadowBlur:35,shadowOffsetX:4,shadowOffsetY:12
+      },
+      emphasis:{itemStyle:{areaColor:'rgba(50,100,200,0.75)',borderColor:'#40c4ff',borderWidth:2.5,shadowColor:'rgba(64,196,255,0.6)',shadowBlur:40,shadowOffsetX:6,shadowOffsetY:15}},
+      // 标签：青川县名称悬浮
+      label:{show:true,color:'rgba(180,210,255,0.6)',fontSize:32,fontWeight:'bold',position:'bottom',distance:60,
+        textShadowColor:'rgba(0,0,0,0.5)',textShadowBlur:10}
+    }});
+    // 9企业散点 - 3D 发光圆环效果
+    genEngData();var keys=Object.keys(engComp);
+    var scatterData=keys.map(function(k,i){var e=engComp[k],c=parseFloat(e.cost);var col=c>18?'#40c4ff':c>14?'#4cd964':'#ff9500';return {name:e.name,value:e.loc,cost:e.cost,power:e.power,water:e.water,gas:e.gas,color:col,idx:i+1};});
+    ch.setOption({series:[
+      // 外圈光晕
+      {type:'scatter',coordinateSystem:'geo',data:scatterData,symbolSize:28,symbol:'circle',
+        itemStyle:{color:function(p){return p.data.color+'44';},shadowBlur:20,shadowColor:function(p){return p.data.color+'aa';}},
+        label:{show:false}},
+      // 内圈
+      {type:'scatter',coordinateSystem:'geo',data:scatterData,symbolSize:16,symbol:'circle',
+        itemStyle:{color:function(p){return p.data.color;},shadowBlur:16,shadowColor:function(p){return p.data.color;},borderColor:'rgba(255,255,255,0.6)',borderWidth:1.5},
+        label:{show:true,position:'right',distance:8,formatter:function(p){return p.data.name;},color:'#cfe4ff',fontSize:10,textShadowColor:'rgba(0,0,0,0.6)',textShadowBlur:4},
+        emphasis:{scale:1.8,itemStyle:{borderColor:'#fff',borderWidth:2.5,shadowBlur:30},label:{fontSize:12,color:'#40c4ff'}}},
+      // 核心白点
+      {type:'scatter',coordinateSystem:'geo',data:scatterData,symbolSize:5,symbol:'circle',
+        itemStyle:{color:'#fff',shadowBlur:8,shadowColor:'#fff'},label:{show:false}}
+    ]});
+  }).catch(function(e){console.error('青川边界加载失败',e);});
+}
+
+function initEngTrends(){
+  var months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var pv=[],wv=[],gv=[];
+  for(var i=0;i<12;i++){pv.push((Math.random()*50+30).toFixed(1));wv.push(Math.floor(Math.random()*3000+1000));gv.push(Math.floor(Math.random()*12000+4000));}
+  var cfg=[{el:'engPower',d:pv,n:'用电(万kWh)',c:'#40c4ff'},{el:'engWater',d:wv,n:'用水(吨)',c:'#4cd964'},{el:'engGas',d:gv,n:'用气(m³)',c:'#ff9500'}];
+  cfg.forEach(function(o){
+    var dom=document.getElementById(o.el);if(!dom)return;
+    var ch=echarts.init(dom);_engCharts[o.el]=ch;
+    ch.setOption({tooltip:{trigger:'axis'},xAxis:{type:'category',data:months,axisLabel:{color:'#6a8db5',fontSize:8},axisLine:{lineStyle:{color:'rgba(64,196,255,0.15)'}}},yAxis:{axisLabel:{color:'#6a8db5',fontSize:8},splitLine:{lineStyle:{color:'rgba(64,196,255,0.08)'}}},grid:{left:50,right:6,top:4,bottom:16},series:[{name:o.n,type:'line',data:o.d,smooth:true,lineStyle:{color:o.c,width:1.5},itemStyle:{color:o.c},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:o.c+'40'},{offset:1,color:'rgba(0,0,0,0)'}])},symbol:'none'}]});
+  });
+}
+
+function initEngRank(){
+  genEngData();var keys=Object.keys(engComp),items=[];
+  keys.forEach(function(k){items.push({name:k,cost:parseFloat(engComp[k].cost)});});
+  items.sort(function(a,b){return b.cost-a.cost;});
+  var dom=document.getElementById('engRank');if(!dom)return;
+  var ch=echarts.init(dom);_engCharts.engRank=ch;
+  ch.setOption({tooltip:{trigger:'axis',formatter:function(p){return p[0].name+': '+p[0].value+' 万元';}},grid:{left:76,right:10,top:0,bottom:0},yAxis:{type:'category',data:items.map(function(i){return i.name;}).reverse(),axisLabel:{color:'#a0cfff',fontSize:10},axisLine:{show:false},axisTick:{show:false}},xAxis:{show:false},series:[{type:'bar',data:items.map(function(i){return i.cost;}).reverse(),barWidth:14,itemStyle:{borderRadius:[0,4,4,0],color:function(p){var cs=['#40c4ff','#4cd964','#ff9500','#7b61ff','#ff6b81','#a29bfe','#00cec9','#fdba74','#60a5fa'];return cs[p.dataIndex%9];}},label:{show:true,position:'right',color:'#a0cfff',fontSize:9,formatter:'{c}万'}}]});
+}
+
+function initEngPie(){
+  genEngData();var keys=Object.keys(engComp);
+  var rc=[],rcost=0;keys.forEach(function(k){var c=parseFloat(engComp[k].cost);rc.push({name:k,value:c});rcost+=c;});
+  var dom=document.getElementById('engPie');if(!dom)return;
+  var ch=echarts.init(dom);_engCharts.engPie=ch;
+  ch.setOption({tooltip:{trigger:'item',formatter:function(p){return p.name+':'+p.value+'万('+p.percent+'%)';}},series:[{type:'pie',radius:'70%',center:['50%','50%'],data:rc,label:{color:'#a0cfff',fontSize:9,formatter:'{b}'},itemStyle:{borderColor:'rgba(6,12,36,1)',borderWidth:2},emphasis:{label:{fontSize:12}}}]});
+}
+
+// 渲染中间仪表盘的环形分布项
+function renderGaugeItems(){
+  var items=[
+    {name:'扩能调迁',val:2,angle:-90,dist:38},
+    {name:'政策扶持',val:2,angle:-30,dist:44},
+    {name:'其他',val:1,angle:30,dist:36},
+    {name:'人才用工',val:1,angle:90,dist:34},
+    {name:'交通出行',val:2,angle:150,dist:38},
+    {name:'配套需求',val:1,angle:210,dist:36}
+  ];
+  var wrap=document.getElementById('svcGaugeItems');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  items.forEach(function(it){
+    var rad=it.angle*Math.PI/180;
+    var x=50+it.dist*Math.cos(rad);
+    var y=50+it.dist*Math.sin(rad);
+    var el=document.createElement('div');
+    el.className='gauge-item';
+    el.style.left=x+'%';el.style.top=y+'%';el.style.transform='translate(-50%,-50%)';
+    el.innerHTML='<span class="gauge-dot"></span><span class="gauge-name">'+it.name+'</span><span class="gauge-val">'+it.val+'</span>';
+    wrap.appendChild(el);
+  });
+}
+
+// ========== HUD 粒子系统 ==========
+function initHUDParticles() {
+  var container = document.getElementById('hudParticles');
+  if (!container) return;
+  container.innerHTML = '';
+  var count = 20;
+  for (var i = 0; i < count; i++) {
+    (function(idx) {
+      var dot = document.createElement('div');
+      dot.style.cssText = [
+        'position:absolute',
+        'width:' + (1.5 + Math.random() * 2.5) + 'px',
+        'height:' + (1.5 + Math.random() * 2.5) + 'px',
+        'border-radius:50%',
+        'background:rgba(64,196,255,' + (0.3 + Math.random() * 0.6) + ')',
+        'box-shadow:0 0 ' + (3 + Math.random() * 6) + 'px rgba(64,196,255,' + (0.3 + Math.random() * 0.4) + ')',
+        'left:' + (15 + Math.random() * 70) + '%',
+        'top:' + (15 + Math.random() * 70) + '%',
+        'pointer-events:none',
+        'z-index:1',
+        'animation:particleFloat' + (idx % 3) + ' ' + (4 + Math.random() * 5) + 's ease-in-out infinite'
+      ].join(';');
+      // 随机动画延迟
+      dot.style.animationDelay = (-Math.random() * 5) + 's';
+      container.appendChild(dot);
+    })(i);
+  }
+}
+// 粒子浮动动画（通过JS注入style）
+(function() {
+  var style = document.createElement('style');
+  style.textContent = [
+    '@keyframes particleFloat0 {',
+    '  0%,100% { transform: translate(0,0); opacity: 0.4; }',
+    '  25% { transform: translate(8px,-12px); opacity: 1; }',
+    '  50% { transform: translate(-5px,-20px); opacity: 0.7; }',
+    '  75% { transform: translate(-10px,-8px); opacity: 0.9; }',
+    '}',
+    '@keyframes particleFloat1 {',
+    '  0%,100% { transform: translate(0,0); opacity: 0.5; }',
+    '  25% { transform: translate(-10px,-8px); opacity: 1; }',
+    '  50% { transform: translate(8px,-18px); opacity: 0.6; }',
+    '  75% { transform: translate(5px,-10px); opacity: 0.85; }',
+    '}',
+    '@keyframes particleFloat2 {',
+    '  0%,100% { transform: translate(0,0); opacity: 0.35; }',
+    '  25% { transform: translate(5px,-15px); opacity: 0.9; }',
+    '  50% { transform: translate(-8px,-10px); opacity: 1; }',
+    '  75% { transform: translate(-3px,-18px); opacity: 0.55; }',
+    '}'
+  ].join('\n');
+  document.head.appendChild(style);
+})();
+
+// ===== 企业数据（含详情字段） =====
+var PAGE_SIZE = 12;
+var currentPageNum = 1;
+var ENTERPRISE_DATA = [
+  {name:'川渝中烟工业有限责任公司',legal:'彭传新',status:'存续',capital:'420658.9 万元人民币',type:'有限责任公司',output:'128457.8 万元',tag:'B类企业',
+    typeTag:'大型企业',score:85,established:'2006-09-20',email:'hr@cycig.com',phone:'028-86026888',website:'www.cycig.com',park:'庄子上工业园区A区',
+    address:'四川省广元市青川县竹园镇庄子上工业园区兴安路88号',product:'卷烟生产制造、烟草制品销售',desc:'川渝中烟工业有限责任公司是西南地区重要的烟草制品生产企业，主要从事卷烟的研发、生产与销售业务，拥有现代化生产线多条。企业注册资本42亿元，年产值超过12亿元，为当地重点纳税企业和就业大户。',
+    creditCode:'91510800782301456X',paidCapital:'420000万元',regDate:'2006-09-20',orgCode:'782301456-7',bizNo:'5108001000542',taxCode:'91510800782301456X',bizPeriod:'2006-09-20至2056-09-19',taxQual:'一般纳税人',
+    industry:'制造业',region:'四川省/广元市/青川县',regAuth:'广元市市场监督管理局',scale:'5000+人',insured:3200,alias:'',enName:'Chuan-Yu China Tobacco Industrial Co., Ltd.',
+    scope:'卷烟生产销售；烟草制品进出口；烟草专用机械购销；房地产开发经营；物业管理。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[],investments:[
+      {name:'广元烟叶复烤有限公司',status:'存续',legal:'王建国',capital:'15000万元',date:'2010-03-15',ratio:'51%'}
+    ],finances:[],patents:[
+      {name:'一种卷烟包装装置',pType:'实用新型',lType:'发明',appNo:'CN201910XXXXXX',appDate:'2019-06-20',pubNo:'CN110123456A',pubDate:'2019-10-18',inventor:'张明'}
+    ],certs:[
+      {cType:'质量管理认证',cName:'ISO9001质量管理体系认证',cNo:'26424Q30198R1S',issuer:'中国质量认证中心',cStatus:'有效',issueDate:'2024-08-09',expireDate:'2027-08-08'},
+      {cType:'环境管理认证',cName:'ISO14001环境管理体系',cNo:'26421E30196R0S',issuer:'中国质量认证中心',cStatus:'有效',issueDate:'2021-08-09',expireDate:'2024-08-08'}
+    ]},
+  {name:'四川亿众汽车零部件有限公司',legal:'董光奇',status:'注销',capital:'305 万元人民币',type:'有限责任公司',output:'107338.2 万元',tag:'B类企业',
+    typeTag:'小微企业',score:62,established:'2015-04-12',email:'donggq@yizhong.com',phone:'0839-7203881 更多',website:'--',park:'竹园经济开发区',
+    address:'四川省广元市青川县竹园镇工业园区经三路12号',product:'汽车发动机零部件、变速箱齿轮',desc:'四川亿众汽车零部件有限公司成立于2015年，专业从事汽车发动机核心零部件的研发与制造，主要产品包括发动机缸体、曲轴、连杆等精密部件。',
+    creditCode:'91510822MA63D4KU71',paidCapital:'305万元',regDate:'2015-04-12',orgCode:'MA63D4KU7-1',bizNo:'5108220500038',taxCode:'91510822MA63D4KU71',bizPeriod:'2015-04-12至2035-04-11',taxQual:'小规模纳税人',
+    industry:'制造业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'20~99人',insured:35,alias:'',enName:'Sichuan Yizhong Auto Parts Co., Ltd.',
+    scope:'汽车零部件及配件制造；机械设备加工；货物进出口。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'董光奇',ratio:'60%',amount:'183万元'}
+    ],investments:[],finances:[],patents:[],certs:[]},
+  {name:'成都鑫玖环卫车制造有限公司',legal:'董光奇',status:'注销',capital:'305 万元人民币',type:'有限责任公司',output:'107338.2 万元',tag:'B类企业',
+    typeTag:'小微企业',score:58,established:'2016-08-20',email:'sales@xinjiucar.com',phone:'028-85021234',website:'--',park:'成都经开区',
+    address:'四川省成都市龙泉驿区车城东四路228号',product:'环卫专用车辆、垃圾压缩设备',desc:'成都鑫玖环卫车制造有限公司专注于城市环境卫生设备的研发与制造，主要产品涵盖各类环卫专用车辆及垃圾收集处理设备。',
+    creditCode:'91510114MA6CDM8P5X',paidCapital:'280万元',regDate:'2016-08-20',orgCode:'MA6CDM8P5-X',bizNo:'5101140320018',taxCode:'91510114MA6CDM8P5X',bizPeriod:'2016-08-20至2036-08-19',taxQual:'小规模纳税人',
+    industry:'制造业',region:'四川省/成都市/龙泉驿区',regAuth:'成都市龙泉驿区市场监督管理局',scale:'20~99人',insured:28,alias:'',enName:'Chengdu Xinjiu Sanitation Vehicle Mfg. Co., Ltd.',
+    scope:'环卫专用车辆制造；环境保护专用设备销售；机械设备租赁；城市生活垃圾经营性服务。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'董光奇',ratio:'70%',amount:'213.5万元'},
+      {name:'肖云述',ratio:'30%',amount:'91.5万元'}
+    ],investments:[],finances:[],patents:[],certs:[]},
+  {name:'成都鑫玖环卫车制造有限公司(分)',legal:'肖云述',status:'注销',capital:'9 万元人民币',type:'其他',output:'91846.4 万元',tag:'A类企业',
+    typeTag:'个体工商户',score:55,established:'2017-02-15',email:'--',phone:'028-85021235',website:'--',park:'成都经开区',
+    address:'四川省成都市龙泉驿区车城东四路228号附1号',product:'环卫车辆维修保养',desc:'从事环卫车辆的维修保养及零配件销售业务，为母公司提供配套服务支持。',
+    creditCode:'92510114MA6ER5LH92',paidCapital:'9万元',regDate:'2017-02-15',orgCode:'MA6ER5LH9-2',bizNo:'--',taxCode:'92510114MA6ER5LH92',bizPeriod:'长期',taxQual:'定期定额征收',
+    industry:'居民服务业',region:'四川省/成都市/龙泉驿区',regAuth:'成都市龙泉驿区市场监督管理局',scale:'1~19人',insured:5,alias:'',enName:'--',
+    scope:'机动车修理；环卫车辆零配件零售；普通货运。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[],investments:[],finances:[],patents:[],certs:[]},
+  {name:'成都极微智能科技有限公司',legal:'钟青峰',status:'注销',capital:'100 万元人民币',type:'有限责任公司',output:'80364.4218 万元',tag:'',
+    typeTag:'小微科技企业',score:48,established:'2018-11-08',email:'zfzheng@jwei.tech',phone:'028-85789234',website:'www.jwei-tech.com',park:'高新区天府软件园',
+    address:'四川省成都市武侯区天府大道中段1268号天府软件园E区3栋15层',product:'智能传感器芯片、物联网模组',desc:'成都极微智能科技有限公司是一家专注于智能传感器芯片研发的高新技术企业，主要产品应用于智慧城市、工业自动化等领域。公司拥有多项自主知识产权核心技术。',
+    creditCode:'91510702MA6BXJQF0T',paidCapital:'100万元',regDate:'2018-11-08',orgCode:'MA6BXJQF0-T',bizNo:'5101070658901',taxCode:'91510702MA6BXJQF0T',bizPeriod:'2018-11-08至2038-11-07',taxQual:'一般纳税人',
+    industry:'科学研究和技术服务业',region:'四川省/成都市/武侯区',regAuth:'成都市武侯区市场监督管理局',scale:'20~99人',insured:42,alias:'',enName:'Chengdu Jiwei Intelligent Tech Co., Ltd.',
+    scope:'集成电路设计；软件开发；信息系统集成服务；信息技术咨询；传感器技术研发；货物及技术进出口。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'钟青峰',ratio:'65%',amount:'65万元'},
+      {name:'李思远',ratio:'35%',amount:'35万元'}
+    ],investments:[],finances:[
+      {name:'成都极微微电子研究院',ratio:'40%'}
+    ],patents:[
+      {name:'一种MEMS压力传感器及其制备方法',pType:'发明专利',lType:'发明',appNo:'CN2019110XXXXX',appDate:'2019-12-05',pubNo:'CN110987654B',pubDate:'2021-06-22',inventor:'钟青峰,李思远'},
+      {name:'低功耗无线传感节点',pType:'实用新型',lType:'实用新型',appNo:'CN2020201XXXXX',appDate:'2020-07-18',pubNo:'CN211234567U',pubDate:'2021-02-05',inventor:'钟青峰'}
+    ],certs:[
+      {cType:'质量管理认证',cName:'ISO9001质量管理体系认证(ISO9001)',cNo:'26424Q30198R1S',issuer:'中国质量认证中心',cStatus:'有效',issueDate:'2024-08-09',expireDate:'2027-08-08'},
+      {cType:'质量管理认证',cName:'ISO9001质量管理体系认证(ISO9001)',cNo:'26421Q30196R0S',issuer:'中国质量认证中心',cStatus:'有效',issueDate:'2021-08-09',expireDate:'2024-08-08'}
+    ]},
+  {name:'成都鑫福洋塑胶制品有限公司',legal:'王辉',status:'吊销',capital:'3000 万元人民币',type:'有限责任公司',output:'69060.54 万元',tag:'B类企业',
+    typeTag:'中型企业',score:41,established:'2012-05-18',email:'wanghui@xfyplastic.com',phone:'028-84651234',website:'--',park:'温江区海峡两岸科技园',
+    address:'四川省成都市温江区海峡两岸科技产业开发园温泉大道南段188号',product:'塑胶包装容器、注塑模具开发',desc:'成都鑫福洋塑胶制品有限公司专注于各类塑料包装容器的研发与生产，主要服务于食品饮料、日化用品等行业客户。',
+    creditCode:'91510115054912769K',paidCapital:'2500万元',regDate:'2012-05-18',orgCode:'054912769-K',bizNo:'5101150300025',taxCode:'91510115054912769K',bizPeriod:'2012-05-18至2032-05-17',taxQual:'一般纳税人',
+    industry:'橡胶和塑料制品业',region:'四川省/成都市/温江区',regAuth:'成都市温江区市场监督管理局',scale:'100~499人',insured:186,alias:'',enName:'Chengdu Xinfuyang Plastic Products Co., Ltd.',
+    scope:'塑料制品制造；模具设计与制造；包装装潢印刷；货物进出口；道路货物运输。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'王辉',ratio:'55%',amount:'1650万元'},
+      {name:'赵建华',ratio:'30%',amount:'900万元'},
+      {name:'孙丽萍',ratio:'15%',amount:'450万元'}
+    ],investments:[
+      {name:'绵阳鑫福洋新材料有限公司',status:'存续',legal:'王辉',capital:'1000万元',date:'2018-09-10',ratio:'60%'}
+    ],finances:[
+      {name:'成都高新创投集团',ratio:'15%'}
+    ],patents:[],certs:[]},
+  {name:'成都盛隆凯业机械设备有限公司',legal:'牟彩丽',status:'注销',capital:'50 万元人民币',type:'有限责任公司',output:'54301.78 万元',tag:'A类企业',
+    typeTag:'小微企业',score:72,established:'2019-03-25',email:'mcl@slky-machine.com',phone:'028-87901234',website:'--',park:'双流区航空港工业园',
+    address:'四川省成都市双流区西航港街道长城路二段158号',product:'数控机床、自动化生产线',desc:'成都盛隆凯业机械设备有限公司主营数控机床及自动化生产线的研发制造，为电子、汽配等行业提供精密加工解决方案。',
+    creditCode:'91510122MA6BPY5F3G',paidCapital:'50万元',regDate:'2019-03-25',orgCode:'MA6BPY5F3-G',bizNo:'5101220600128',taxCode:'91510122MA6BPY5F3G',bizPeriod:'2019-03-25至2039-03-24',taxQual:'小规模纳税人',
+    industry:'通用设备制造业',region:'四川省/成都市/双流区',regAuth:'成都市双流区市场监督管理局',scale:'20~99人',insured:18,alias:'',enName:'Chengdu Shenglong Kaiye Machinery Co., Ltd.',
+    scope:'金属切削机床制造；工业自动控制系统装置安装；机械零件加工；机电设备销售。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'牟彩丽',ratio:'80%',amount:'40万元'},
+      {name:'张志刚',ratio:'20%',amount:'10万元'}
+    ],investments:[],finances:[],patents:[
+      {name:'高精度数控铣床结构优化方法',pType:'发明专利',lType:'发明',appNo:'CN2020101XXXXX',appDate:'2020-08-15',pubNo:'CN111987654A',pubDate:'2020-12-25',inventor:'牟彩丽, 张志刚'}
+    ],certs:[]},
+  {name:'青川县佳兴铝业有限公司',legal:'李明华',status:'存续',capital:'15000 万元人民币',type:'有限责任公司',output:'48230.5 万元',tag:'A类企业',
+    typeTag:'规模以上企业',score:78,established:'2011-06-15',email:'limh@qcjiaxing.com',phone:'0839-7601688',website:'www.qcjiaxing.com',park:'庄子产业园',
+    address:'四川省广元市青川县竹园镇庄子产业园定兴路66号',product:'建筑铝型材、工业铝材深加工',desc:'青川县佳兴铝业有限公司是园区龙头企业之一，专注铝型材生产加工十余年，产品广泛应用于建筑幕墙、轨道交通、新能源装备等领域。',
+    creditCode:'91510822577789012P',paidCapital:'12000万元',regDate:'2011-06-15',orgCode:'577789012-P',bizNo:'5108220500012',taxCode:'91510822577789012P',bizPeriod:'2011-06-15至2031-06-14',taxQual:'一般纳税人',
+    industry:'有色金属冶炼和压延加工业',region:'四川省/广元市/青川县',regAuth:'广元市市场监督管理局',scale:'200~499人',insured:268,alias:'',enName:'Qingchuan Jiaxing Aluminum Co., Ltd.',
+    scope:'铝材生产加工；金属材料销售；自营和代理各类商品及技术的进出口业务。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'李明华',ratio:'55%',amount:'8250万元'},
+      {name:'四川发展投资控股集团',ratio:'30%',amount:'4500万元'},
+      {name:'青川国资运营公司',ratio:'15%',amount:'2250万元'}
+    ],investments:[
+      {name:'广元佳兴铝业新材料研究院',status:'存续',legal:'李明华',capital:'2000万元',date:'2020-04-18',ratio:'75%'}
+    ],finances:[
+      {name:'四川产业发展基金',ratio:'20%'},
+      {name:'广元国投',ratio:'10%'}
+    ],patents:[
+      {name:'一种高强度铝合金型材',pType:'发明专利',lType:'发明',appNo:'CN2018105XXXXX',appDate:'2018-11-20',pubNo:'CN109234567B',pubDate:'2020-05-12',inventor:'李明华, 王建国'},
+      {name:'铝合金表面阳极氧化处理工艺',pType:'实用新型',lType:'实用新型',appNo:'CN2019203XXXXX',appDate:'2019-07-08',pubNo:'CN210345678U',pubDate:'2020-01-17',inventor:'王建国'},
+      {name:'节能型铝型材挤压成型装置',pType:'实用新型',lType:'实用新型',appNo:'CN2021201XXXXX',appDate:'2021-03-22',pubNo:'CN214567890U',pubDate:'2021-10-29',inventor:'李明华, 赵强'}
+    ],certs:[
+      {cType:'质量管理认证',cName:'ISO9001质量管理体系认证(ISO9001)',cNo:'26424Q30198R1S',issuer:'中国质量认证中心',cStatus:'有效',issueDate:'2024-08-09',expireDate:'2027-08-08'},
+      {cType:'质量管理认证',cName:'ISO9001质量管理体系认证(ISO9001)',cNo:'26421Q30196R0S',issuer:'中国质量认证中心',cStatus:'有效',issueDate:'2021-08-09',expireDate:'2024-08-08'}
+    ]},
+  {name:'四川竹园经济开发区建设投资有限公司',legal:'张建国',status:'存续',capital:'50000 万元人民币',type:'国有独资',output:'35680.0 万元',tag:'B类企业',
+    typeTag:'国有企业',score:82,established:'2010-08-01',email:'zjg@sczykfq.com',phone:'0839-7601001',website:'--',park:'竹园经济开发区管委会',
+    address:'四川省广元市青川县竹园镇开发区综合办公楼',product:'基础设施建设、园区运营管理',desc:'四川竹园经济开发区建设投资有限公司是竹园经济开发区的投融资平台和国有资产运营主体，负责园区基础设施投资建设及招商引资服务等工作。',
+    creditCode:'91510822564456789X',paidCapital:'50000万元',regDate:'2010-08-01',orgCode:'564456789-X',bizNo:'--',taxCode:'91510822564456789X',bizPeriod:'2010-08-01至2030-07-31',tax资格:'一般纳税人',
+    industry:'房地产业/基础设施',region:'四川省/广元市/青川县',regAuth:'广元市市场监督管理局',scale:'100~499人',insured:156,alias:'',enName:'Sichuan Zhuyuan ETDZ Construction Investment Co., Ltd.',
+    scope:'园区基础设施项目投资建设；土地整理开发；国有资产经营管理；物业管理；房屋租赁。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'青川县人民政府',ratio:'100%',amount:'50000万元'}
+    ],investments:[
+      {name:'青川庄子产业园能源管理有限公司',status:'存续',legal:'周明辉',capital:'8000万元',date:'2019-05-20',ratio:'65%'},
+      {name:'竹园安泰建筑劳务有限公司',status:'存续',legal:'马建军',capital:'400万元',date:'2018-11-10',ratio:'51%'}
+    ],finances:[
+      {name:'广元市城市建设投资集团',ratio:'30%'},
+      {name:'四川省国有资产管理中心',ratio:'20%'}
+    ],patents:[],certs:[]},
+  {name:'广元市青川宏森建材有限公司',legal:'王德军',status:'存续',capital:'800 万元人民币',type:'有限责任公司',output:'21560.3 万元',tag:'B类企业',
+    typeTag:'小微企业',score:67,established:'2014-03-10',email:'wdj@qchongsen.com',phone:'0839-7602568',website:'--',park:'竹园建材产业园',
+    address:'四川省广元市青川县竹园镇建材工业园区兴业路33号',product:'预拌混凝土、水泥制品、建筑材料',desc:'广元市青川宏森建材有限公司主营预拌混凝土及水泥制品的生产销售，为园区及周边建筑工程提供优质建材供应服务。',
+    creditCode:'91510822094561234L',paidCapital:'700万元',regDate:'2014-03-10',orgCode:'094561234-L',bizNo:'5108220400056',taxCode:'91510822094561234L',bizPeriod:'2014-03-10至2034-03-09',taxQual:'一般纳税人',
+    industry:'非金属矿物制品业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'20~99人',insured:58,alias:'',enName:'Guangyuan Qingchuan Hongsen Building Materials Co., Ltd.',
+    scope:'预拌混凝土生产销售；水泥制品制造；建筑材料批发零售；道路货物运输。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'王德军',ratio:'60%',amount:'480万元'},
+      {name:'陈秀芳',ratio:'40%',amount:'320万元'}
+    ],investments:[],finances:[],patents:[],certs:[]},
+  {name:'青川县竹园镇恒通物流有限公司',legal:'赵强',status:'存续',capital:'500 万元人民币',type:'有限责任公司',output:'18920.5 万元',tag:'',
+    typeTag:'小微企业',score:59,established:'2016-07-18',email:'zq@ht-logistics.com',phone:'0839-7603688',website:'--',park:'竹园物流园区',
+    address:'四川省广元市青川县竹园镇物流园区通达路18号',product:'仓储配送、冷链运输、供应链管理',desc:'青川县竹园镇恒通物流有限公司提供仓储、配送、冷链运输等一体化物流服务，是园区内主要的第三方物流服务商。',
+    creditCode:'91510822MA629AB12M',paidCapital:'500万元',regDate:'2016-07-18',orgCode:'MA629AB12-M',bizNo:'5108220500078',taxCode:'91510822MA629AB12M',bizPeriod:'2016-07-18至2036-07-17',taxQual:'一般纳税人',
+    industry:'道路运输业/仓储业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'20~99人',insured:32,alias:'',enName:'Qingchuan Zhuyuan Hengtong Logistics Co., Ltd.',
+    scope:'道路货物运输；仓储服务（不含危险品）；装卸搬运；供应链管理；冷链物流配送。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'赵强',ratio:'70%',amount:'350万元'},
+      {name:'刘芳',ratio:'30%',amount:'150万元'}
+    ],investments:[],finances:[],patents:[],certs:[]},
+  {name:'四川青竹新材料科技有限公司',legal:'刘建国',status:'存续',capital:'2000 万元人民币',type:'有限责任公司',output:'16540.8 万元',tag:'A类企业',
+    typeTag:'高新技术企业',score:76,established:'2017-09-22',email:'liujg@scqingzhu.com',phone:'0839-7604567',website:'www.scqingzhu.com',park:'竹园新材料产业园',
+    address:'四川省广元市青川县竹园镇新材料产业园创新路88号',product:'高性能复合材料、环保新材料研发',desc:'四川青竹新材料科技有限公司是一家高新技术企业，专注于高性能复合材料的研发和生产，产品广泛应用于航空航天、新能源汽车等高端领域。',
+    creditCode:'91510822MA68CD45EF',paidCapital:'1800万元',regDate:'2017-09-22',orgCode:'MA68CD45-E',bizNo:'5108220600134',taxCode:'91510822MA68CD45EF',bizPeriod:'2017-09-22至2037-09-21',taxQual:'一般纳税人',
+    industry:'化学原料和化学制品制造业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'50~199人',insured:86,alias:'',enName:'Sichuan Qingzhu New Materials Technology Co., Ltd.',
+    scope:'新材料技术研发；高性能复合材料生产销售；化工原料及产品销售（不含危险化学品）；货物及技术进出口。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'刘建国',ratio:'45%',amount:'900万元'},
+      {name:'四川科创投',ratio:'30%',amount:'600万元'},
+      {name:'周敏',ratio:'25%',amount:'500万元'}
+    ],investments:[
+      {name:'青竹材料应用技术研究中心',status:'存续',legal:'刘建国',capital:'500万元',date:'2021-06-15',ratio:'80%'}
+    ],finances:[
+      {name:'四川科技成果转化基金',ratio:'25%'},
+      {name:'广元市创新创业引导基金',ratio:'15%'}
+    ],patents:[
+      {name:'一种碳纤维增强复合材料及其制备方法',pType:'发明专利',lType:'发明',appNo:'CN2018110XXXXX',appDate:'2018-12-10',pubNo:'CN109345678B',pubDate:'2020-08-15',inventor:'刘建国, 周敏'},
+      {name:'耐高温环氧树脂基复合材料',pType:'实用新型',lType:'实用新型',appNo:'CN2020205XXXXX',appDate:'2020-11-28',pubNo:'CN212345678U',pubDate:'2021-06-18',inventor:'刘建国'}
+    ],certs:[
+      {cType:'质量管理认证',cName:'ISO9001质量管理体系认证(ISO9001)',cNo:'26424Q30198R1S',issuer:'中国质量认证中心',cStatus:'有效',issueDate:'2024-08-09',expireDate:'2027-08-08'}
+    ]},
+  {name:'广元市竹园环保设备制造厂',legal:'陈志远',status:'存续',capital:'300 万元人民币',type:'个人独资',output:'12350.6 万元',tag:'B类企业',
+    typeTag:'小型企业',score:64,established:'2015-11-08',email:'czy@zyep-equip.com',phone:'0839-7605234',website:'--',park:'竹园环保装备产业园',
+    address:'四川省广元市青川县竹园镇环保装备产业园清源路22号',产品:'污水处理设备、废气处理装置',desc:'广元市竹园环保设备制造厂专业从事水污染治理设备和废气处理装置的研发生产，为园区及周边企业提供环保工程解决方案。',
+    creditCode:'91510822MA634DE56N',paidCapital:'300万元',regDate:'2015-11-08',orgCode:'MA634DE56-N',bizNo:'5108220400092',taxCode:'91510822MA634DE56N',bizPeriod:'2015-11-08至长期',taxQual:'一般纳税人',
+    industry:'专用设备制造业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'20~99人',insured:45,alias:'',enName:'Guangyuan Zhuyuan Environmental Protection Equipment Factory',
+    scope:'环境保护专用设备制造；水污染治理；大气污染治理；环保工程设计施工。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'陈志远',ratio:'100%',amount:'300万元'}
+    ],investments:[],finances:[],patents:[
+      {name:'一体化污水处理设备',pType:'实用新型',lType:'实用新型',appNo:'CN2019210XXXXX',appDate:'2019-08-16',pubNo:'CN210678901U',pubDate:'2020-03-27',inventor:'陈志远'}
+    ],certs:[]},
+  {name:'青川庄子产业园能源管理有限公司',legal:'周明辉',status:'存续',capital:'8000 万元人民币',type:'有限责任公司',output:'9870.2 万元',tag:'',
+    typeTag:'中型企业',score:70,established:'2019-05-20',email:'zmh@zc-park.com',phone:'0839-7601788',website:'--',park:'庄子产业园',
+    address:'四川省广元市青川县竹园镇庄子产业园能源中心大楼',product:'园区集中供热、能源供应管理',desc:'青川庄子产业园能源管理有限公司负责园区集中供热系统建设运营及综合能源管理服务，为入驻企业提供稳定高效的能源保障。',
+    creditCode:'91510822MA678EF01G',paidCapital:'5200万元',regDate:'2019-05-20',orgCode:'MA678EF01-G',bizNo:'5108220600156',taxCode:'91510822MA678EF01G',bizPeriod:'2019-05-20至2049-05-19',taxQual:'一般纳税人',
+    industry:'电力/热力生产和供应业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'50~199人',insured:72,alias:'',enName:'Qingchuan Zhuangzi Park Energy Management Co., Ltd.',
+    scope:'热力生产和供应；电力销售；合同能源管理；节能技术推广服务；供热管网设施维护。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'四川竹园经济开发区建投公司',ratio:'65%',amount:'5200万元'},
+      {name:'广元市能源投资集团',ratio:'35%',amount:'2800万元'}
+    ],investments:[],finances:[
+      {name:'广元绿色能源投资基金',ratio:'18%'}
+    ],patents:[],certs:[]},
+  {name:'四川智联机械加工有限公司',legal:'吴晓明',status:'存续',capital:'1200 万元人民币',type:'有限责任公司',output:'8560.3 万元',tag:'',
+    typeTag:'小微企业',score:61,established:'2018-04-12',email:'wxm@sczl-mach.com',phone:'0839-7606789',website:'--',park:'竹园机械加工园',
+    address:'四川省广元市青川县竹园镇机械加工园精工路15号',产品:'精密机械零件加工、非标设备定制',desc:'四川智联机械加工有限公司提供高精度机械零件加工和非标自动化设备定制服务，服务于汽配、电子、军工等多个行业领域。',
+    creditCode:'91510822MA65FG23HI',paidCapital:'1000万元',regDate:'2018-04-12',orgCode:'MA65FG23-H',bizNo:'5108220500112',taxCode:'91510822MA65FG23HI',bizPeriod:'2018-04-12至2038-04-11',taxQual:'一般纳税人',
+    industry:'通用设备制造业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'20~99人',insured:32,alias:'',enName:'Sichuan Zhilian Machinery Processing Co., Ltd.',
+    scope:'机械零件加工；通用设备制造；非标自动化设备设计安装；工装夹具制作。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'吴晓明',ratio:'70%',amount:'840万元'},
+      {name:'郑伟',ratio:'30%',amount:'360万元'}
+    ],investments:[],finances:[],patents:[],certs:[]},
+  {name:'广元青川竹园包装材料厂',legal:'孙丽华',status:'注销',capital:'150 万元人民币',type:'个人独资',output:'6420.1 万元',tag:'B类企业',
+    typeTag:'微型企业',score:45,established:'2013-06-20',email:'slh@zy-package.com',phone:'0839-7607890',website:'--',park:'竹园轻工产业园',
+    address:'四川省广元市青川县竹园镇轻工产业园创业一路8号',product:'纸箱纸盒包装、泡沫缓冲材料',desc:'广元青川竹园包装材料厂主营各类纸制包装材料和泡沫缓冲防护材料的加工生产，为园区内外企业提供配套包装服务。',
+    creditCode:'91510822067890123K',paidCapital:'150万元',regDate:'2013-06-20',orgCode:'067890123-K',bizNo:'--',taxCode:'91510822067890123K',bizPeriod:'2013-06-20至长期',taxQual:'定期定额征收',
+    industry:'造纸和纸制品业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'1~19人',insured:12,alias:'',enName:'Guangyuan Qingchuan Zhuyuan Packaging Materials Factory',
+    scope:'纸制品制造；包装材料销售；包装装潢印刷。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'孙丽华',ratio:'100%',amount:'150万元'}
+    ],investments:[],finances:[],patents:[],certs:[]},
+  {name:'青川县鑫达金属制品有限公司',legal:'郑伟',status:'存续',capital:'1800 万元人民币',type:'有限责任公司',output:'5280.9 万元',tag:'',
+    typeTag:'小微企业',score:56,established:'2016-12-08',email:'zw@qc-xinda.com',phone:'0839-7608901',website:'--',park:'竹园五金机电园',
+    address:'四川省广元市青川县竹园镇五金机电园金工路28号',产品:'金属冲压件、钣金焊接件',desc:'青川县鑫达金属制品有限公司专业从事金属冲压件和钣金焊接件的加工制造，为工程机械、电气设备等行业提供配套金属部件。',
+    creditCode:'91510822MA645GH67I',paidCapital:'1500万元',regDate:'2016-12-08',orgCode:'MA645GH67-I',bizNo:'5108220500145',taxCode:'91510822MA645GH67I',bizPeriod:'2016-12-08至2046-12-07',taxQual:'一般纳税人',
+    industry:'金属制品业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'20~99人',insured:28,alias:'',enName:'Qingchuan Xinda Metal Products Co., Ltd.',
+    scope:'金属冲压件加工；钣金焊接；钢结构制作；金属表面处理；五金产品销售。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'郑伟',ratio:'65%',amount:'1170万元'},
+      {name:'吴晓明',ratio:'35%',amount:'630万元'}
+    ],investments:[],finances:[],patents:[],certs:[]},
+  {name:'竹园镇安泰建筑劳务有限公司',legal:'马建军',status:'存续',capital:'400 万元人民币',type:'有限责任公司',output:'4150.3 万元',tag:'',
+    typeTag:'小微企业',score:53,established:'2018-11-10',email:'mjj@antai-build.com',phone:'0839-7609012',website:'--',park:'竹园镇城区',
+    address:'四川省广元市青川县竹园镇和平路66号',product:'建筑劳务分包、脚手架搭建',desc:'竹园镇安泰建筑劳务有限公司提供建筑劳务分包服务，承接土建、装饰装修等工程的劳务施工作业。',
+    creditCode:'91510822MA678IJ01K',paidCapital:'400万元',regDate:'2018-11-10',orgCode:'MA678IJ01-K',bizNo:'5108220500178',taxCode:'91510822MA678IJ01K',bizPeriod:'2018-11-10至2038-11-09',taxQual:'小规模纳税人',
+    industry:'建筑业/建筑装饰业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'20~99人',insured:95,alias:'',enName:'Zhuyuan Antai Construction Labor Service Co., Ltd.',
+    scope:'建筑劳务分包；脚手架作业；模板脚手架工程；建筑机械设备租赁。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'马建军',ratio:'80%',amount:'320万元'},
+      {name:'张建军',ratio:'20%',amount:'80万元'}
+    ],investments:[],finances:[],patents:[],certs:[]},
+  {name:'青川竹园绿色食品加工园',legal:'黄秀英',status:'存续',capital:'2500 万元人民币',type:'有限责任公司',output:'3680.7 万元',tag:'A类企业',
+    typeTag:'农业产业化龙头',score:74,established:'2017-03-15',email:'hxy@greenfood-qc.com',phone:'0839-7601122',website:'--',park:'竹园农业示范园',
+    address:'四川省广元市青川县竹园镇农业示范园绿色食品路1号',product:'食用菌精深加工、有机农产品',desc:'青川竹园绿色食品加工园是市级农业产业化龙头企业，依托青川丰富的森林资源优势，专业从事食用菌精深加工和有机农产品生产销售。',
+    creditCode:'91510822MA655KL23N',paidCapital:'2000万元',regDate:'2017-03-15',orgCode:'MA655KL23-N',bizNo:'5108220600189',taxCode:'91510822MA655KL23N',bizPeriod:'2017-03-15至2037-03-14',taxQual:'一般纳税人',
+    industry:'农副食品加工业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'50~199人',insured:128,alias:'',enName:'Qingchuan Zhuyuan Green Food Processing Park Co., Ltd.',
+    scope:'食用菌种植加工；农副产品收购加工销售；预包装食品销售；进出口贸易。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'黄秀英',ratio:'50%',amount:'1250万元'},
+      {name:'青川县农业农村局',ratio:'30%',amount:'750万元'},
+      {name:'竹园供销合作社',ratio:'20%',amount:'500万元'}
+    ],investments:[],finances:[
+      {name:'广元农业产业发展基金',ratio:'22%'},
+      {name:'四川省扶贫开发基金',ratio:'15%'}
+    ],patents:[
+      {name:'一种香菇多糖提取工艺',pType:'发明专利',lType:'发明',appNo:'CN2019108XXXXX',appDate:'2019-10-12',pubNo:'CN110678901B',pubDate:'2021-04-20',inventor:'黄秀英, 李军'}
+    ],certs:[
+      {cType:'质量管理认证',cName:'ISO9001质量管理体系认证(ISO9001)',cNo:'26424Q30198R1S',issuer:'中国质量认证中心',cStatus:'有效',issueDate:'2024-08-09',expireDate:'2027-08-08'},
+      {cType:'食品安全认证',cName:'HACCP危害分析与关键控制点体系认证',cNo:'HAC-26421F001',issuer:'中国检验认证集团',cStatus:'有效',issueDate:'2023-03-15',expireDate:'2026-03-14'}
+    ]},
+  {name:'广元市青川竹园汽修服务中心',legal:'林大海',status:'存续',capital:'80 万元人民币',type:'个体工商户',output:'2890.5 万元',tag:'',
+    typeTag:'个体工商户',score:47,established:'2014-05-20',email:'ldh@zy-auto-fix.com',phone:'0839-7603456',website:'--',park:'竹园镇城区',
+    address:'四川省广元市青川县竹园镇国道212线东侧汽修一条街18号',product:'机动车维修保养、汽车美容',desc:'广元市青川竹园汽修服务中心提供各类机动车的维修保养、美容装饰及应急救援服务，是竹园镇规模较大的综合性汽车维修服务机构。',
+    creditCode:'92510822063456789P',paidCapital:'80万元',regDate:'2014-05-20',orgCode:'--',bizNo:'--',taxCode:'92510822063456789P',bizPeriod:'长期',taxQual:'定期定额征收',
+    industry:'机动车/电子产品和日用品修理业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'1~19人',insured:8,alias:'',enName:'--',
+    scope:'机动车维修；汽车美容装饰；汽车配件零售；道路救援服务。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[],investments:[],finances:[],patents:[],certs:[]},
+  {name:'四川竹园物流仓储配送中心',legal:'何建平',status:'存续',capital:'3500 万元人民币',type:'有限责任公司',output:'2150.2 万元',tag:'B类企业',
+    typeTag:'中型企业',score:66,established:'2019-08-18',email:'hjp@sczy-logistics.cn',phone:'0839-7602233',website:'--',park:'竹园现代物流园',
+    address:'四川省广元市青川县竹园镇现代物流园物流大道88号',product:'仓储服务、城乡配送、电商物流',desc:'四川竹园物流仓储配送中心是竹园地区规模较大的现代化物流枢纽，提供仓储、城乡配送、电商物流一体化解决方案。',
+    creditCode:'91510822MA689MN45O',paidCapital:'3500万元',regDate:'2019-08-18',orgCode:'MA689MN45-O',bizNo:'5108220600201',taxCode:'91510822MA689MN45O',bizPeriod:'2019-08-18至2049-08-17',taxQual:'一般纳税人',
+    industry:'多式联运和运输代理业/仓储业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'50~199人',insured:68,alias:'',enName:'Sichuan Zhuyuan Logistics Warehousing Distribution Center Co., Ltd.',
+    scope:'普通货物仓储服务；国内货运代理；电子商务配送；装卸搬运服务；供应链管理。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'何建平',ratio:'55%',amount:'1925万元'},
+      {name:'四川交通投资集团',ratio:'30%',amount:'1050万元'},
+      {name:'竹园物流商会',ratio:'15%',amount:'525万元'}
+    ],investments:[
+      {name:'竹园冷链物流有限公司',status:'存续',legal:'何建平',capital:'800万元',date:'2021-04-28',ratio:'60%'}
+    ],finances:[
+      {name:'四川现代物流产业发展基金',ratio:'20%'}
+    ],patents:[],certs:[
+      {cType:'质量管理认证',cName:'ISO9001质量管理体系认证(ISO9001)',cNo:'26424Q30198R1S',issuer:'中国质量认证中心',cStatus:'有效',issueDate:'2024-08-09',expireDate:'2027-08-08'}
+    ]},
+  {name:'青川县竹园新型建材产业园',legal:'张志勇',status:'存续',capital:'6000 万元人民币',type:'有限责任公司',output:'1820.6 万元',tag:'',
+    typeTag:'中型企业',score:69,established:'2020-02-28',email:'zzy@newbuilding-qc.com',phone:'0839-7604455',website:'--',park:'竹园新型建材产业园',
+    address:'四川省广元市青川县竹园镇新型建材产业园创新大道66号',product:'新型墙体材料、装配式建筑构件',desc:'青川县竹园新型建材产业园致力于新型环保建材的研发与生产，主要产品包括轻质隔墙板、装配式建筑构件等绿色建材产品。',
+    creditCode:'91510822MA690OP12Q',paidCapital:'4000万元',regDate:'2020-02-28',orgCode:'MA690OP12-Q',bizNo:'5108220600223',taxCode:'91510822MA690OP12Q',bizPeriod:'2020-02-28至2050-02-27',taxQual:'一般纳税人',
+    industry:'非金属矿物制品业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'50~199人',insured:92,alias:'',enName:'Qingchuan Zhuyuan New Building Materials Industrial Park Co., Ltd.',
+    scope:'新型建筑材料生产销售；装配式建筑构件制造；建筑废弃物资源化利用；建筑材料检测服务。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'张志勇',ratio:'40%',amount:'2400万元'},
+      {name:'青川县城投公司',ratio:'35%',amount:'2100万元'},
+      {name:'广元建材集团',ratio:'25%',amount:'1500万元'}
+    ],investments:[],finances:[
+      {name:'广元新型城镇化建设基金',ratio:'18%'},
+      {name:'四川省绿色建材产业发展基金',ratio:'12%'}
+    ],patents:[
+      {name:'一种轻质复合墙板及其连接结构',pType:'实用新型',lType:'实用新型',appNo:'CN2021203XXXXX',appDate:'2021-05-18',pubNo:'CN214789012U',pubDate:'2021-12-14',inventor:'张志勇, 李强'}
+    ],certs:[
+      {cType:'质量管理认证',cName:'ISO9001质量管理体系认证(ISO9001)',cNo:'26424Q30198R1S',issuer:'中国质量认证中心',cStatus:'有效',issueDate:'2024-08-09',expireDate:'2027-08-08'}
+    ]},
+  {name:'广元竹园智慧园区运营公司',legal:'赵晓东',status:'存续',capital:'1000 万元人民币',type:'有限责任公司',output:'1560.8 万元',tag:'',
+    typeTag:'小微企业',score:57,established:'2021-06-15',email:'zxd@smartpark-gy.com',phone:'0839-7605566',website:'--',park:'庄子产业园',
+    address:'四川省广元市青川县竹园镇庄子产业园智慧运营中心',产品:'智慧园区运营管理、数字化平台服务',desc:'广元竹园智慧园区运营公司负责园区智慧化运营管理工作，提供数字化园区管理平台、企业服务一站式窗口等智慧化服务支撑。',
+    creditCode:'91510822MA699QR34S',paidCapital:'800万元',regDate:'2021-06-15',orgCode:'MA699QR34-S',bizNo:'5108220600245',taxCode:'91510822MA699QR34S',bizPeriod:'2021-06-15至2051-06-14',taxQual:'小规模纳税人',
+    industry:'软件和信息技术服务业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'20~99人',insured:22,alias:'',enName:'Guangyuan Zhuyuan Smart Park Operation Co., Ltd.',
+    scope:'软件开发；信息系统集成服务；互联网信息服务；园区运营管理；企业管理咨询服务。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'赵晓东',ratio:'45%',amount:'450万元'},
+      {name:'竹园经济开发区建投公司',ratio:'35%',amount:'350万元'},
+      {name:'成都智慧城市科技公司',ratio:'20%',amount:'200万元'}
+    ],investments:[],finances:[
+      {name:'广元数字经济产业发展基金',ratio:'15%'}
+    ],patents:[],certs:[]},
+  {name:'青川县竹园电商孵化基地',legal:'钱芳',status:'存续',capital:'600 万元人民币',type:'有限责任公司',output:'1280.4 万元',tag:'',
+    typeTag:'小微企业',score:52,established:'2022-01-10',email:'qf@zy-ecommerce.com',phone:'0839-7606677',website:'--',park:'竹园电商产业园',
+    address:'四川省广元市青川县竹园镇电商产业园创客空间A座3楼',产品:'电商孵化培训、直播带货运营',desc:'青川县竹园电商孵化基地是为本地创业者提供电商培训、直播运营、品牌孵化等服务的创业服务平台，助力青川特色农产品线上推广销售。',
+    creditCode:'91510822MA711ST56U',paidCapital:'400万元',regDate:'2022-01-10',orgCode:'MA711ST56-U',bizNo:'5108220600267',taxCode:'91510822MA711ST56U',bizPeriod:'2022-01-10至2052-01-09',tax资格:'小规模纳税人',
+    industry:'互联网和相关服务/商务服务业',region:'四川省/广元市/青川县',regAuth:'青川县市场监督管理局',scale:'1~19人',insured:15,alias:'',enName:'Qingchuan Zhuyuan E-commerce Incubation Base Co., Ltd.',
+    scope:'互联网信息服务；电商运营策划；直播服务；创业孵化服务；企业管理咨询；广告设计发布。（依法须经批准的项目，经相关部门批准后方可开展经营活动）',
+    shareholders:[
+      {name:'钱芳',ratio:'60%',amount:'360万元'},
+      {name:'竹园镇集体经济发展公司',ratio:'25%',amount:'150万元'},
+      {name:'广元电商协会',ratio:'15%',amount:'90万元'}
+    ],investments:[],finances:[],patents:[],certs:[]}
+];
+
+function createEntCard(ent){
+  var tagHtml=ent.tag?'<span class="ent-tag">'+ent.tag+'</span>':'';
+  var card=document.createElement('div');
+  card.className='ent-card';
+  card.onclick=function(){showEntDetail(ent);};
+  card.innerHTML=
+    '<div class="ent-card-title">'+ent.name+'</div>'+
+    '<div class="ent-card-body">'+
+      '<div class="ent-logo-wrap"><span class="ent-logo-text">LOGO</span></div>'+
+      '<div class="ent-info">'+
+        '<div class="ent-info-row"><span class="info-label">法定代表人：</span><span class="info-value">'+ent.legal+'</span></div>'+
+        '<div class="ent-info-row"><span class="info-label">登记状态：</span><span class="info-value">'+ent.status+'</span></div>'+
+        '<div class="ent-info-row"><span class="info-label">注册资本：</span><span class="info-value">'+ent.capital+'</span></div>'+
+        '<div class="ent-info-row"><span class="info-label">企业类型：</span><span class="info-value">'+ent.type+'</span></div>'+
+        '<div class="ent-info-row"><span class="info-label">2024年产值：</span><span class="info-value" style="color:#40c4ff;font-weight:600;">'+ent.output+'</span></div>'+
+        tagHtml+
+      '</div>'+
+    '</div>';
+  return card;
+}
+
+// ===== 企业详情面板 =====
+function showEntDetail(ent){
+  var p=document.getElementById('entDetailPanel');
+  // 填充头部
+  document.getElementById('dName').textContent=ent.name||'';
+  document.getElementById('dTypeTag').textContent=ent.typeTag||'--';
+  document.getElementById('dScore').textContent='企业评分 '+(ent.score||'--');
+  // 信息网格
+  var grid='<span class="dil-label">法定代表人：</span><span class="dil-value">'+(ent.legal||'-')+'</span>';
+  grid+='<span class="dil-label">成立时间：</span><span class="dil-value">'+(ent.established||'-')+'</span>';
+  grid+='<span class="dil-label">注册资本：</span><span class="dil-value">'+(ent.capital||'-')+'</span>';
+  grid+='<span class="dil-label">邮箱：</span><span class="dil-value">'+(ent.email||'-')+(ent.phone&&ent.phone.indexOf('更多')>-1?'':'')+'</span>';
+  grid+='<span class="dil-label">联系电话：</span><span class="dil-value">'+(ent.phone||'-');
+  if(ent.phone&&ent.phone.indexOf('更多')>-1)grid+=' <span class="dil-more">更多</span>';
+  grid+='</span>';
+  grid+='<span class="dil-label">企业官网：</span><span class="dil-value">'+(ent.website||'-')+'</span>';
+  grid+='<span class="dil-label">所属园区：</span><span class="dil-value">'+(ent.park||'-')+'</span>';
+  grid+='<span class="dil-label">详细地址：</span><span class="dil-value">'+(ent.address||'-')+'</span>';
+  grid+='<span class="dil-label">主要产品：</span><span class="dil-value">'+(ent.product||'-')+'</span>';
+  var shortDesc=(ent.desc&&ent.desc.length>80)?ent.desc.substring(0,80)+'...':ent.desc;
+  grid+='<span class="dil-label">简介：</span><span class="dil-value'+(ent.desc&&ent.desc.length>80?' dil-long':'')+'">'+(shortDesc||'-');
+  if(ent.desc&&ent.desc.length>80)grid+=' <span class="dil-expand" data-desc="'+ent.desc.replace(/"/g,'&quot;').replace(/'/g,'&#39;')+'">展开 &raquo;</span>';
+  grid+='</span>';
+  document.getElementById('dInfoGrid').innerHTML=grid;
+
+  // 工商信息表格
+  renderDetailTable('dtBusinessInfo', [
+    {k:'统一信用代码',v:ent.creditCode||'--',k2:'企业名称',v2:ent.name||''},
+    {k:'法定代表人',v:ent.legal||'--',k2:'登记状态',v2:ent.status||'',k3:'成立日期',v3:ent.regDate||''},
+    {k:'注册资本',v:ent.capital||'--',k2:'实缴资本',v2:ent.paidCapital||'--',k3:'核准日期',v3:ent.regDate||''},
+    {k:'组织机构代码',v:ent.orgCode||'--',k2:'工商注册号',v2:ent.bizNo||'--',k3:'纳税人识别代码',v3:ent.taxCode||''},
+    {k:'企业状态',v:ent.status||'--',k2:'营业期限',v2:ent.bizPeriod||'--',k3:'纳税人资质',v3:ent.taxQual||''},
+    {k:'所属行业',v:ent.industry||'--',k2:'所属地区',v2:ent.region||'--',k3:'登记机关',v3:ent.regAuth||''},
+    {k:'人员规模',v:ent.scale||'--',k2:'参保人数',v2:(ent.insured||0).toString(),k3:'曾用名',v3:ent.alias||''},
+    {k:'英文名',v:ent.enName||'--',k2:'',v2:'',k3:'进出口企业代码',v3:''},
+    {k:'注册地址',v:ent.address||'--',colspan:5},
+    {k:'经营范围',v:ent.scope||'--',colspan:5}
+  ]);
+
+  // 股东信息
+  if(ent.shareholders&&ent.shareholders.length>0){
+    renderDetailTable('dtShareholder', [{seq:true,cols:['序号','股东姓名','持股比例','认缴出资(万元)']}].concat(
+      ent.shareholders.map(function(s,i){return{cells:[i+1,s.name,s.ratio,(s.amount||s.ratio)]};})
+    ));
+  } else {
+    renderEmptyTable('dtShareholder',['序号','股东姓名','持股比例','认缴出资(万元)']);
+  }
+
+  // 对外投资
+  if(ent.investments&&ent.investments.length>0){
+    renderDetailTable('dtInvestment', [{seq:true,cols:['序号','被投资主体名称','状态','法定代表人','注册资本','注册时间','持股比例']}].concat(
+      ent.investments.map(function(inv,i){return{cells:[i+1,inv.name,inv.status||'--',inv.legal||'--',inv.capital||'--',inv.date||'--',inv.ratio||'--']};})
+    ));
+  } else {
+    renderEmptyTable('dtInvestment',['序号','被投资主体名称','状态','法定代表人','注册资本','注册时间','持股比例']);
+  }
+
+  // 融资信息
+  if(ent.finances&&ent.finances.length>0){
+    renderDetailTable('dtFinance', [{seq:false,cols:['序号','融资主体','股权占比']}].concat(
+      ent.finances.map(function(f,i){return{cells:[i+1,f.name,f.ratio]};})
+    ));
+  } else {
+    renderEmptyTable('dtFinance',['序号','融资主体','股权占比']);
+  }
+
+  // 专利信息
+  if(ent.patents&&ent.patents.length>0){
+    renderDetailTable('dtPatent', [{seq:false,cols:['序号','专利名称','专利类型','法律类型','申请号','申请日期','公开(公告)号','公开(公告)日期','发明人']}].concat(
+      ent.patents.map(function(pt,i){return{cells:[i+1,pt.name,pt.pType,pt.lType,pt.appNo,pt.appDate,pt.pubNo,pt.pubDate,pt.inventor]};})
+    ));
+  } else {
+    renderEmptyTable('dtPatent',['序号','专利名称','专利类型','法律类型','申请号','申请日期','公开(公告)号','公开(公告)日期','发明人']);
+  }
+
+  // 资质证书
+  if(ent.certs&&ent.certs.length>0){
+    renderDetailTable('dtCert', [{seq:false,cols:['序号','证书类型','证书名称','证书编号','发证机构','证书状态','发证日期','截止日期']}].concat(
+      ent.certs.map(function(c,i){return{cells:[i+1,c.cType,c.cName,c.cNo,c.issuer||'--',c.cStatus,c.issueDate,c.expireDate]};})
+    ));
+  } else {
+    renderEmptyTable('dtCert',['序号','证书类型','证书名称','证书编号','发证机构','证书状态','发证日期','截止日期']);
+  }
+
+  p.classList.add('show');
+  // 绑定展开按钮事件
+  p.querySelectorAll('.dil-expand').forEach(function(el){
+    el.onclick=function(){alert(this.getAttribute('data-desc'));};
+  });
+}
+
+function closeEntDetail(){
+  document.getElementById('entDetailPanel').classList.remove('show');
+}
+
+// 渲染详情表格（支持1-6列）
+function renderDetailTable(tableId, rows){
+  var t=document.getElementById(tableId);
+  t.innerHTML='';
+  // 表头
+  var hRow=document.createElement('tr');
+  if(rows[0].cols){
+    for(var ci=0;ci<rows[0].cols.length;ci++){
+      var th=document.createElement('th');
+      th.textContent=rows[0].cols[ci];
+      hRow.appendChild(th);
+    }
+    t.appendChild(hRow);
+  } else {
+    // 自动检测列数
+    var cols=rows[0].colspan||((rows[0].k3&&rows[0].v3)?6:(rows[0].k2&&rows[0].v2)?4:2);
+    for(var ai=0;ai<cols;ai++){
+      var ath=document.createElement('th'); hRow.appendChild(ath);
+    }
+    t.appendChild(hRow);
+  }
+  // 数据行
+  for(var ri=1;ri<rows.length;ri++){
+    var r=rows[ri];
+    var tr=document.createElement('tr');
+    if(r.cells){
+      for(var bi=0;bi<r.cells.length;bi++){
+        var td=document.createElement('td'); td.textContent=r.cells[bi]; tr.appendChild(td);
+      }
+    } else if(r.colspan){
+      var tk=document.createElement('td'); tk.className='dt-key'; tk.textContent=r.k;
+      var tv=document.createElement('td'); tv.className='dt-val'; tv.textContent=r.v;
+      tv.setAttribute('colspan',(r.colspan-1)||5); tr.appendChild(tk); tr.appendChild(tv);
+    } else {
+      if(r.k){var dk=document.createElement('td');dk.className='dt-key';dk.textContent=r.k;tr.appendChild(dk);}
+      if(r.v){var dv=document.createElement('td');dv.className='dt-val';dv.textContent=r.v;tr.appendChild(dv);}
+      if(r.k2){var dk2=document.createElement('td');dk2.className='dt-key';dk2.textContent=r.k2;tr.appendChild(dk2);}
+      if(r.v2){var dv2=document.createElement('td');dv2.className='dt-val';dv2.textContent=r.v2;tr.appendChild(dv2);}
+      if(r.k3){var dk3=document.createElement('td');dk3.className='dt-key';dk3.textContent=r.k3;tr.appendChild(dk3);}
+      if(r.v3){var dv3=document.createElement('td');dv3.className='dt-val';dv3.textContent=r.v3;tr.appendChild(dv3);}
+    }
+    t.appendChild(tr);
+  }
+}
+
+// 渲染空表格
+function renderEmptyTable(tableId, headers){
+  var t=document.getElementById(tableId);
+  t.innerHTML='';
+  var hRow=document.createElement('tr');
+  for(var i=0;i<headers.length;i++){
+    var th=document.createElement('th'); th.textContent=headers[i]; hRow.appendChild(th);
+  }
+  t.appendChild(hRow);
+  var emptyTr=document.createElement('tr'); emptyTr.className='empty-data-row';
+  var td=document.createElement('td'); td.setAttribute('colspan',headers.length); td.textContent='暂无数据';
+  emptyTr.appendChild(td); t.appendChild(emptyTr);
+}
+
+function renderEnterpriseList(){
+  var totalPagesNum=Math.ceil(ENTERPRISE_DATA.length/PAGE_SIZE);
+  renderPageOptions(totalPagesNum);
+  renderCurrentPage();
+}
+
+function renderCurrentPage(){
+  var grid=document.getElementById('entGrid');
+  grid.innerHTML='';
+  var start=(currentPageNum-1)*PAGE_SIZE;
+  var end=Math.min(start+PAGE_SIZE,ENTERPRISE_DATA.length);
+  for(var i=start;i<end;i++){
+    grid.appendChild(createEntCard(ENTERPRISE_DATA[i]));
+  }
+  var opts=document.getElementById('pageOptions').children;
+  for(var j=0;j<opts.length;j++){
+    opts[j].classList.toggle('active',parseInt(opts[j].textContent)===currentPageNum);
+  }
+}
+
+function renderPageOptions(total){
+  var container=document.getElementById('pageOptions');
+  container.innerHTML='';
+  for(var i=1;i<=total;i++){
+    (function(page){
+      var opt=document.createElement('div');
+      opt.className='page-opt';
+      opt.textContent=page;
+      opt.onclick=function(e){e.stopPropagation();goToPage(page);};
+      container.appendChild(opt);
+    })(i);
+  }
+}
+
+function goToPage(page){
+  currentPageNum=page;
+  renderCurrentPage();
+  togglePagePopup(null,true);
+}
+
+function togglePagePopup(e,forceClose){
+  var pop=document.getElementById('pagePopup');
+  if(forceClose){pop.classList.remove('show');return;}
+  e&&e.stopPropagation();
+  pop.classList.toggle('show');
+}
+
+// 点击弹窗外部关闭
+document.addEventListener('click',function(e){
+  var pop=document.getElementById('pagePopup');
+  if(pop&&pop.classList.contains('show')&&!pop.contains(e.target)){
+    pop.classList.remove('show');
+  }
+});
+
+function queryEnterprise(){debug('Query enterprise...');}
+function resetEntSearch(){
+  document.getElementById('entKeyword').value='';
+}
+function updateClock(){} // dead code, superseded by currentTime
+updateClock();setInterval(updateClock,1000);
+</script>
+<!-- CDN备用加载：若主要CDN失败则用备用源 -->
+<script>
+(function(){
+  // 检查echarts是否加载成功
+  if(typeof echarts === 'undefined'){
+    var s=document.createElement('script');
+    s.src='https://unpkg.com/echarts@5.4.3/dist/echarts.min.js';
+    s.onload=function(){console.log('[CDN Fallback] echarts loaded from unpkg');};
+    document.head.appendChild(s);
+  }
+})();
+</script>
+<script>
+window.amapReady=function(){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initMap);else setTimeout(initMap,0);};
+</script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=7d2674ce8375986e20c048ead06989d0&callback=amapReady&securityJsCode=8cc1e17e87bd8d7f80d303d6e7bdbc0a"></script>
+</div>
+</div>
+
+</div>
+
+<script>
+(function(){
+  function updateTime(){
+    var d = new Date();
+    var el = document.getElementById("currentTime");
+    if (el) {
+      el.textContent = d.getFullYear() + "-" +
+        String(d.getMonth()+1).padStart(2,"0") + "-" +
+        String(d.getDate()).padStart(2,"0") + " " +
+        String(d.getHours()).padStart(2,"0") + ":" +
+        String(d.getMinutes()).padStart(2,"0") + ":" +
+        String(d.getSeconds()).padStart(2,"0");
+    }
+  }
+  updateTime();
+  setInterval(updateTime, 1000);
+})();
+</script>
+<script src="park_loading.js"></script>
+</body>
+</html>

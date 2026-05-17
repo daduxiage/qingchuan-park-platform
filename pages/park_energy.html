@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>用能监测 - 青川县庄子上工业园区</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="park_common.css">
+    <script src="/pages/echarts.min.js"></script>
+    <script src="park_charts.js"></script>
+    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.157/build/three.module.js"}}</script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+    <style>
+        * { margin:0;padding:0;box-sizing:border-box; }
+        body { background:#000;font-family:"Microsoft YaHei","微软雅黑",sans-serif;overflow:hidden;height:100vh;width:100vw; }
+        .eng-map { width:100%;height:100%; }
+        .panel-top-center { position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:60;display:flex;gap:16px; }
+        .top-digital-card { background:linear-gradient(145deg,rgba(8,18,44,.45),rgba(10,22,52,.32));border:1px solid rgba(64,196,255,.18);border-radius:10px;backdrop-filter:blur(14px);padding:12px 28px;text-align:center;min-width:148px;box-shadow:0 4px 24px rgba(0,0,0,.25),inset 0 1px 0 rgba(64,196,255,.06);position:relative;overflow:hidden; }
+        .top-digital-card::before { content:'';position:absolute;top:0;left:-100%;width:60%;height:1px;background:linear-gradient(90deg,transparent,rgba(64,196,255,.5),transparent);animation:scanLine 3s ease-in-out infinite; }
+        @keyframes scanLine { 0%{left:-60%}60%{left:120%}100%{left:120%} }
+        .top-card-label { color:#7a9fc4;font-size:13px;letter-spacing:2px;margin-bottom:4px; }
+        .top-card-value { font-size:clamp(24px,3vw,34px);font-weight:900;font-family:'DIN Alternate','Helvetica Neue','Microsoft YaHei',monospace;line-height:1;text-shadow:0 0 12px currentColor; }
+        .top-card-unit { color:#5a8ab8;font-size:11px;margin-left:2px; }
+        .map-overlay-panel { position:absolute;z-index:55;display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(145deg,rgba(6,16,40,.3),rgba(10,20,50,.2));border:1px solid rgba(64,196,255,.12);border-radius:10px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,.25),inset 0 1px 0 rgba(64,196,255,.04); }
+        .map-overlay-title { font-size:16px;font-weight:700;color:#40c4ff;padding:7px 12px 5px;letter-spacing:2px;background:linear-gradient(90deg,rgba(43,104,224,.22),rgba(43,104,224,.06) 60%,transparent);border-bottom:1px solid rgba(43,104,224,.15);flex-shrink:0;position:relative; }
+        .map-overlay-title::before { content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:linear-gradient(180deg,#40c4ff,#2b68e0);border-radius:0 2px 2px 0; }
+        .map-overlay-title::after { content:'';position:absolute;right:0;top:0;width:45px;height:100%;background:repeating-linear-gradient(-45deg,transparent,transparent 3px,rgba(64,196,255,.07) 3px,rgba(64,196,255,.07) 6px); }
+        .map-overlay-body { flex:1;min-height:0;padding:4px; }
+        /* 可视化规则见 park_common.css */
+    </style>
+</head>
+<body>
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-title">🏭 青川县庄子上工业园区</div>
+    <div class="loading-bar-bg"><div class="loading-bar"></div></div>
+    <div class="loading-tip">正在加载用能监测...</div>
+</div>
+<div class="screen-container">
+    <div class="title-box">
+        <div class="title-left"><span class="time" id="currentTime"></span></div>
+        <div class="title-center"><h1>用能监测</h1></div>
+        <div class="title-right">
+            <button class="common-btn" onclick="location.reload()" title="刷新"><i class="fa fa-refresh"></i></button>
+            <a href="../index.html" class="back-btn" title="返回主页"><i class="fa fa-home"></i></a>
+        </div>
+    </div>
+    <div class="map-wrapper">
+        <div class="eng-map" id="engMap"></div>
+<div class="panel-top-center" style="top:10px">
+    <div class="top-digital-card"><div class="top-card-label">监测企业</div><div><span class="top-card-value" id="engKpiCo" style="color:#40c4ff">9</span><span class="top-card-unit">(家)</span></div></div>
+    <div class="top-digital-card"><div class="top-card-label">本月总费用</div><div><span class="top-card-value" id="engKpiTotal" style="color:#4cd964">0</span><span class="top-card-unit">(万元)</span></div></div>
+    <div class="top-digital-card"><div class="top-card-label">能耗增长</div><div><span class="top-card-value" id="engKpiUp" style="color:#ff9500">0</span><span class="top-card-unit">(家)</span></div></div>
+    <div class="top-digital-card"><div class="top-card-label">已填报</div><div><span class="top-card-value" id="engKpiRep" style="color:#7b61ff">0</span><span class="top-card-unit">(家)</span></div></div>
+</div>
+<div class="chart-col chart-col-left">
+    <div class="map-overlay-panel"><div class="map-overlay-title">用电趋势</div><div class="map-overlay-body"><div id="engPower" style="width:100%;height:100%"></div></div></div>
+    <div class="map-overlay-panel"><div class="map-overlay-title">用水趋势</div><div class="map-overlay-body"><div id="engWater" style="width:100%;height:100%"></div></div></div>
+    <div class="map-overlay-panel"><div class="map-overlay-title">用气趋势</div><div class="map-overlay-body"><div id="engGas" style="width:100%;height:100%"></div></div></div>
+</div>
+<div class="chart-col chart-col-right">
+    <div class="map-overlay-panel"><div class="map-overlay-title">能耗排名</div><div class="map-overlay-body"><div id="engRank" style="width:100%;height:100%"></div></div></div>
+    <div class="map-overlay-panel"><div class="map-overlay-title">成本占比</div><div class="map-overlay-body"><div id="engPie" style="width:100%;height:100%"></div></div></div>
+</div>
+</div>
+<div class="bottom-tabs">
+    <a class="tab-btn" href="park_sandbox.html">沙盘</a>
+    <a class="tab-btn" href="park_economy.html">经济</a>
+    <a class="tab-btn" href="park_land.html">用地</a>
+    <a class="tab-btn" href="park_enterprise.html">企业</a>
+    <a class="tab-btn" href="park_service.html">服务</a>
+    <a class="tab-btn active" style="pointer-events:none;opacity:0.8" href="park_energy.html">能耗</a>
+    <a class="tab-btn" href="park_safety.html">安全</a>
+</div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+var engComp={};
+
+function genEngData(){
+  if(engComp['佳兴铝业'])return;
+  var bn=['佳兴铝业','阜成新材','虹禾晶科技','中能建','星恒青源','九晟新材','华纳实业','新通鑫','广袤新材'];
+  var locs=[[105.24,32.58],[105.22,32.56],[105.27,32.59],[105.19,32.55],[105.31,32.57],[105.25,32.53],[105.29,32.56],[105.21,32.54],[105.26,32.52]];
+  bn.forEach(function(n,i){engComp[n]={name:n,loc:locs[i],power:(Math.random()*60+20).toFixed(1),water:Math.floor(Math.random()*3000+1000),gas:Math.floor(Math.random()*15000+5000),cost:(Math.random()*20+10).toFixed(1),yoy:((Math.random()*20)-5).toFixed(1)};});
+}
+function updateKPI(){
+  genEngData();var keys=Object.keys(engComp),total=0,up=0;
+  keys.forEach(function(k){var e=engComp[k];total+=parseFloat(e.cost);if(parseFloat(e.yoy)>0)up++;});
+  document.getElementById('engKpiCo').textContent=keys.length;
+  document.getElementById('engKpiTotal').textContent=total.toFixed(1);
+  document.getElementById('engKpiUp').textContent=up;
+  document.getElementById('engKpiRep').textContent=keys.length;
+}
+
+function initMap(){
+  var container=document.getElementById('engMap');
+  var w=container.clientWidth,h=container.clientHeight;
+  var scene=new THREE.Scene();scene.background=new THREE.Color(0x060e28);
+  scene.fog=new THREE.FogExp2(0x060e28,0.00015);
+  var camera=new THREE.PerspectiveCamera(50,w/h,1,500);
+  camera.position.set(0,-60,55);camera.lookAt(0,0,-3);
+  var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setSize(w,h);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;
+  container.appendChild(renderer.domElement);
+
+  var amb=new THREE.AmbientLight(0x204080,1.2);scene.add(amb);
+  var dir=new THREE.DirectionalLight(0x80c0ff,3);dir.position.set(30,20,40);
+  dir.castShadow=true;dir.shadow.mapSize.set(2048,2048);
+  dir.shadow.camera.near=1;dir.shadow.camera.far=200;
+  dir.shadow.camera.left=-60;dir.shadow.camera.right=60;
+  dir.shadow.camera.top=60;dir.shadow.camera.bottom=-60;dir.shadow.bias=-0.0005;scene.add(dir);
+  var pt=new THREE.PointLight(0x40c4ff,2,80);pt.position.set(0,0,30);scene.add(pt);
+  var gnd=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshPhongMaterial({color:0x060e28}));
+  gnd.position.z=-8;gnd.receiveShadow=true;scene.add(gnd);
+
+  var columns=[],anomalyRings=[],labels=[];
+  axios.get('https://geo.datav.aliyun.com/areas_v3/bound/510822.json').then(function(resp){
+    var coords=resp.data.features[0].geometry.coordinates;
+    var allPts=[];
+    function walk(arr){if(typeof arr[0]==='number'){allPts.push({x:arr[0],y:arr[1]});return;}arr.forEach(function(s){walk(s);});}
+    walk(coords);
+    var xs=allPts.map(function(p){return p.x;}),ys=allPts.map(function(p){return p.y;});
+    var cx=(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2;
+    var cy=(Math.min.apply(null,ys)+Math.max.apply(null,ys))/2;
+    var span=Math.max(Math.max.apply(null,xs)-Math.min.apply(null,xs),Math.max.apply(null,ys)-Math.min.apply(null,ys));
+    function toX(lng){return (lng-cx)/span*70;}
+    function toY(lat){return (lat-cy)/span*70;}
+    var shapes=[];
+    function build(arr){
+      if(typeof arr[0]==='number')return;
+      if(Array.isArray(arr[0])&&Array.isArray(arr[0][0])&&typeof arr[0][0][0]==='number'){
+        arr.forEach(function(ring){
+          var sh=new THREE.Shape();
+          ring.forEach(function(pt,i){var x=toX(pt[0]),y=toY(pt[1]);if(i===0)sh.moveTo(x,y);else sh.lineTo(x,y);});
+          shapes.push(sh);
+        });
+      }else{arr.forEach(build);}
+    }build(coords);
+    shapes.forEach(function(sh){
+      var geo=new THREE.ExtrudeGeometry(sh,{steps:1,depth:1.8,bevelEnabled:true,bevelThickness:.3,bevelSize:.3,bevelSegments:3});
+      var m=new THREE.Mesh(geo,new THREE.MeshPhongMaterial({color:0x3a4f8c,specular:0x5a7fbc,shininess:25,transparent:true,opacity:.88}));
+      m.castShadow=true;m.receiveShadow=true;scene.add(m);
+      m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0xffffff,opacity:.9,depthTest:false})));
+      m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0xffffff,opacity:.35,depthTest:false,linewidth:1})));
+    });
+    genEngData();var keys=Object.keys(engComp);
+    keys.forEach(function(k,i){
+      var e=engComp[k],c=parseFloat(e.cost),y=parseFloat(e.yoy);
+      var x=toX(e.loc[0]),Y=toY(e.loc[1]);
+      var isAnomaly=y>18||c>25;
+      var col=isAnomaly?0xff4d4f:c>18?0xff9500:c>14?0x40c4ff:0x4cd964;
+      var sz=-6.1; // county surface
+
+      // 底座圆柱
+      var base=new THREE.Mesh(new THREE.CylinderGeometry(.45,.55,.2,24),new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.3}));
+      base.position.set(x,Y,sz+.1);base.castShadow=true;scene.add(base);
+
+      // 标记圆环
+      var ringGeo=new THREE.TorusGeometry(.55,.08,16,48);
+      var ring=new THREE.Mesh(ringGeo,new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.7,specular:0xffffff,shininess:90}));
+      ring.position.set(x,Y,sz+.45);ring.rotation.x=Math.PI/2;scene.add(ring);
+
+      // 中心白点
+      var dot=new THREE.Mesh(new THREE.SphereGeometry(.2,16,16),new THREE.MeshPhongMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:1}));
+      dot.position.set(x,Y,sz+.45);scene.add(dot);
+
+      // 光晕
+      var glow=new THREE.Mesh(new THREE.SphereGeometry(.85,16,16),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.1,depthWrite:false}));
+      glow.position.set(x,Y,sz+.45);scene.add(glow);
+
+      columns.push({mesh:ring,dot:dot,glow:glow,x:x,y:Y});
+
+      if(isAnomaly){
+        var aR1=new THREE.Mesh(new THREE.TorusGeometry(.7,.03,8,48),new THREE.MeshBasicMaterial({color:0xff3333,transparent:true,opacity:.9}));
+        aR1.position.set(x,Y,sz+.45);aR1.rotation.x=Math.PI/2;scene.add(aR1);anomalyRings.push(aR1);
+        var aR2=new THREE.Mesh(new THREE.TorusGeometry(.9,.02,8,48),new THREE.MeshBasicMaterial({color:0xff3333,transparent:true,opacity:.35}));
+        aR2.position.set(x,Y,sz+.45);aR2.rotation.x=Math.PI/2;scene.add(aR2);anomalyRings.push(aR2);
+      }
+
+      var lb=document.createElement('div');
+      lb.style.cssText='position:absolute;color:#cfe4ff;font-size:11px;font-weight:bold;pointer-events:none;text-shadow:0 0 4px rgba(0,0,0,.9);white-space:nowrap;';
+      lb.textContent=e.name;container.appendChild(lb);
+      labels.push({el:lb,wp:new THREE.Vector3(x,Y,sz+.8)});
+    });
+  }).catch(function(e){console.error(e);});
+
+  var pg=new THREE.BufferGeometry(),pc=600;
+  var pa=new Float32Array(pc*3),ca=new Float32Array(pc*3);
+  for(var i=0;i<pc;i++){pa[i*3]=(Math.random()-.5)*80;pa[i*3+1]=(Math.random()-.5)*80;pa[i*3+2]=Math.random()*15-8;ca[i*3]=.25+Math.random()*.5;ca[i*3+1]=.5+Math.random()*.5;ca[i*3+2]=.8+Math.random()*.2;}
+  pg.setAttribute('position',new THREE.BufferAttribute(pa,3));pg.setAttribute('color',new THREE.BufferAttribute(ca,3));
+  var pts=new THREE.Points(pg,new THREE.PointsMaterial({size:.18,vertexColors:true,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:.6}));
+  scene.add(pts);
+
+  var clk=new THREE.Clock();
+  function loop(){
+    requestAnimationFrame(loop);var t=clk.getElapsedTime();
+    camera.position.set(0,-60,55);camera.lookAt(0,0,-3);
+    columns.forEach(function(c,i){var s=1+Math.sin(t*2+i)*.04;if(c.glow)c.glow.material.opacity=.1+Math.sin(t*2+i)*.03;if(c.dot)c.dot.material.emissiveIntensity=.7+Math.sin(t*3+i)*.3;});
+    anomalyRings.forEach(function(r,i){r.rotation.z+=.02;r.scale.setScalar(1+Math.sin(t*3+i)*.08);});
+    pts.rotation.z+=.0005;var arr=pts.geometry.attributes.position.array;
+    for(var i=0;i<pc;i++){arr[i*3+2]+=.015;if(arr[i*3+2]>12)arr[i*3+2]=-8;}pts.geometry.attributes.position.needsUpdate=true;
+    labels.forEach(function(l){var v=l.wp.clone().project(camera);l.el.style.left=(v.x*.5+.5)*container.clientWidth+'px';l.el.style.top=(-v.y*.5+.5)*container.clientHeight+'px';});
+    renderer.render(scene,camera);
+  }loop();
+  window.addEventListener('resize',function(){
+    var ww=container.clientWidth,wh=container.clientHeight;
+    camera.aspect=ww/wh;camera.updateProjectionMatrix();renderer.setSize(ww,wh);
+  });
+}
+window.initMap=initMap;window.updateKPI=updateKPI;window.engComp=engComp;
+</script>
+<script>
+function initRank(){
+  var e=window.engComp;var items=[];Object.keys(e).forEach(function(k){items.push({name:k,value:parseFloat(e[k].cost)});});
+  ParkCharts.barRank('engRank',{items:items,name:'能耗成本',unit:'万元'});
+}
+function initPie(){
+  var e=window.engComp;var rc=[];Object.keys(e).forEach(function(k){var c=parseFloat(e[k].cost);rc.push({name:k,value:c});});
+  ParkCharts.pieRose('engPie',{data:rc,name:'成本占比'});
+}
+window.addEventListener('DOMContentLoaded',function(){
+  updateKPI();initMap();
+  var pv=[],wv=[],gv=[];
+  for(var i=0;i<12;i++){pv.push((Math.random()*50+30).toFixed(1));wv.push(Math.floor(Math.random()*3000+1000));gv.push(Math.floor(Math.random()*12000+4000));}
+  ParkCharts.trendLine('engPower',{data:pv,name:'用电',unit:'万kWh',color:'#40c4ff'});
+  ParkCharts.trendLine('engWater',{data:wv,name:'用水',unit:'吨',color:'#4cd964'});
+  ParkCharts.trendLine('engGas',{data:gv,name:'用气',unit:'m³',color:'#ff9500'});
+  initRank();initPie();
+  if(typeof hideLoading==='function')hideLoading();
+});
+</script>
+<script>
+(function(){
+  function updateTime(){
+    var d=new Date();
+    var el=document.getElementById("currentTime");
+    if(el){el.textContent=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+":"+String(d.getSeconds()).padStart(2,"0");}
+  }
+  updateTime();setInterval(updateTime,1000);
+})();
+</script>
+<script src="park_loading.js"></script>
+</body>
+</html>
