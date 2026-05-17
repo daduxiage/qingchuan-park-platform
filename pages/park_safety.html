@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全域安全监控 - 青川县庄子上工业园区智慧园区平台</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="park_common.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: "Microsoft Yahei","微软雅黑",sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* ===== 主内容 ===== */
+        .main-content {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            grid-gap: var(--universal-gap);
+            height: 100%; overflow: hidden;
+        }
+
+        /* ===== 左侧边栏 ===== */
+        .sidebar {
+            background: rgba(10,16,36,0.8);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(43,104,224,0.4);
+            padding: 10px;
+            display: flex; flex-direction: column; gap: 8px;
+            overflow-y: auto; height: 100%;
+        }
+        .sidebar-section {
+            background: linear-gradient(135deg, rgba(16,24,56,0.9), rgba(22,41,105,0.8));
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(43,104,224,0.3);
+            padding: 10px;
+        }
+        .section-title {
+            font-size: 14px; color: var(--primary-color); font-weight: 600;
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 8px; padding-bottom: 8px;
+            border-bottom: 1px solid var(--split-color);
+        }
+        .section-title::before {
+            content: '';
+            width: 3px; height: 14px;
+            background: var(--primary-color); border-radius: 2px;
+        }
+        .selector-card {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(16,24,56,0.95), rgba(22,41,105,0.9));
+            border: 1px solid rgba(64,196,255,0.5); border-radius: 6px;
+            padding: 10px; cursor: pointer; text-align: center;
+            transition: all 0.25s;
+        }
+        .selector-card:hover, .selector-card.active {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(64,196,255,0.3);
+            background: linear-gradient(135deg, rgba(43,104,224,0.3), rgba(64,196,255,0.15));
+        }
+        .selector-card .card-label {
+            font-size: 11px; color: #80bfff; margin-bottom: 4px;
+        }
+        .selector-card .card-value {
+            font-size: 13px; color: #40c4ff; font-weight: 600;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+
+        /* 设备列表 */
+        .device-list {
+            display: flex; flex-direction: column; gap: 4px;
+            max-height: calc(100vh - 280px); overflow-y: auto;
+        }
+        .device-list::-webkit-scrollbar { width: 3px; }
+        .device-list::-webkit-scrollbar-thumb {
+            background: rgba(43,104,224,0.4); border-radius: 2px;
+        }
+        .device-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px; background: rgba(255,255,255,0.03);
+            border-radius: 6px; border: 1px solid rgba(43,104,224,0.2);
+            cursor: pointer; transition: all 0.25s;
+        }
+        .device-item:hover, .device-item.active {
+            background: rgba(64,196,255,0.1);
+            border-color: rgba(64,196,255,0.4);
+        }
+        .device-icon {
+            width: 28px; height: 28px; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; flex-shrink: 0;
+        }
+        .device-icon.online { background: rgba(76,217,100,0.15); color: var(--success-color); }
+        .device-icon.offline { background: rgba(140,140,140,0.15); color: #8c8c8c; }
+        .device-info { flex: 1; min-width: 0; }
+        .device-name {
+            font-size: 12px; color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .device-loc {
+            font-size: 10px; color: var(--text-tertiary); margin-top: 2px;
+        }
+        .device-status {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        }
+        .device-status.online { background: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
+        .device-status.offline { background: #8c8c8c; }
+
+        /* ===== 中央视频宫格 ===== */
+        .center-panel {
+            background: rgba(10,16,36,0.5);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(43,104,224,0.4);
+            display: flex; flex-direction: column;
+            overflow: hidden; position: relative;
+        }
+        .video-grid {
+            flex: 1; display: grid; gap: 4px; padding: 6px;
+            overflow: hidden;
+        }
+        .video-cell {
+            background: #060e20;
+            border: 1px solid rgba(43,104,224,0.35);
+            border-radius: 4px; overflow: hidden; position: relative;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .video-cell video {
+            display: block;
+        }
+        .video-cell:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 12px rgba(64,196,255,0.2);
+        }
+        .video-cell.fullscreen {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 9999; border-radius: 0; border: none;
+        }
+        .cell-placeholder {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: linear-gradient(135deg, rgba(16,24,56,0.8), rgba(10,20,50,0.9));
+        }
+        .cell-placeholder.offline { opacity: 0.5; }
+        .cell-icon {
+            font-size: 32px; color: rgba(64,196,255,0.4);
+            margin-bottom: 8px;
+        }
+        .cell-name {
+            font-size: 12px; color: rgba(255,255,255,0.6);
+            text-align: center; padding: 0 4px;
+        }
+        .cell-video {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover; background: #000;
+        }
+        .cell-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 4px 8px; font-size: 11px;
+            color: #fff; text-align: center;
+            pointer-events: none;
+        }
+        .video-cell.fullscreen .cell-icon { font-size: 80px; }
+        .video-cell.fullscreen .cell-name { font-size: 20px; }
+
+        /* 右下角当前宫格提示 */
+        .grid-info {
+            position: absolute; bottom: 10px; right: 14px;
+            font-size: 11px; color: rgba(255,255,255,0.35);
+            pointer-events: none;
+        }
+    </style>
+
+</head>
+<body>
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-title">🏭 青川县庄子上工业园区</div>
+    <div class="loading-bar-bg"><div class="loading-bar"></div></div>
+    <div class="loading-tip">正在加载全域安全监控...</div>
+</div>
+
+<div class="screen-container">
+    <!-- 顶部标题 -->
+    <div class="title-box">
+        <div class="title-left">
+            <span class="time" id="currentTime"></span>
+        </div>
+        <div class="title-center"><h1>全域安全监控</h1></div>
+        <div class="title-right">
+            <button class="common-btn" id="refreshBtn" onclick="refreshData()" title="刷新数据">
+                <i class="fa fa-refresh"></i>
+            </button>
+            <button class="common-btn" id="gridBtn" onclick="toggleGrid()" title="切换宫格">
+                <i class="fa fa-th"></i>
+            </button>
+            <a href="../index.html" class="back-btn" title="返回主页">
+                <i class="fa fa-home"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="main-content">
+        <!-- 左侧边栏 -->
+        <div class="sidebar">
+            <!-- 位置选择 -->
+            <div class="sidebar-section">
+                <div class="section-title">监控区域</div>
+                <div style="display:flex;gap:8px;margin-top:6px;" id="locationButtons">
+                    <div class="selector-card active" data-loc="all" onclick="selectLocation('all', this)">
+                        <div class="card-label">全部</div>
+                        <div class="card-value" id="countAll">30</div>
+                    </div>
+                    <div class="selector-card" data-loc="东区" onclick="selectLocation('东区', this)">
+                        <div class="card-label">东区</div>
+                        <div class="card-value" id="countEast">8</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:6px;">
+                    <div class="selector-card" data-loc="西区" onclick="selectLocation('西区', this)">
+                        <div class="card-label">西区</div>
+                        <div class="card-value" id="countWest">7</div>
+                    </div>
+                    <div class="selector-card" data-loc="南区" onclick="selectLocation('南区', this)">
+                        <div class="card-label">南区</div>
+                        <div class="card-value" id="countSouth">8</div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:6px;">
+                    <div class="selector-card" data-loc="北区" onclick="selectLocation('北区', this)">
+                        <div class="card-label">北区</div>
+                        <div class="card-value" id="countNorth">7</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 设备列表 -->
+            <div class="sidebar-section" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+                <div class="section-title">监控设备 <span style="font-size:11px;color:var(--text-tertiary);" id="deviceCount"></span></div>
+                <div class="device-list" id="deviceList"></div>
+            </div>
+        </div>
+
+        <!-- 中央视频宫格 -->
+        <div class="center-panel" id="centerPanel">
+            <div class="video-grid" id="videoGrid" style="grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);"></div>
+            <div class="grid-info" id="gridInfo">16 宫格</div>
+        </div>
+    </div>
+</div>
+
+<!-- 全屏关闭按钮（须在 overflow:hidden 容器外） -->
+<button class="common-btn" id="fsCloseBtn" onclick="exitFullscreen()" style="display:none;position:fixed;top:16px;right:16px;z-index:10000;">
+    <i class="fa fa-times"></i>
+</button>
+
+<script>
+    /* ===== 模拟监控设备数据 ===== */
+    const locations = ['东区', '西区', '南区', '北区'];
+    const deviceTypes = ['球机', '枪机', '云台', '半球'];
+    const areas = {
+        '东区': ['东门入口', '1号厂房', '2号厂房', '原料仓库', '办公楼A', '停车场A', '配电房', '消防通道A'],
+        '西区': ['西门入口', '3号厂房', '4号厂房', '成品仓库', '办公楼B', '锅炉房', '消防通道B'],
+        '南区': ['南门入口', '5号厂房', '6号厂房', '危化品库', '污水处理站', '停车场B', '变电所', '绿地监控'],
+        '北区': ['北门入口', '7号厂房', '研发中心', '职工宿舍', '食堂', '运动场', '消防通道C'],
+    };
+
+    let devices = [];
+    let currentLocation = 'all';
+    let currentGrid = 4; // cols
+    let gridOptions = [
+        { cols: 2, rows: 2, name: '4' },
+        { cols: 3, rows: 3, name: '9' },
+        { cols: 4, rows: 4, name: '16' },
+        { cols: 8, rows: 4, name: '32' },
+    ];
+    let gridIdx = 2; // 默认16宫格
+
+    // 公开监控流地址池（全MP4直链 + HLS已验证源，避免被墙CDN）
+    const streamPool = [
+        // ===== 已验证可达的CDN源 =====
+        { url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', type: 'hls', label: 'MUX测试源' },          // pool[0] → pos1 ✓
+        { url: 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', type: 'hls', label: 'AngelOne-副' },  // pool[1] → pos2 (替换Akamai)
+        { url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', type: 'hls', label: 'TearsOfSteel' }, // pool[2] → pos3 ✓
+        { url: 'https://media.w3.org/2010/05/sintel/trailer.mp4', type: 'mp4', label: 'Sintel预告片' },          // pool[3] → pos4 (替换Apple-fMP4)
+        { url: 'https://media.w3.org/2010/05/bunny/trailer.mp4', type: 'mp4', label: 'BigBuckBunny' },           // pool[4] → pos5 (替换Apple-HEVC)
+        { url: 'https://media.w3.org/2010/05/video/movie_300.mp4', type: 'mp4', label: '电影片段300' },           // pool[5] → pos6 ✓
+        { url: 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8', type: 'hls', label: 'Sintel-HLS' }, // pool[6] → pos7 (替换ArtOfMotion)
+        { url: 'https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8', type: 'hls', label: 'BipBop-16x9' }, // pool[7] → pos8 ✓
+        { url: 'https://playertest.longtailvideo.com/adaptive/bipbop/gear4/prog_index.m3u8', type: 'hls', label: 'JW-BipBop' }, // pool[8] → pos9 (替换DASH-IF)
+        { url: 'https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8', type: 'hls', label: 'AngelOne' },     // pool[9] → pos10 ✓
+        { url: 'https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8', type: 'hls', label: 'Bitdash' }, // pool[10] → pos11 ✓
+        { url: 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8', type: 'hls', label: 'Sintel-HLS-副' },         // pool[11] → pos12 ✓
+        { url: 'https://playertest.longtailvideo.com/adaptive/bipbop/gear4/prog_index.m3u8', type: 'hls', label: 'JW-BipBop-副' }, // pool[12] → pos13 ✓
+        { url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', type: 'hls', label: 'MUX-副' },          // pool[13] → pos14 (替换ElephantDream)
+        { url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8', type: 'hls', label: 'TearsOfSteel-副' }, // pool[14] → pos15 (替换BigBuckBunny)
+        { url: 'https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8', type: 'hls', label: 'BipBop-副' }, // pool[15] → pos16 (替换街景)
+    ];
+
+    // 备用fallback流池（W3C全球可达MP4，不依赖Google Storage）
+    const fallbackPool = [
+        { url: 'https://media.w3.org/2010/05/sintel/trailer.mp4', type: 'mp4', label: 'Sintel-FB' },
+        { url: 'https://media.w3.org/2010/05/bunny/trailer.mp4', type: 'mp4', label: 'Bunny-FB' },
+        { url: 'https://media.w3.org/2010/05/video/movie_300.mp4', type: 'mp4', label: 'Movie300-FB' },
+    ];
+
+    function generateDevices() {
+        devices = [];
+        let id = 1;
+        Object.keys(areas).forEach(function(loc) {
+            areas[loc].forEach(function(area, i) {
+                devices.push({
+                    id: 'CAM-' + String(id).padStart(3,'0'),
+                    name: loc + ' ' + area,
+                    location: loc,
+                    area: area,
+                    type: deviceTypes[i % 4],
+                    online: true,  // 全部在线，确保所有宫格有画面
+                    ip: '192.168.' + (10 + id) + '.' + (100 + id),
+                    stream: streamPool[(id - 1) % streamPool.length],
+                    fallbackIdx: 0,  // fallback尝试索引
+                });
+                id++;
+            });
+        });
+    }
+
+    /* ===== 初始化 ===== */
+    function init() {
+        generateDevices();
+        updateLocationCounts();
+        renderDeviceList();
+        renderVideoGrid();
+        updateTime();
+        setInterval(updateTime, 1000);
+    }
+
+    /* ===== 时间 ===== */
+    function updateTime() {
+        var now = new Date();
+        document.getElementById('currentTime').textContent =
+            now.getFullYear() + '-' +
+            String(now.getMonth()+1).padStart(2,'0') + '-' +
+            String(now.getDate()).padStart(2,'0') + ' ' +
+            String(now.getHours()).padStart(2,'0') + ':' +
+            String(now.getMinutes()).padStart(2,'0') + ':' +
+            String(now.getSeconds()).padStart(2,'0');
+    }
+
+    /* ===== 位置统计 ===== */
+    function updateLocationCounts() {
+        document.getElementById('countAll').textContent = devices.length;
+        locations.forEach(function(loc) {
+            var count = devices.filter(function(d) { return d.location === loc; }).length;
+            var el = {
+                '东区': 'countEast', '西区': 'countWest',
+                '南区': 'countSouth', '北区': 'countNorth',
+            }[loc];
+            if (el) document.getElementById(el).textContent = count;
+        });
+    }
+
+    /* ===== 位置选择 ===== */
+    function selectLocation(loc, el) {
+        currentLocation = loc;
+        document.querySelectorAll('.selector-card').forEach(function(c) { c.classList.remove('active'); });
+        el.classList.add('active');
+        renderDeviceList();
+        renderVideoGrid();
+    }
+
+    /* ===== 设备列表 ===== */
+    function renderDeviceList() {
+        var list = document.getElementById('deviceList');
+        var filtered = currentLocation === 'all'
+            ? devices
+            : devices.filter(function(d) { return d.location === currentLocation; });
+
+        document.getElementById('deviceCount').textContent = '(' + filtered.length + '台)';
+
+        list.innerHTML = filtered.map(function(d) {
+            return '<div class="device-item' + (d.online ? '' : ' offline-style') + '" ' +
+                'onclick="focusDevice(\'' + d.id + '\')" ondblclick="deviceFullscreen(\'' + d.id + '\')" data-id="' + d.id + '">' +
+                '<div class="device-icon ' + (d.online ? 'online' : 'offline') + '">' +
+                '<i class="fa fa-video-camera"></i></div>' +
+                '<div class="device-info">' +
+                '<div class="device-name">' + d.name + '</div>' +
+                '<div class="device-loc">' + d.type + ' · ' + d.ip + '</div>' +
+                '</div>' +
+                '<div class="device-status ' + (d.online ? 'online' : 'offline') + '"></div>' +
+                '</div>';
+        }).join('');
+    }
+
+    /* ===== 聚焦设备 ===== */
+    function focusDevice(id) {
+        // 高亮该设备所在宫格
+        var cells = document.querySelectorAll('.video-cell');
+        cells.forEach(function(cell) {
+            if (cell.dataset.id === id) {
+                cell.style.borderColor = '#ff9500';
+                cell.style.boxShadow = '0 0 20px rgba(255,149,0,0.5)';
+                cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(function() {
+                    cell.style.borderColor = 'rgba(43,104,224,0.35)';
+                    cell.style.boxShadow = '';
+                }, 2000);
+            }
+        });
+
+        // 高亮左侧设备列表项
+        document.querySelectorAll('.device-item').forEach(function(item) {
+            item.classList.remove('active');
+            if (item.dataset.id === id) item.classList.add('active');
+        });
+    }
+
+    /* ===== 初始化视频流（含fallback重试） ===== */
+    var hlsInstances = {};
+    var fallbackTimers = {};
+
+    function initVideoStream(cellId, holderId, stream, fallbackIdx) {
+        if (!stream) return;
+        fallbackIdx = fallbackIdx || 0;
+        var cell = document.getElementById(cellId);
+        var holder = document.getElementById(holderId);
+        if (!cell || !holder) return;
+
+        // 清理旧实例
+        if (hlsInstances[cellId]) {
+            try { hlsInstances[cellId].destroy(); } catch(e) {}
+            delete hlsInstances[cellId];
+        }
+        if (fallbackTimers[cellId]) {
+            clearTimeout(fallbackTimers[cellId]);
+            delete fallbackTimers[cellId];
+        }
+        var oldVideo = cell.querySelector('video');
+        if (oldVideo) oldVideo.remove();
+
+        var video = document.createElement('video');
+        video.className = 'cell-video';
+        video.muted = true;
+        video.autoplay = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.setAttribute('webkit-playsinline', '');
+
+        var streamLoaded = false;
+
+        function tryFallback() {
+            if (streamLoaded) return;
+            var nextIdx = fallbackIdx + 1;
+            if (nextIdx >= fallbackPool.length) {
+                // fallback池用尽 → 显示视频图标（非黑屏）
+                holder.style.display = 'flex';
+                return;
+            }
+            // 递归尝试下一个fallback
+            initVideoStream(cellId, holderId, fallbackPool[nextIdx], nextIdx);
+        }
+
+        // 超时fallback：4秒内无画面自动切换
+        fallbackTimers[cellId] = setTimeout(function() {
+            if (!streamLoaded) tryFallback();
+        }, 4000);
+
+        if (stream.type === 'hls' && Hls.isSupported()) {
+            var hls = new Hls({
+                maxBufferLength: 8,
+                manifestLoadTimeOut: 6000,
+                manifestLoadMaxRetry: 1,
+                levelLoadTimeOut: 6000,
+            });
+            hls.loadSource(stream.url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(function(){});
+                holder.style.display = 'none';
+                streamLoaded = true;
+                if (fallbackTimers[cellId]) { clearTimeout(fallbackTimers[cellId]); delete fallbackTimers[cellId]; }
+            });
+            hls.on(Hls.Events.ERROR, function(event, data) {
+                if (data.fatal && !streamLoaded) tryFallback();
+            });
+            hlsInstances[cellId] = hls;
+        } else {
+            // MP4 直链 或 HLS原生支持(Safari)
+            video.src = stream.url;
+            video.onloadedmetadata = function() {
+                video.play().catch(function(){});
+            };
+            video.oncanplay = function() {
+                holder.style.display = 'none';
+                streamLoaded = true;
+                if (fallbackTimers[cellId]) { clearTimeout(fallbackTimers[cellId]); delete fallbackTimers[cellId]; }
+            };
+            video.onerror = function() {
+                if (!streamLoaded) tryFallback();
+            };
+        }
+
+        cell.insertBefore(video, cell.firstChild);
+    }
+
+    /* ===== 左侧列表双击：单设备全屏 ===== */
+    function deviceFullscreen(id) {
+        var dev = devices.find(function(d) { return d.id === id; });
+        if (!dev) return;
+
+        var grid = document.getElementById('videoGrid');
+        grid.style.gridTemplateColumns = '1fr';
+        grid.style.gridTemplateRows = '1fr';
+        grid.innerHTML =
+            '<div class="video-cell" data-id="' + dev.id + '" id="fs-video-cell" style="position:relative;">' +
+            '<div class="cell-placeholder' + (dev.online ? '' : ' offline') + '" id="fs-holder">' +
+            '<div class="cell-icon"><i class="fa fa-video-camera"></i></div>' +
+            '<div class="cell-name">' + dev.name + '</div>' +
+            '<div style="font-size:12px;color:' + (dev.online ? 'var(--success-color)' : '#8c8c8c') + ';margin-top:6px;">' +
+            (dev.online ? '● 在线' : '○ 离线') + '</div>' +
+            '<div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">' + dev.type + ' · ' + dev.ip + '</div>' +
+            '<div style="margin-top:12px;">' +
+            '<button class="common-btn" onclick="exitDeviceFullscreen()" style="width:auto;height:32px;padding:0 16px;font-size:12px;">' +
+            '<i class="fa fa-th"></i> 返回宫格</button>' +
+            '</div></div>' +
+            '<div class="cell-overlay" style="font-size:14px;">' + dev.name + '</div>' +
+            '</div>';
+
+        // 加载视频流
+        if (dev.online && dev.stream) {
+            initVideoStream('fs-video-cell', 'fs-holder', dev.stream);
+        }
+
+        document.getElementById('gridInfo').textContent = '单设备全屏';
+        // 高亮左侧列表项
+        document.querySelectorAll('.device-item').forEach(function(item) {
+            item.classList.remove('active');
+            if (item.dataset.id === id) item.classList.add('active');
+        });
+    }
+
+    function exitDeviceFullscreen() {
+        // 清理全屏视频流和fallback计时器
+        if (hlsInstances['fs-video-cell']) {
+            hlsInstances['fs-video-cell'].destroy();
+            delete hlsInstances['fs-video-cell'];
+        }
+        if (fallbackTimers['fs-video-cell']) {
+            clearTimeout(fallbackTimers['fs-video-cell']);
+            delete fallbackTimers['fs-video-cell'];
+        }
+        renderVideoGrid();
+    }
+
+    /* ===== 视频宫格渲染 ===== */
+    function renderVideoGrid() {
+        var grid = document.getElementById('videoGrid');
+
+        // 清理所有旧实例
+        Object.keys(hlsInstances).forEach(function(k) {
+            try { hlsInstances[k].destroy(); } catch(e) {}
+        });
+        hlsInstances = {};
+        Object.keys(fallbackTimers).forEach(function(k) {
+            clearTimeout(fallbackTimers[k]);
+        });
+        fallbackTimers = {};
+
+        var cfg = gridOptions[gridIdx];
+        var cols = cfg.cols, rows = cfg.rows;
+        var capacity = cols * rows;
+
+        // 动态设置grid布局
+        grid.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+        grid.style.gridTemplateRows = 'repeat(' + rows + ', 1fr)';
+        grid.className = 'video-grid';
+
+        var filtered = currentLocation === 'all'
+            ? devices
+            : devices.filter(function(d) { return d.location === currentLocation; });
+
+        var html = '';
+        for (var i = 0; i < capacity; i++) {
+            var d = filtered[i] || null;
+            var cellId = 'cell-' + (d ? d.id : 'empty-' + i);
+            if (d) {
+                html += '<div class="video-cell" data-id="' + d.id + '" id="' + cellId + '" ondblclick="enterFullscreen(this)">' +
+                    '<div class="cell-placeholder" id="holder-' + cellId + '">' +
+                    '<div class="cell-icon"><i class="fa fa-video-camera"></i></div>' +
+                    '<div class="cell-name">' + d.name + '</div>' +
+                    '</div>' +
+                    '<div class="cell-overlay">' + d.name + ' · ●</div>' +
+                    '</div>';
+            } else {
+                html += '<div class="video-cell" style="opacity:0.3;">' +
+                    '<div class="cell-placeholder">' +
+                    '<div class="cell-icon"><i class="fa fa-ban"></i></div>' +
+                    '<div class="cell-name">空</div>' +
+                    '</div></div>';
+            }
+        }
+        grid.innerHTML = html;
+
+        // 异步加载所有视频流（全部在线，主源+fallback保证有画面）
+        filtered.forEach(function(d) {
+            if (!d || !d.online) return;
+            var cellId = 'cell-' + d.id;
+            var holderId = 'holder-' + cellId;
+            initVideoStream(cellId, holderId, d.stream, 0);
+        });
+
+        document.getElementById('gridInfo').textContent = cfg.name + ' 宫格';
+    }
+
+    /* ===== 宫格切换 ===== */
+    function toggleGrid() {
+        gridIdx = (gridIdx + 1) % gridOptions.length;
+        currentGrid = gridOptions[gridIdx];
+        renderVideoGrid();
+    }
+
+    /* ===== 刷新数据 ===== */
+    function refreshData() {
+        var btn = document.getElementById('refreshBtn');
+        btn.style.pointerEvents = 'none';
+        btn.querySelector('i').style.animation = 'fa-spin 0.8s linear infinite';
+        btn.querySelector('i').classList.add('fa-spin');
+
+        // 重新生成设备 + 刷新宫格
+        generateDevices();
+        updateLocationCounts();
+        renderDeviceList();
+        renderVideoGrid();
+
+        setTimeout(function() {
+            btn.style.pointerEvents = 'auto';
+            btn.querySelector('i').style.animation = '';
+            btn.querySelector('i').classList.remove('fa-spin');
+        }, 1200);
+    }
+
+    /* ===== 双击全屏 ===== */
+    function enterFullscreen(cell) {
+        cell.classList.add('fullscreen');
+        document.getElementById('fsCloseBtn').style.display = 'flex';
+    }
+
+    function exitFullscreen() {
+        document.querySelectorAll('.video-cell.fullscreen').forEach(function(c) {
+            c.classList.remove('fullscreen');
+        });
+        document.getElementById('fsCloseBtn').style.display = 'none';
+    }
+
+    // ESC退出全屏
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') exitFullscreen();
+    });
+
+    init();
+</script>
+
+        <div class="bottom-tabs">
+            <a class="tab-btn" href="park_sandbox.html">沙盘</a>
+            <a class="tab-btn" href="park_economy.html">经济</a>
+            <a class="tab-btn" href="park_land.html">用地</a>
+            <a class="tab-btn" href="park_enterprise.html">企业</a>
+            <a class="tab-btn" href="park_service.html">服务</a>
+            <a class="tab-btn" href="park_energy.html">能耗</a>
+            <a class="tab-btn active" style="pointer-events:none;opacity:0.8" href="park_safety.html">安全</a>
+        </div>
+<script src="park_loading.js"></script>
+</body>
+</html>

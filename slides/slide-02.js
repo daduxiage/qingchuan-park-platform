@@ -1,0 +1,46 @@
+const pptxgen = require("pptxgenjs");
+const slideConfig = { type: 'toc', index: 2, title: '汇报目录' };
+function createSlide(pres, theme) {
+  const slide = pres.addSlide();
+  slide.background = { color: theme.primary };
+  slide.addShape(pres.shapes.RECTANGLE, { x: 0, y: 0, w: 10, h: 0.06, fill: { color: theme.accent } });
+  slide.addText("汇报目录", { x: 0.8, y: 0.4, w: 8, h: 0.7, fontSize: 26, fontFace: "Microsoft YaHei", color: "FFFFFF", bold: true });
+  slide.addShape(pres.shapes.RECTANGLE, { x: 0.8, y: 1.1, w: 1.2, h: 0.04, fill: { color: theme.accent } });
+  slide.addShape(pres.shapes.OVAL, { x: 0.8, y: 1.58, w: 0.32, h: 0.32, fill: { color: theme.accent } });
+  slide.addText("1", { x: 0.8, y: 1.58, w: 0.32, h: 0.32, fontSize: 11, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  slide.addText("平台建设背景", { x: 1.22, y: 1.5, w: 3.5, h: 0.5, fontSize: 13, fontFace: "Microsoft YaHei", color: "FFFFFF", valign: "middle" });
+  slide.addShape(pres.shapes.OVAL, { x: 5.0, y: 1.58, w: 0.32, h: 0.32, fill: { color: theme.accent } });
+  slide.addText("2", { x: 5.0, y: 1.58, w: 0.32, h: 0.32, fontSize: 11, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  slide.addText("平台整体架构", { x: 5.42, y: 1.5, w: 3.5, h: 0.5, fontSize: 13, fontFace: "Microsoft YaHei", color: "FFFFFF", valign: "middle" });
+  slide.addShape(pres.shapes.OVAL, { x: 0.8, y: 2.23, w: 0.32, h: 0.32, fill: { color: theme.accent } });
+  slide.addText("3", { x: 0.8, y: 2.23, w: 0.32, h: 0.32, fontSize: 11, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  slide.addText("AI招商服务", { x: 1.22, y: 2.15, w: 3.5, h: 0.5, fontSize: 13, fontFace: "Microsoft YaHei", color: "FFFFFF", valign: "middle" });
+  slide.addShape(pres.shapes.OVAL, { x: 5.0, y: 2.23, w: 0.32, h: 0.32, fill: { color: theme.accent } });
+  slide.addText("4", { x: 5.0, y: 2.23, w: 0.32, h: 0.32, fontSize: 11, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  slide.addText("全域安全监控", { x: 5.42, y: 2.15, w: 3.5, h: 0.5, fontSize: 13, fontFace: "Microsoft YaHei", color: "FFFFFF", valign: "middle" });
+  slide.addShape(pres.shapes.OVAL, { x: 0.8, y: 2.88, w: 0.32, h: 0.32, fill: { color: theme.accent } });
+  slide.addText("5", { x: 0.8, y: 2.88, w: 0.32, h: 0.32, fontSize: 11, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  slide.addText("企业服务体系", { x: 1.22, y: 2.8, w: 3.5, h: 0.5, fontSize: 13, fontFace: "Microsoft YaHei", color: "FFFFFF", valign: "middle" });
+  slide.addShape(pres.shapes.OVAL, { x: 5.0, y: 2.88, w: 0.32, h: 0.32, fill: { color: theme.accent } });
+  slide.addText("6", { x: 5.0, y: 2.88, w: 0.32, h: 0.32, fontSize: 11, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  slide.addText("运营管理平台", { x: 5.42, y: 2.8, w: 3.5, h: 0.5, fontSize: 13, fontFace: "Microsoft YaHei", color: "FFFFFF", valign: "middle" });
+  slide.addShape(pres.shapes.OVAL, { x: 0.8, y: 3.5300000000000002, w: 0.32, h: 0.32, fill: { color: theme.accent } });
+  slide.addText("7", { x: 0.8, y: 3.5300000000000002, w: 0.32, h: 0.32, fontSize: 11, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  slide.addText("能效与运营监测", { x: 1.22, y: 3.45, w: 3.5, h: 0.5, fontSize: 13, fontFace: "Microsoft YaHei", color: "FFFFFF", valign: "middle" });
+  slide.addShape(pres.shapes.OVAL, { x: 5.0, y: 3.5300000000000002, w: 0.32, h: 0.32, fill: { color: theme.accent } });
+  slide.addText("8", { x: 5.0, y: 3.5300000000000002, w: 0.32, h: 0.32, fontSize: 11, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  slide.addText("数据中心与三方接入", { x: 5.42, y: 3.45, w: 3.5, h: 0.5, fontSize: 13, fontFace: "Microsoft YaHei", color: "FFFFFF", valign: "middle" });
+  slide.addShape(pres.shapes.OVAL, { x: 0.8, y: 4.18, w: 0.32, h: 0.32, fill: { color: theme.accent } });
+  slide.addText("9", { x: 0.8, y: 4.18, w: 0.32, h: 0.32, fontSize: 11, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  slide.addText("平台价值总结", { x: 1.22, y: 4.1, w: 3.5, h: 0.5, fontSize: 13, fontFace: "Microsoft YaHei", color: "FFFFFF", valign: "middle" });
+  slide.addShape(pres.shapes.OVAL, { x: 5.0, y: 4.18, w: 0.32, h: 0.32, fill: { color: theme.accent } });
+  slide.addText("10", { x: 5.0, y: 4.18, w: 0.32, h: 0.32, fontSize: 11, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  slide.addText("未来发展规划", { x: 5.42, y: 4.1, w: 3.5, h: 0.5, fontSize: 13, fontFace: "Microsoft YaHei", color: "FFFFFF", valign: "middle" });
+  slide.addShape(pres.shapes.RECTANGLE, { x: 0, y: 5.2, w: 10, h: 0.425, fill: { color: theme.accent } });
+  slide.addText("2", { x: 9.3, y: 5.1, w: 0.4, h: 0.4, fontSize: 12, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  slide.addShape(pres.shapes.OVAL, { x: 9.3, y: 5.1, w: 0.4, h: 0.4, fill: { color: theme.accent } });
+  slide.addText("02", { x: 9.3, y: 5.1, w: 0.4, h: 0.4, fontSize: 12, fontFace: "Arial", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+  return slide;
+}
+if (require.main === module) { const pres = new pptxgen(); pres.layout = 'LAYOUT_16x9'; const theme = { primary: "1B4332", secondary: "40916C", accent: "52B788", light: "D8F3DC", bg: "F5FBF7" }; createSlide(pres, theme); pres.writeFile({ fileName: "slides/output/slide-02-preview.pptx" }); }
+module.exports = { createSlide, slideConfig };

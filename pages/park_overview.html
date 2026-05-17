@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>园区总览 - 青川县庄子上工业园区</title>
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-    <script defer src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="/pages/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
     <style>
         :root {
             --primary-color: #40c4ff;
@@ -163,12 +164,12 @@
 
         /* 底部切换按钮组 */
         .bottom-tabs {
-            position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 110;
-            display: flex; align-items: center; gap: 26px;
+            position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 110;position:fixed;
+            display: flex; align-items: center; gap: 14px;
         }
         .tab-btn {
             position: relative;
-            width: 90px; height: 90px;
+            width: 80px; height: 80px;
             border-radius: 50%;
             background: rgba(10, 22, 50, 0.18);
             border: 2px dashed rgba(64, 196, 255, 0.5);
@@ -648,6 +649,23 @@
             overflow-y: auto;
         }
         .service-panel.show { display: block; }
+
+        .energy-panel {
+            display: none;
+            position: absolute;
+            top: 74px; left: 0; right: 0; bottom: 78px;
+            z-index: 5;
+            overflow: hidden;
+            background: linear-gradient(180deg, #0a1024 0%, #101838 50%, #0a1024 100%);
+        }
+        .energy-panel.show { display: block; }
+        .eng-full-map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .eng-hud { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 55; }
+        .eng-hud .top-digital-card { width: 140px; }
+        .eng-overlay-col { position: absolute; top: 65px; bottom: 8px; width: 260px; z-index: 55; display: flex; flex-direction: column; gap: 8px; }
+        .eng-overlay-col-left { left: 14px; }
+        .eng-overlay-col-right { right: 14px; }
+        .eng-overlay-col .map-overlay-panel { position: relative !important; top: auto !important; left: auto !important; right: auto !important; bottom: auto !important; width: 100% !important; height: auto !important; flex: 1 1 0%; min-height: 0; overflow: hidden; }
         .service-grid {
             display: grid;
             grid-template-columns: 1fr 1.5fr 1fr;
@@ -1228,8 +1246,60 @@
     <script>
     window._AMapSecurityConfig = { securityJsCode: '8cc1e17e87bd8d7f80d303d6e7bdbc0a' };
     </script>
+<style>
+:root{--primary-color:#40c4ff;--border-color:#2b68e0;--text-secondary:#a0cfff}
+.ph-bar{background:linear-gradient(135deg,#101838,#162969);border:1px solid var(--border-color);border-radius:8px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:64px;min-height:64px;position:relative;z-index:100;box-shadow:0 2px 20px rgba(43,104,224,0.3);flex-shrink:0}
+.ph-left,.ph-right{display:flex;align-items:center;gap:12px;z-index:1}
+.ph-time{font-size:14px;color:#a0cfff;white-space:nowrap}
+.ph-center{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0}
+.ph-center h1{font-size:clamp(20px,2.5vw,30px);font-weight:700;background:linear-gradient(90deg,#40c4ff,#7b61ff,#40c4ff);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:phGrad 5s ease infinite;letter-spacing:2px;line-height:1.2}
+@keyframes phGrad{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.ph-btn{width:38px;height:38px;border-radius:6px;background:linear-gradient(135deg,rgba(64,196,255,0.2),rgba(43,104,224,0.4));border:1px solid rgba(43,104,224,0.5);color:#40c4ff;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ph-btn:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(64,196,255,0.6);background:linear-gradient(135deg,#40c4ff,#2b68e0);color:#fff}
+.ph-home{width:38px;height:38px;border-radius:6px;background:linear-gradient(135deg,rgba(64,196,255,0.15),rgba(43,104,224,0.3));border:1px solid rgba(64,196,255,0.4);color:#40c4ff;display:flex;align-items:center;justify-content:center;font-size:16px;text-decoration:none;cursor:pointer;transition:all .3s;flex-shrink:0}
+.ph-home:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(64,196,255,0.6);background:linear-gradient(135deg,#40c4ff,#2b68e0);color:#fff}
+</style><script>
+(function(){function u(){var d=new Date();document.getElementById("phTime").textContent=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+":"+String(d.getSeconds()).padStart(2,"0")}window.addEventListener("DOMContentLoaded",function(){u();setInterval(u,1000)});})();
+function phRefresh(){location.reload()}
+</script>
+
+<style>body>div.map-wrapper{position:absolute;top:74px;left:0;right:0;bottom:0;width:auto!important;height:auto!important}</style>
+
+<style>
+body.park-body{display:flex;flex-direction:column;height:100vh;overflow:hidden;margin:0;background:#0a1024;color:#fff;font-family:"Microsoft YaHei","微软雅黑",sans-serif}
+.park-hdr{flex-shrink:0;background:linear-gradient(135deg,#101838,#162969);border:1px solid #2b68e0;border-radius:8px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:64px;position:relative;z-index:100;box-shadow:0 2px 20px rgba(43,104,224,0.3);margin:0}
+.park-hdr-l,.park-hdr-r{display:flex;align-items:center;gap:12px;z-index:1}
+.park-hdr-tm{font-size:14px;color:#a0cfff;white-space:nowrap}
+.park-hdr-ct{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0}
+.park-hdr-ct h1{font-size:clamp(20px,2.5vw,30px);font-weight:700;background:linear-gradient(90deg,#40c4ff,#7b61ff,#40c4ff);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:parkGrad 5s ease infinite;letter-spacing:2px;line-height:1.2}
+@keyframes parkGrad{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.park-btn{width:38px;height:38px;border-radius:6px;background:linear-gradient(135deg,rgba(64,196,255,0.2),rgba(43,104,224,0.4));border:1px solid rgba(43,104,224,0.5);color:#40c4ff;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.park-btn:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(64,196,255,0.6);background:linear-gradient(135deg,#40c4ff,#2b68e0);color:#fff}
+.park-home{width:38px;height:38px;border-radius:6px;background:linear-gradient(135deg,rgba(64,196,255,0.15),rgba(43,104,224,0.3));border:1px solid rgba(64,196,255,0.4);color:#40c4ff;display:flex;align-items:center;justify-content:center;font-size:16px;text-decoration:none;cursor:pointer;transition:all .3s;flex-shrink:0}
+.park-home:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(64,196,255,0.6);background:linear-gradient(135deg,#40c4ff,#2b68e0);color:#fff}
+.park-body .ph-wrap{flex:1;min-height:0;position:relative;overflow:hidden}
+.tab-link{padding:6px 16px;border-radius:6px;font-size:13px;color:#80bfff;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:all .2s}
+.tab-link:hover{background:rgba(64,196,255,0.1);color:#40c4ff}
+.tab-link.on{background:rgba(64,196,255,0.15);color:#40c4ff;border-color:rgba(64,196,255,0.3);pointer-events:none;opacity:0.8}
+</style>
+<script>
+(function(){function u(){var d=new Date();document.getElementById("parkTm").textContent=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+":"+String(d.getSeconds()).padStart(2,"0")}window.addEventListener("DOMContentLoaded",function(){u();setInterval(u,1000)});})();
+function parkRf(){location.reload()}
+</script>
+
 </head>
-<body>
+<body class="park-body">
+<div class="park-hdr">
+    <div class="park-hdr-l"><span class="park-hdr-tm" id="parkTm"></span></div>
+    <div class="park-hdr-ct"><h1>园区经济概览</h1></div>
+    <div class="park-hdr-r"><button class="park-btn" onclick="parkRf()" title="刷新"><i class="fa fa-refresh"></i></button><a href="../index.html" class="park-home" title="主页"><i class="fa fa-home"></i></a></div>
+</div>
+<div class="ph-wrap">
+<div class="ph-bar">
+        <div class="ph-left"><span class="ph-time" id="phTime"></span></div>
+        <div class="ph-center"><h1>园区经济概览</h1></div>
+        <div class="ph-right"><button class="ph-btn" onclick="phRefresh()" title="刷新页面"><i class="fa fa-refresh"></i></button><a href="../index.html" class="ph-home" title="返回主页"><i class="fa fa-home"></i></a></div>
+    </div>
 
 <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-title">🏭 青川县庄子上工业园区</div>
@@ -1237,24 +1307,7 @@
     <div class="loading-tip" id="loadingTip">正在加载园区总览...</div>
 </div>
 
-<div class="screen-container">
-    <div class="title-box">
-        <div class="title-left">
-            <span class="time" id="currentTime"></span>
-        </div>
-        <div class="title-center">
-            <h1>园区总览</h1>
-        </div>
-        <div class="title-right">
-            <button class="common-btn" onclick="refreshData()" title="刷新数据">
-                <i class="fa fa-refresh"></i>
-            </button>
-            <a href="digital_sand.html" class="back-btn" title="数字沙盘" style="margin-right:6px;">🗺️</a>
-            <a href="../index.html" class="back-btn" title="返回主页">
-                <i class="fa fa-home"></i>
-            </a>
-        </div>
-    </div>
+
 
     <div class="map-wrapper">
         <div id="amap"></div>
@@ -1311,12 +1364,15 @@
         </div>
 
         <div class="bottom-tabs">
-            <div class="tab-btn active" data-tab="economy" onclick="switchTab(this)">经济</div>
-            <div class="tab-btn" data-tab="output" onclick="switchTab(this)">产值</div>
-            <div class="tab-btn" data-tab="land" onclick="switchTab(this)">用地</div>
-            <div class="tab-btn" data-tab="enterprise" onclick="switchTab(this)">企业</div>
-            <div class="tab-btn" data-tab="service" onclick="switchTab(this)">服务</div>
+<a class="tab-btn" href="park_sandbox.html">沙盘</a>
+            <a class="tab-btn active" style="pointer-events:none;opacity:0.8" href="park_economy.html">经济</a>
+            <a class="tab-btn" href="park_land.html">用地</a>
+            <a class="tab-btn" href="park_enterprise.html">企业</a>
+            <a class="tab-btn" href="park_service.html">服务</a>
+            <a class="tab-btn" href="park_energy.html">能耗</a>
+            <a class="tab-btn" href="park_safety.html">安全</a>
         </div>
+    </div>
 
         <!-- 企业列表面板 -->
         <div class="enterprise-panel" id="entPanel">
@@ -1491,6 +1547,27 @@
                 <table class="dt-table" id="dtCert"></table>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="energy-panel" id="energyPanel">
+    <div class="eng-full-map" id="engMap"></div>
+
+    <div class="eng-hud">
+        <div class="top-digital-card"><div class="top-card-label">监测企业</div><div><span class="top-card-value" id="engKpiCo" style="color:#40c4ff">9</span><span class="top-card-unit">(家)</span></div></div>
+        <div class="top-digital-card"><div class="top-card-label">本月总费用</div><div><span class="top-card-value" id="engKpiTotal" style="color:#4cd964">0</span><span class="top-card-unit">(万元)</span></div></div>
+        <div class="top-digital-card"><div class="top-card-label">能耗增长</div><div><span class="top-card-value" id="engKpiUp" style="color:#ff9500">0</span><span class="top-card-unit">(家)</span></div></div>
+        <div class="top-digital-card"><div class="top-card-label">已填报</div><div><span class="top-card-value" id="engKpiRep" style="color:#7b61ff">0</span><span class="top-card-unit">(家)</span></div></div>
+    </div>
+
+    <div class="eng-overlay-col eng-overlay-col-left">
+        <div class="map-overlay-panel"><div class="map-overlay-title">用电趋势</div><div class="map-overlay-body"><div id="engPower" style="width:100%;height:100%"></div></div></div>
+        <div class="map-overlay-panel"><div class="map-overlay-title">用水趋势</div><div class="map-overlay-body"><div id="engWater" style="width:100%;height:100%"></div></div></div>
+        <div class="map-overlay-panel"><div class="map-overlay-title">用气趋势</div><div class="map-overlay-body"><div id="engGas" style="width:100%;height:100%"></div></div></div>
+    </div>
+    <div class="eng-overlay-col eng-overlay-col-right">
+        <div class="map-overlay-panel"><div class="map-overlay-title">能耗排名</div><div class="map-overlay-body"><div id="engRank" style="width:100%;height:100%"></div></div></div>
+        <div class="map-overlay-panel"><div class="map-overlay-title">成本占比</div><div class="map-overlay-body"><div id="engPie" style="width:100%;height:100%"></div></div></div>
     </div>
 </div>
 
@@ -1808,17 +1885,30 @@ function switchTab(el){
   var tab=el.getAttribute('data-tab');
   var panel=document.getElementById('entPanel');
   var svcPanel=document.getElementById('servicePanel');
-  if(tab==='enterprise'){
-    panel.classList.add('show');
-    svcPanel.classList.remove('show');
-    renderEnterpriseList();
+  var engPanel=document.getElementById('energyPanel');
+  // 隐藏所有子面板和默认覆盖层
+  panel.classList.remove('show'); svcPanel.classList.remove('show');
+  if(engPanel) engPanel.classList.remove('show');
+  var ovCols=document.querySelectorAll('.chart-col');
+  ovCols.forEach(function(c){c.style.display='none';});
+  var ovTop=document.querySelectorAll('.panel-top-center');
+  ovTop.forEach(function(c){c.style.display='none';});
+  var ovBtm=document.querySelectorAll('.bottom-tabs');
+  // bottom-tabs 始终可见，不做隐藏
+  var amapEl=document.getElementById('amap');
+  if(tab==='energy'){
+    if(amapEl) amapEl.style.display='none';
+    if(engPanel){ engPanel.classList.add('show'); initEnergyPanel(); }
+  } else if(tab==='enterprise'){
+    if(amapEl) amapEl.style.display='';
+    panel.classList.add('show'); renderEnterpriseList();
   } else if(tab==='service'){
-    panel.classList.remove('show');
-    svcPanel.classList.add('show');
-    initServiceDashboard();
+    if(amapEl) amapEl.style.display='';
+    svcPanel.classList.add('show'); initServiceDashboard();
   } else {
-    panel.classList.remove('show');
-    svcPanel.classList.remove('show');
+    if(amapEl) amapEl.style.display='';
+    ovCols.forEach(function(c){c.style.display='';});
+    ovTop.forEach(function(c){c.style.display='';});
   }
   debug('Switch to tab: '+tab);
 }
@@ -1963,6 +2053,113 @@ function initServiceDashboard(){
     requestAnimationFrame(_pieAnimate);
   }
   requestAnimationFrame(_pieAnimate);
+}
+var _energyInited=false,_engCharts={};
+function initEnergyPanel(){
+  if(_energyInited){resizeEngCharts();return;}
+  _energyInited=true;
+  initEngMap();
+  setTimeout(function(){initEngTrends();initEngRank();initEngPie();updateEngKPI();},200);
+}
+function resizeEngCharts(){Object.keys(_engCharts).forEach(function(k){var c=_engCharts[k];if(c&&typeof c.resize==='function'&&(!c.isDisposed||!c.isDisposed()))c.resize();});}
+
+var engComp={};
+function genEngData(){
+  if(engComp['佳兴铝业'])return;
+  var bn=['佳兴铝业','阜成新材','虹禾晶科技','中能建','星恒青源','九晟新材','华纳实业','新通鑫','广袤新材'];
+  var locs=[[105.24,32.58],[105.22,32.56],[105.27,32.59],[105.19,32.55],[105.31,32.57],[105.25,32.53],[105.29,32.56],[105.21,32.54],[105.26,32.52]];
+  bn.forEach(function(n,i){engComp[n]={name:n,loc:locs[i],power:(Math.random()*60+20).toFixed(1),water:Math.floor(Math.random()*3000+1000),gas:Math.floor(Math.random()*15000+5000),cost:(Math.random()*20+10).toFixed(1),yoy:((Math.random()*20)-5).toFixed(1)};});
+}
+
+function updateEngKPI(){
+  genEngData();var keys=Object.keys(engComp),total=0,up=0,rep=0;
+  keys.forEach(function(k){var e=engComp[k];total+=parseFloat(e.cost);if(parseFloat(e.yoy)>0)up++;rep+=e.power?1:0;});
+  document.getElementById('engKpiCo').textContent=keys.length;
+  document.getElementById('engKpiTotal').textContent=total.toFixed(1);
+  document.getElementById('engKpiUp').textContent=up;
+  document.getElementById('engKpiRep').textContent=keys.length;
+}
+
+function initEngMap(){
+  var mapEl=document.getElementById('engMap');
+  if(mapEl._echart_){mapEl._echart_.resize();if(typeof mapEl._echart_.setOption==='function')return;}
+  // 用 ECharts + GeoJSON 渲染青川边界（对齐疏浚监控的方式）
+  var ch=echarts.init(mapEl);_engCharts.engMap=ch;mapEl._echart_=ch;
+  axios.get('https://geo.datav.aliyun.com/areas_v3/bound/510822.json').then(function(resp){
+    echarts.registerMap('qingchuan',resp.data);
+    // 从GeoJSON自动计算边界范围
+    var features=resp.data.features;var coords=features[0].geometry.coordinates;
+    var minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    function walkCoord(arr){if(typeof arr[0]==='number'){minX=Math.min(minX,arr[0]);minY=Math.min(minY,arr[1]);maxX=Math.max(maxX,arr[0]);maxY=Math.max(maxY,arr[1]);}else{arr.forEach(walkCoord);}}
+    walkCoord(coords);var cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+    var spanLng=maxX-minX,spanLat=maxY-minY,span=Math.max(spanLng,spanLat);
+    var zoom=span<0.5?1.5:span<1?1.2:span<2?1:0.8;
+    ch.setOption({backgroundColor:'transparent',
+      geo:{map:'qingchuan',roam:'scale',center:[cx,cy],zoom:zoom,
+      // 3D 立体层次感：上层高亮 + 下层暗色投影
+      itemStyle:{
+        areaColor:{type:'linear',x:0.2,y:0,x2:0.8,y2:1,
+          colorStops:[
+            {offset:0,color:'rgba(40,80,180,0.7)'},
+            {offset:0.35,color:'rgba(24,55,130,0.6)'},
+            {offset:0.65,color:'rgba(14,35,90,0.45)'},
+            {offset:1,color:'rgba(6,18,50,0.35)'}
+          ]},
+        borderColor:'rgba(120,180,255,0.7)',borderWidth:1.5,
+        shadowColor:'rgba(20,40,100,0.8)',shadowBlur:35,shadowOffsetX:4,shadowOffsetY:12
+      },
+      emphasis:{itemStyle:{areaColor:'rgba(50,100,200,0.75)',borderColor:'#40c4ff',borderWidth:2.5,shadowColor:'rgba(64,196,255,0.6)',shadowBlur:40,shadowOffsetX:6,shadowOffsetY:15}},
+      // 标签：青川县名称悬浮
+      label:{show:true,color:'rgba(180,210,255,0.6)',fontSize:32,fontWeight:'bold',position:'bottom',distance:60,
+        textShadowColor:'rgba(0,0,0,0.5)',textShadowBlur:10}
+    }});
+    // 9企业散点 - 3D 发光圆环效果
+    genEngData();var keys=Object.keys(engComp);
+    var scatterData=keys.map(function(k,i){var e=engComp[k],c=parseFloat(e.cost);var col=c>18?'#40c4ff':c>14?'#4cd964':'#ff9500';return {name:e.name,value:e.loc,cost:e.cost,power:e.power,water:e.water,gas:e.gas,color:col,idx:i+1};});
+    ch.setOption({series:[
+      // 外圈光晕
+      {type:'scatter',coordinateSystem:'geo',data:scatterData,symbolSize:28,symbol:'circle',
+        itemStyle:{color:function(p){return p.data.color+'44';},shadowBlur:20,shadowColor:function(p){return p.data.color+'aa';}},
+        label:{show:false}},
+      // 内圈
+      {type:'scatter',coordinateSystem:'geo',data:scatterData,symbolSize:16,symbol:'circle',
+        itemStyle:{color:function(p){return p.data.color;},shadowBlur:16,shadowColor:function(p){return p.data.color;},borderColor:'rgba(255,255,255,0.6)',borderWidth:1.5},
+        label:{show:true,position:'right',distance:8,formatter:function(p){return p.data.name;},color:'#cfe4ff',fontSize:10,textShadowColor:'rgba(0,0,0,0.6)',textShadowBlur:4},
+        emphasis:{scale:1.8,itemStyle:{borderColor:'#fff',borderWidth:2.5,shadowBlur:30},label:{fontSize:12,color:'#40c4ff'}}},
+      // 核心白点
+      {type:'scatter',coordinateSystem:'geo',data:scatterData,symbolSize:5,symbol:'circle',
+        itemStyle:{color:'#fff',shadowBlur:8,shadowColor:'#fff'},label:{show:false}}
+    ]});
+  }).catch(function(e){console.error('青川边界加载失败',e);});
+}
+
+function initEngTrends(){
+  var months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var pv=[],wv=[],gv=[];
+  for(var i=0;i<12;i++){pv.push((Math.random()*50+30).toFixed(1));wv.push(Math.floor(Math.random()*3000+1000));gv.push(Math.floor(Math.random()*12000+4000));}
+  var cfg=[{el:'engPower',d:pv,n:'用电(万kWh)',c:'#40c4ff'},{el:'engWater',d:wv,n:'用水(吨)',c:'#4cd964'},{el:'engGas',d:gv,n:'用气(m³)',c:'#ff9500'}];
+  cfg.forEach(function(o){
+    var dom=document.getElementById(o.el);if(!dom)return;
+    var ch=echarts.init(dom);_engCharts[o.el]=ch;
+    ch.setOption({tooltip:{trigger:'axis'},xAxis:{type:'category',data:months,axisLabel:{color:'#6a8db5',fontSize:8},axisLine:{lineStyle:{color:'rgba(64,196,255,0.15)'}}},yAxis:{axisLabel:{color:'#6a8db5',fontSize:8},splitLine:{lineStyle:{color:'rgba(64,196,255,0.08)'}}},grid:{left:50,right:6,top:4,bottom:16},series:[{name:o.n,type:'line',data:o.d,smooth:true,lineStyle:{color:o.c,width:1.5},itemStyle:{color:o.c},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:o.c+'40'},{offset:1,color:'rgba(0,0,0,0)'}])},symbol:'none'}]});
+  });
+}
+
+function initEngRank(){
+  genEngData();var keys=Object.keys(engComp),items=[];
+  keys.forEach(function(k){items.push({name:k,cost:parseFloat(engComp[k].cost)});});
+  items.sort(function(a,b){return b.cost-a.cost;});
+  var dom=document.getElementById('engRank');if(!dom)return;
+  var ch=echarts.init(dom);_engCharts.engRank=ch;
+  ch.setOption({tooltip:{trigger:'axis',formatter:function(p){return p[0].name+': '+p[0].value+' 万元';}},grid:{left:76,right:10,top:0,bottom:0},yAxis:{type:'category',data:items.map(function(i){return i.name;}).reverse(),axisLabel:{color:'#a0cfff',fontSize:10},axisLine:{show:false},axisTick:{show:false}},xAxis:{show:false},series:[{type:'bar',data:items.map(function(i){return i.cost;}).reverse(),barWidth:14,itemStyle:{borderRadius:[0,4,4,0],color:function(p){var cs=['#40c4ff','#4cd964','#ff9500','#7b61ff','#ff6b81','#a29bfe','#00cec9','#fdba74','#60a5fa'];return cs[p.dataIndex%9];}},label:{show:true,position:'right',color:'#a0cfff',fontSize:9,formatter:'{c}万'}}]});
+}
+
+function initEngPie(){
+  genEngData();var keys=Object.keys(engComp);
+  var rc=[],rcost=0;keys.forEach(function(k){var c=parseFloat(engComp[k].cost);rc.push({name:k,value:c});rcost+=c;});
+  var dom=document.getElementById('engPie');if(!dom)return;
+  var ch=echarts.init(dom);_engCharts.engPie=ch;
+  ch.setOption({tooltip:{trigger:'item',formatter:function(p){return p.name+':'+p.value+'万('+p.percent+'%)';}},series:[{type:'pie',radius:'70%',center:['50%','50%'],data:rc,label:{color:'#a0cfff',fontSize:9,formatter:'{b}'},itemStyle:{borderColor:'rgba(6,12,36,1)',borderWidth:2},emphasis:{label:{fontSize:12}}}]});
 }
 
 // 渲染中间仪表盘的环形分布项
@@ -2614,5 +2811,6 @@ updateClock();setInterval(updateClock,1000);
 window.amapReady=function(){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initMap);else setTimeout(initMap,0);};
 </script>
 <script src="https://webapi.amap.com/maps?v=2.0&key=7d2674ce8375986e20c048ead06989d0&callback=amapReady&securityJsCode=8cc1e17e87bd8d7f80d303d6e7bdbc0a"></script>
+</div>
 </body>
 </html>

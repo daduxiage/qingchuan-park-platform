@@ -1,0 +1,31 @@
+sequenceDiagram
+    participant Browser
+    participant DOM
+    participant CSS as park_common.css
+    participant JS as Page Script
+
+    Browser->>CSS: 加载 park_common.css
+    CSS-->>Browser: 定义 :root 变量、.title-box、.bottom-tabs 等
+    Browser->>DOM: 解析 HTML
+    
+    alt loading-overlay 存在且位置正确
+        Browser->>DOM: 渲染 loading-overlay (fixed, z-index:9999)
+    end
+    
+    Browser->>DOM: 渲染 screen-container (grid: title-height + 1fr)
+    Browser->>DOM: 渲染 title-box → title-left(.time) + title-center(h1) + title-right(buttons)
+    
+    JS->>DOM: updateTime() 设置 #currentTime.textContent
+    JS->>DOM: 定时器 setInterval(updateTime, 1000)
+    
+    alt 地图页面 (sandbox/economy/enterprise/service/land)
+        JS->>DOM: 初始化高德地图 (AMap.Map)
+        JS->>DOM: 隐藏 loading-overlay
+    else 能耗页面 (energy)
+        JS->>DOM: ECharts.init(#engMap)
+        JS->>DOM: 加载 GeoJSON → registerMap → setOption
+        JS->>DOM: 初始化趋势图/排名/饼图
+    else 安全页面 (safety)
+        JS->>DOM: generateDevices() + renderVideoGrid()
+        JS->>DOM: 初始化 HLS 视频流
+    end

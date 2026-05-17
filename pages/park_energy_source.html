@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>能耗总览 · 青川县庄子上工业园区</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="/pages/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+    
+
+<style>
+.page-header-unified{background:linear-gradient(135deg,#101838,#162969);border:1px solid var(--border-color);border-radius:8px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:64px;position:relative;z-index:100;box-shadow:0 2px 20px rgba(43,104,224,0.3);margin-bottom:10px}
+.ph-left,.ph-right{display:flex;align-items:center;gap:12px;z-index:1}
+.ph-time{font-size:14px;color:#a0cfff;white-space:nowrap}
+.ph-center{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0}
+.ph-center h1{font-size:clamp(20px,2.5vw,30px);font-weight:700;background:linear-gradient(90deg,#40c4ff,#7b61ff,#40c4ff);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:titleGrad 5s ease infinite;letter-spacing:2px}
+@keyframes titleGrad{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.common-btn{width:38px;height:38px;border-radius:6px;background:linear-gradient(135deg,rgba(64,196,255,0.2),rgba(43,104,224,0.4));border:1px solid rgba(43,104,224,0.5);color:#40c4ff;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;font-size:16px}
+.common-btn:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(64,196,255,0.6);background:linear-gradient(135deg,#40c4ff,#2b68e0);color:#fff}
+.ph-back{width:38px;height:38px;border-radius:6px;background:linear-gradient(135deg,rgba(64,196,255,0.15),rgba(43,104,224,0.3));border:1px solid rgba(64,196,255,0.4);color:#40c4ff;display:flex;align-items:center;justify-content:center;font-size:16px;text-decoration:none;cursor:pointer;transition:all .3s}
+.ph-back:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(64,196,255,0.6);background:linear-gradient(135deg,#40c4ff,#2b68e0);color:#fff}
+</style>
+<script>
+function updateHeaderTime(){var n=new Date();var t=n.getFullYear()+"-"+
+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0")+" "+
+String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")+":"+
+String(n.getSeconds()).padStart(2,"0");document.getElementById("phTime").textContent=t}
+function refreshPage(){location.reload()}
+window.addEventListener("DOMContentLoaded",function(){updateHeaderTime();setInterval(updateHeaderTime,1000)})
+</script>
+
+<style>
+:root{--primary-color:#40c4ff;--border-color:#2b68e0;--text-secondary:#a0cfff}
+.ph-bar{flex-shrink:0;background:linear-gradient(135deg,#101838,#162969);border:1px solid var(--border-color);border-radius:8px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:64px;min-height:64px;position:relative;z-index:100;box-shadow:0 2px 20px rgba(43,104,224,0.3);flex-shrink:0}
+.ph-left,.ph-right{display:flex;align-items:center;gap:12px;z-index:1}
+.ph-time{font-size:14px;color:#a0cfff;white-space:nowrap}
+.ph-center{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0}
+.ph-center h1{font-size:clamp(20px,2.5vw,30px);font-weight:700;background:linear-gradient(90deg,#40c4ff,#7b61ff,#40c4ff);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:phGrad 5s ease infinite;letter-spacing:2px;line-height:1.2}
+@keyframes phGrad{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.ph-btn{width:38px;height:38px;border-radius:6px;background:linear-gradient(135deg,rgba(64,196,255,0.2),rgba(43,104,224,0.4));border:1px solid rgba(43,104,224,0.5);color:#40c4ff;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ph-btn:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(64,196,255,0.6);background:linear-gradient(135deg,#40c4ff,#2b68e0);color:#fff}
+.ph-home{width:38px;height:38px;border-radius:6px;background:linear-gradient(135deg,rgba(64,196,255,0.15),rgba(43,104,224,0.3));border:1px solid rgba(64,196,255,0.4);color:#40c4ff;display:flex;align-items:center;justify-content:center;font-size:16px;text-decoration:none;cursor:pointer;transition:all .3s;flex-shrink:0}
+.ph-home:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(64,196,255,0.6);background:linear-gradient(135deg,#40c4ff,#2b68e0);color:#fff}
+</style><script>
+(function(){function u(){var d=new Date();document.getElementById("phTime").textContent=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+":"+String(d.getSeconds()).padStart(2,"0")}window.addEventListener("DOMContentLoaded",function(){u();setInterval(u,1000)});})();
+function phRefresh(){location.reload()}
+</script>
+</head>
+<body>
+<div class="ph-bar">
+        <div class="ph-left"><span class="ph-time" id="phTime"></span></div>
+        <div class="ph-center"><h1>用能监测</h1></div>
+        <div class="ph-right"><button class="ph-btn" onclick="phRefresh()" title="刷新页面"><i class="fa fa-refresh"></i></button><a href="../index.html" class="ph-home" title="返回主页"><i class="fa fa-home"></i></a></div>
+    </div>
+
+        <div class="ph-center"><h1>用能监测</h1></div>
+        <div class="ph-right"><button class="common-btn" onclick="refreshPage()" title="刷新页面"><i class="fa fa-refresh"></i></button><a href="../index.html" class="ph-back" title="返回主页"><i class="fa fa-home"></i></a></div>
+    </div>
+<div class="eng-map" id="engMap"></div>
+
+<div class="panel-top-center" style="top:68px">
+    <div class="top-digital-card"><div class="top-card-label">监测企业</div><div><span class="top-card-value" id="engKpiCo" style="color:#40c4ff">9</span><span class="top-card-unit">(家)</span></div></div>
+    <div class="top-digital-card"><div class="top-card-label">本月总费用</div><div><span class="top-card-value" id="engKpiTotal" style="color:#4cd964">0</span><span class="top-card-unit">(万元)</span></div></div>
+    <div class="top-digital-card"><div class="top-card-label">能耗增长</div><div><span class="top-card-value" id="engKpiUp" style="color:#ff9500">0</span><span class="top-card-unit">(家)</span></div></div>
+    <div class="top-digital-card"><div class="top-card-label">已填报</div><div><span class="top-card-value" id="engKpiRep" style="color:#7b61ff">0</span><span class="top-card-unit">(家)</span></div></div>
+</div>
+
+<div class="map-overlay-panel" style="left:14px;top:130px;width:260px;bottom:85px">
+    <div class="map-overlay-title">用电趋势</div><div class="map-overlay-body" style="flex:1"><div id="engPower" style="width:100%;height:100%"></div></div>
+    <div class="map-overlay-title" style="border-top:1px solid rgba(43,104,224,0.15)">用水趋势</div><div class="map-overlay-body" style="flex:1"><div id="engWater" style="width:100%;height:100%"></div></div>
+    <div class="map-overlay-title" style="border-top:1px solid rgba(43,104,224,0.15)">用气趋势</div><div class="map-overlay-body" style="flex:1"><div id="engGas" style="width:100%;height:100%"></div></div>
+</div>
+
+<div class="map-overlay-panel" style="right:14px;top:130px;width:260px;bottom:85px">
+    <div class="map-overlay-title">能耗排名</div><div class="map-overlay-body" style="flex:1"><div id="engRank" style="width:100%;height:100%"></div></div>
+    <div class="map-overlay-title" style="border-top:1px solid rgba(43,104,224,0.15)">成本占比</div><div class="map-overlay-body" style="flex:1"><div id="engPie" style="width:100%;height:100%"></div></div>
+</div>
+
+<div class="bottom-tabs">
+    <a class="tab-btn" href="park_economy.html">经济</a>
+    <a class="tab-btn" href="park_output.html">产值</a>
+    <a class="tab-btn" href="park_land.html">用地</a>
+    <a class="tab-btn" href="park_enterprise.html">企业</a>
+    <a class="tab-btn" href="park_service.html">服务</a>
+    <a class="tab-btn active" href="park_energy.html">能耗</a>
+</div>
+
+<script>
+var engComp={},_ch={};
+function genEngData(){
+  if(engComp['佳兴铝业'])return;
+  var bn=['佳兴铝业','阜成新材','虹禾晶科技','中能建','星恒青源','九晟新材','华纳实业','新通鑫','广袤新材'];
+  var locs=[[105.24,32.58],[105.22,32.56],[105.27,32.59],[105.19,32.55],[105.31,32.57],[105.25,32.53],[105.29,32.56],[105.21,32.54],[105.26,32.52]];
+  bn.forEach(function(n,i){engComp[n]={name:n,loc:locs[i],power:(Math.random()*60+20).toFixed(1),water:Math.floor(Math.random()*3000+1000),gas:Math.floor(Math.random()*15000+5000),cost:(Math.random()*20+10).toFixed(1),yoy:((Math.random()*20)-5).toFixed(1)};});
+}
+function updateKPI(){
+  genEngData();var keys=Object.keys(engComp),total=0,up=0;
+  keys.forEach(function(k){var e=engComp[k];total+=parseFloat(e.cost);if(parseFloat(e.yoy)>0)up++;});
+  document.getElementById('engKpiCo').textContent=keys.length;
+  document.getElementById('engKpiTotal').textContent=total.toFixed(1);
+  document.getElementById('engKpiUp').textContent=up;
+  document.getElementById('engKpiRep').textContent=keys.length;
+}
+
+function initMap(){
+  var ch=echarts.init(document.getElementById('engMap'));
+  axios.get('https://geo.datav.aliyun.com/areas_v3/bound/510822.json').then(function(resp){
+    echarts.registerMap('qingchuan',resp.data);
+    var coords=resp.data.features[0].geometry.coordinates;
+    var mx=Infinity,my=Infinity,Mx=-Infinity,My=-Infinity;
+    function w(arr){if(typeof arr[0]==='number'){mx=Math.min(mx,arr[0]);my=Math.min(my,arr[1]);Mx=Math.max(Mx,arr[0]);My=Math.max(My,arr[1]);}else arr.forEach(w);}
+    w(coords);var cx=(mx+Mx)/2,cy=(my+My)/2;
+    var span=Math.max(Mx-mx,My-my),zoom=span<0.5?1.5:span<1?1.2:span<2?1:0.8;
+    ch.setOption({backgroundColor:'transparent',
+      geo:{map:'qingchuan',roam:'scale',center:[cx,cy],zoom:zoom,
+        itemStyle:{areaColor:{type:'linear',x:0.2,y:0,x2:0.8,y2:1,colorStops:[{offset:0,color:'rgba(40,80,180,0.7)'},{offset:0.35,color:'rgba(24,55,130,0.6)'},{offset:0.65,color:'rgba(14,35,90,0.45)'},{offset:1,color:'rgba(6,18,50,0.35)'}]},borderColor:'rgba(120,180,255,0.7)',borderWidth:1.5,shadowColor:'rgba(20,40,100,0.8)',shadowBlur:35,shadowOffsetX:4,shadowOffsetY:12},
+        emphasis:{itemStyle:{areaColor:'rgba(50,100,200,0.75)',borderColor:'#40c4ff',borderWidth:2.5,shadowColor:'rgba(64,196,255,0.6)',shadowBlur:40,shadowOffsetX:6,shadowOffsetY:15}}
+      }});
+    genEngData();var keys=Object.keys(engComp);
+    var sd=keys.map(function(k,i){var e=engComp[k],c=parseFloat(e.cost);var col=c>18?'#40c4ff':c>14?'#4cd964':'#ff9500';return{name:e.name,value:e.loc,cost:e.cost,power:e.power,water:e.water,gas:e.gas,color:col,idx:i+1};});
+    ch.setOption({series:[
+      {type:'scatter',coordinateSystem:'geo',data:sd,symbolSize:28,symbol:'circle',itemStyle:{color:function(p){return p.data.color+'44';},shadowBlur:20,shadowColor:function(p){return p.data.color+'aa';}},label:{show:false}},
+      {type:'scatter',coordinateSystem:'geo',data:sd,symbolSize:16,symbol:'circle',itemStyle:{color:function(p){return p.data.color;},shadowBlur:16,shadowColor:function(p){return p.data.color;},borderColor:'rgba(255,255,255,0.6)',borderWidth:1.5},label:{show:true,position:'right',distance:8,formatter:function(p){return p.data.name;},color:'#cfe4ff',fontSize:10,textShadowColor:'rgba(0,0,0,0.6)',textShadowBlur:4},emphasis:{scale:1.8,itemStyle:{borderColor:'#fff',borderWidth:2.5,shadowBlur:30},label:{fontSize:12,color:'#40c4ff'}}},
+      {type:'scatter',coordinateSystem:'geo',data:sd,symbolSize:5,symbol:'circle',itemStyle:{color:'#fff',shadowBlur:8,shadowColor:'#fff'},label:{show:false}}
+    ]});
+  }).catch(function(e){console.error('Map load fail',e);});
+  window.addEventListener('resize',function(){ch.resize();});
+}
+
+function initTrend(el,d,name,color){
+  var ch=echarts.init(document.getElementById(el));
+  var months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  ch.setOption({tooltip:{trigger:'axis'},xAxis:{type:'category',data:months,axisLabel:{color:'#6a8db5',fontSize:8},axisLine:{lineStyle:{color:'rgba(64,196,255,0.15)'}}},yAxis:{axisLabel:{color:'#6a8db5',fontSize:8},splitLine:{lineStyle:{color:'rgba(64,196,255,0.08)'}}},grid:{left:45,right:6,top:4,bottom:16},series:[{name:name,type:'line',data:d,smooth:true,lineStyle:{color:color,width:1.5},itemStyle:{color:color},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:color+'40'},{offset:1,color:'rgba(0,0,0,0)'}])},symbol:'none'}]});
+}
+function initRank(){
+  genEngData();var items=[];Object.keys(engComp).forEach(function(k){items.push({name:k,cost:parseFloat(engComp[k].cost)});});
+  items.sort(function(a,b){return b.cost-a.cost;});
+  var ch=echarts.init(document.getElementById('engRank'));
+  ch.setOption({grid:{left:76,right:10,top:0,bottom:0},yAxis:{type:'category',data:items.map(function(i){return i.name;}).reverse(),axisLabel:{color:'#a0cfff',fontSize:10},axisLine:{show:false},axisTick:{show:false}},xAxis:{show:false},series:[{type:'bar',data:items.map(function(i){return i.cost;}).reverse(),barWidth:14,itemStyle:{borderRadius:[0,4,4,0],color:function(p){var cs=['#40c4ff','#4cd964','#ff9500','#7b61ff','#ff6b81'];return cs[p.dataIndex%5];}},label:{show:true,position:'right',color:'#a0cfff',fontSize:9,formatter:'{c}万'}}]});
+}
+function initPie(){
+  genEngData();var rc=[];Object.keys(engComp).forEach(function(k){var c=parseFloat(engComp[k].cost);rc.push({name:k,value:c});});
+  var ch=echarts.init(document.getElementById('engPie'));
+  ch.setOption({series:[{type:'pie',radius:'70%',center:['50%','50%'],data:rc,label:{color:'#a0cfff',fontSize:9,formatter:'{b}'},itemStyle:{borderColor:'rgba(6,12,36,1)',borderWidth:1}}]});
+}
+
+window.addEventListener('DOMContentLoaded',function(){
+  updateKPI();initMap();
+  var months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var pv=[],wv=[],gv=[];
+  for(var i=0;i<12;i++){pv.push((Math.random()*50+30).toFixed(1));wv.push(Math.floor(Math.random()*3000+1000));gv.push(Math.floor(Math.random()*12000+4000));}
+  initTrend('engPower',pv,'用电(万kWh)','#40c4ff');
+  initTrend('engWater',wv,'用水(吨)','#4cd964');
+  initTrend('engGas',gv,'用气(m³)','#ff9500');
+  initRank();initPie();
+});
+</script>
+</body>
+</html>

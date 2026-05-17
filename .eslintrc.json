@@ -1,0 +1,44 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 12,
+    "sourceType": "script"
+  },
+  "rules": {
+    "no-irregular-whitespace": ["error", {
+      "skipStrings": true,
+      "skipComments": true
+    }],
+    "quotes": ["warn", "single", { "avoidEscape": true }],
+    "semi": ["warn", "always"],
+    "no-undef": "warn",
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-console": ["off"],
+    "no-alert": "off"
+  },
+  "globals": {
+    "XLSX": "readonly",
+    "jspdf": "readonly",
+    "AMap": "readonly",
+    "L": "readonly",
+    "layer": "readonly",
+    "taskDetailLayer": "readonly",
+    "appeals": "writable",
+    "filteredAppeals": "writable",
+    "currentPage": "writable",
+    "pageSize": "writable",
+    "renderTable": "writable",
+    "initPaginations": "writable",
+    "filterTable": "writable",
+    "resetFilter": "writable",
+    "exportTable": "writable",
+    "importTable": "writable",
+    "showAppealDetail": "writable",
+    "closeAppealDetail": "writable",
+    "submitAppeal": "writable",
+    "printTable": "writable"
+  }
+}

@@ -1,0 +1,87 @@
+classDiagram
+    class CSSRoot {
+        +--primary-color: #40c4ff
+        +--border-color: #2b68e0
+        +--bg-primary: #0a1024
+        +--text-primary: #e0ecff
+        +--text-secondary: #a0cfff
+        +--text-tertiary: #557199
+        +--success-color: #4cd964
+        +--sidebar-width: 260px
+        +--split-color: rgba(43,104,224,0.35)
+        +--title-height: 8%
+        +--container-padding: 10px
+        +--universal-gap: 8px
+        +--border-radius: 8px
+    }
+
+    class ScreenContainer {
+        +class: screen-container
+        +display: grid
+        +grid-template-rows: var(--title-height) 1fr
+    }
+
+    class TitleBox {
+        +class: title-box
+        +display: flex
+        +height: 100%
+        +children: title-left, title-center, title-right
+    }
+
+    class TitleLeft {
+        +class: title-left
+        +child: span.time#currentTime
+    }
+
+    class TitleRight {
+        +class: title-right
+        +children: common-btn[], back-btn[]
+    }
+
+    class Time {
+        +class: time
+        +id: currentTime
+        +font-size: 14px
+        +color: var(--text-secondary)
+    }
+
+    class CommonBtn {
+        +class: common-btn
+        +size: 38×38px
+        +border-radius: var(--border-radius)
+    }
+
+    class BackBtn {
+        +class: back-btn
+        +size: 38×38px
+        +tag: a
+    }
+
+    class BottomTabs {
+        +class: bottom-tabs
+        +position: fixed
+        +bottom: 28px
+        +children: tab-btn[7]
+    }
+
+    class TabBtn {
+        +class: tab-btn
+        +size: 80×80px
+        +active: .tab-btn.active
+    }
+
+    class LoadingOverlay {
+        +class: loading-overlay
+        +position: fixed
+        +z-index: 9999
+        +placement: body直接子元素
+    }
+
+    ScreenContainer *-- TitleBox
+    TitleBox *-- TitleLeft
+    TitleBox *-- TitleRight
+    TitleLeft *-- Time
+    TitleRight *-- CommonBtn
+    TitleRight *-- BackBtn
+    ScreenContainer ..> BottomTabs
+    BottomTabs *-- TabBtn

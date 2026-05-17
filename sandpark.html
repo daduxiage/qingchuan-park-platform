@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字沙盘三维展示系统 - 竹园镇</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+            background: #0a1628;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        /* 顶部标题栏 */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(180deg, #0a1628 0%, rgba(10, 22, 40, 0.9) 100%);
+            border-bottom: 1px solid rgba(64, 196, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #40c4ff;
+            text-shadow: 0 0 20px rgba(64, 196, 255, 0.5);
+            letter-spacing: 8px;
+        }
+
+        .header-decoration {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #40c4ff, transparent);
+        }
+
+        /* 左侧菜单 */
+        .left-panel {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            width: 220px;
+            height: calc(100vh - 60px);
+            background: linear-gradient(90deg, rgba(10, 22, 40, 0.95) 0%, rgba(10, 22, 40, 0.7) 100%);
+            border-right: 1px solid rgba(64, 196, 255, 0.2);
+            z-index: 999;
+            padding: 20px 0;
+        }
+
+        .zone-name {
+            padding: 0 20px 15px;
+            border-bottom: 1px solid rgba(64, 196, 255, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .zone-name h2 {
+            font-size: 16px;
+            color: #40c4ff;
+            margin-bottom: 5px;
+        }
+
+        .zone-name p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .menu-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-item:hover {
+            background: rgba(64, 196, 255, 0.1);
+            border-left-color: #40c4ff;
+        }
+
+        .menu-item.active {
+            background: rgba(64, 196, 255, 0.2);
+            border-left-color: #40c4ff;
+        }
+
+        .menu-item::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #40c4ff;
+            box-shadow: 0 0 8px #40c4ff;
+        }
+
+        .menu-item span {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 右侧返回按钮 */
+        .back-btn {
+            position: fixed;
+            right: 20px;
+            top: 80px;
+            width: 40px;
+            height: 40px;
+            background: rgba(64, 196, 255, 0.2);
+            border: 1px solid rgba(64, 196, 255, 0.5);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(64, 196, 255, 0.4);
+        }
+
+        .back-btn::before {
+            content: '◄';
+            color: #40c4ff;
+            font-size: 14px;
+        }
+
+        /* 时间显示 */
+        .time-display {
+            position: fixed;
+            right: 20px;
+            top: 20px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            z-index: 1001;
+        }
+
+        /* 3D容器 */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* 底部导航栏 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: linear-gradient(0deg, rgba(10, 22, 40, 0.95) 0%, rgba(10, 22, 40, 0.7) 100%);
+            border-top: 1px solid rgba(64, 196, 255, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 60px;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            padding: 8px 25px;
+            cursor: pointer;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: #40c4ff;
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 2px;
+            background: #40c4ff;
+            box-shadow: 0 0 10px #40c4ff;
+        }
+
+        /* 地块标注标签 */
+        .plot-label {
+            position: absolute;
+            background: rgba(10, 30, 60, 0.9);
+            border: 1px solid rgba(64, 196, 255, 0.5);
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #fff;
+            pointer-events: none;
+            transform: translate(-50%, -100%);
+            white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .plot-label::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid rgba(64, 196, 255, 0.5);
+        }
+
+        .plot-label .name {
+            color: #40c4ff;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .plot-label .area {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 11px;
+        }
+
+        /* 左下角控制按钮 */
+        .controls {
+            position: fixed;
+            bottom: 70px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 999;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(64, 196, 255, 0.15);
+            border: 1px solid rgba(64, 196, 255, 0.4);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #40c4ff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(64, 196, 255, 0.3);
+        }
+
+        /* 加载动画 */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2000;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(64, 196, 255, 0.3);
+            border-top-color: #40c4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            margin-top: 15px;
+            color: #40c4ff;
+            font-size: 14px;
+        }
+
+        /* 隐藏滚动条 */
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部标题栏 -->
+    <div class="header">
+        <h1 class="header-title">数字沙盘三维展示系统</h1>
+        <div class="header-decoration"></div>
+    </div>
+
+    <!-- 时间显示 -->
+    <div class="time-display" id="timeDisplay"></div>
+
+    <!-- 左侧菜单 -->
+    <div class="left-panel">
+        <div class="zone-name">
+            <h2>四川青川经济开发区</h2>
+            <p>竹园镇产业园区</p>
+        </div>
+        <div class="menu-item active">
+            <span>园区简介</span>
+        </div>
+        <div class="menu-item">
+            <span>区域规划</span>
+        </div>
+        <div class="menu-item">
+            <span>用地情况</span>
+        </div>
+    </div>
+
+    <!-- 右侧返回按钮 -->
+    <div class="back-btn" onclick="goBack()"></div>
+
+    <!-- 3D场景容器 -->
+    <div id="canvas-container"></div>
+
+    <!-- 地块标注容器 -->
+    <div id="labels-container"></div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <div class="nav-item active">地理区位</div>
+        <div class="nav-item">规划布局</div>
+        <div class="nav-item">项目进展</div>
+        <div class="nav-item">产业配套</div>
+    </div>
+
+    <!-- 左下角控制按钮 -->
+    <div class="controls">
+        <div class="control-btn" title="重置视角">⌂</div>
+        <div class="control-btn" title="放大">+</div>
+        <div class="control-btn" title="缩小">−</div>
+        <div class="control-btn" title="全屏">⛶</div>
+    </div>
+
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('timeDisplay').textContent = timeStr;
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // 返回功能
+        function goBack() {
+            window.history.back();
+        }
+
+        // Three.js 3D场景
+        let scene, camera, renderer, controls;
+        let terrain, plots = [];
+        const labels = [];
+
+        // 地块数据
+        const plotData = [
+            { name: '竹园新材料产业园', area: '120亩', color: 0xFF6B35, x: -30, z: -20, width: 15, depth: 12 },
+            { name: '四川佳禾精密机械', area: '80亩', color: 0x4ECDC4, x: -10, z: -25, width: 12, depth: 10 },
+            { name: '1号工业地块', area: '150亩', color: 0xFFD93D, x: 15, z: -15, width: 18, depth: 14 },
+            { name: '2号工业地块', area: '200亩', color: 0x6BCB77, x: 40, z: -30, width: 20, depth: 16 },
+            { name: '3号物流地块', area: '180亩', color: 0x9D4EDD, x: 25, z: 10, width: 16, depth: 18 },
+            { name: '污水处理厂', area: '30亩', color: 0x3A86FF, x: -5, z: 20, width: 10, depth: 8 },
+            { name: '竹园智能制造基地', area: '220亩', color: 0xFF006E, x: 50, z: 25, width: 22, depth: 18 },
+            { name: '综合服务区', area: '60亩', color: 0xFB5607, x: -35, z: 15, width: 12, depth: 10 }
+        ];
+
+        function init() {
+            // 场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a1628);
+            scene.fog = new THREE.Fog(0x0a1628, 100, 300);
+
+            // 相机
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 80, 120);
+            camera.lookAt(0, 0, 0);
+
+            // 渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // 控制器
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2.2;
+            controls.minDistance = 50;
+            controls.maxDistance = 200;
+
+            // 光照
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(50, 100, 50);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.left = -100;
+            directionalLight.shadow.camera.right = 100;
+            directionalLight.shadow.camera.top = 100;
+            directionalLight.shadow.camera.bottom = -100;
+            scene.add(directionalLight);
+
+            // 创建地形
+            createTerrain();
+
+            // 创建地块
+            createPlots();
+
+            // 创建道路
+            createRoads();
+
+            // 窗口调整
+            window.addEventListener('resize', onWindowResize);
+
+            // 开始动画
+            animate();
+
+            // 更新标签位置
+            updateLabels();
+        }
+
+        function createTerrain() {
+            // 创建地形几何体
+            const geometry = new THREE.PlaneGeometry(200, 150, 100, 75);
+            
+            // 添加地形起伏
+            const positions = geometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                const x = positions[i];
+                const y = positions[i + 1];
+                // 使用噪声函数创建自然地形
+                const height = Math.sin(x * 0.05) * Math.cos(y * 0.05) * 5 +
+                              Math.sin(x * 0.1) * Math.sin(y * 0.08) * 3 +
+                              Math.sin(x * 0.02 + y * 0.03) * 8;
+                positions[i + 2] = height;
+            }
+            geometry.computeVertexNormals();
+
+            // 地形材质 - 绿色山地风格
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x2d5a27,
+                roughness: 0.8,
+                metalness: 0.1,
+                flatShading: false
+            });
+
+            terrain = new THREE.Mesh(geometry, material);
+            terrain.rotation.x = -Math.PI / 2;
+            terrain.receiveShadow = true;
+            scene.add(terrain);
+
+            // 添加水面效果（河流）
+            const riverGeometry = new THREE.PlaneGeometry(200, 20, 50, 5);
+            const riverMaterial = new THREE.MeshStandardMaterial({
+                color: 0x1a5276,
+                roughness: 0.2,
+                metalness: 0.6,
+                transparent: true,
+                opacity: 0.8
+            });
+            const river = new THREE.Mesh(riverGeometry, riverMaterial);
+            river.rotation.x = -Math.PI / 2;
+            river.position.set(0, -2, 45);
+            scene.add(river);
+        }
+
+        function createPlots() {
+            plotData.forEach((plot, index) => {
+                // 地块几何体
+                const geometry = new THREE.BoxGeometry(plot.width, 3, plot.depth);
+                const material = new THREE.MeshStandardMaterial({
+                    color: plot.color,
+                    roughness: 0.6,
+                    metalness: 0.3,
+                    emissive: plot.color,
+                    emissiveIntensity: 0.1
+                });
+
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set(plot.x, 2, plot.z);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                
+                // 添加发光边框效果
+                const edges = new THREE.EdgesGeometry(geometry);
+                const lineMaterial = new THREE.LineBasicMaterial({ 
+                    color: plot.color,
+                    linewidth: 2
+                });
+                const edgesMesh = new THREE.LineSegments(edges, lineMaterial);
+                mesh.add(edgesMesh);
+
+                scene.add(mesh);
+                plots.push(mesh);
+
+                // 创建标签
+                createLabel(plot, mesh);
+            });
+        }
+
+        function createLabel(plotData, mesh) {
+            const label = document.createElement('div');
+            label.className = 'plot-label';
+            label.innerHTML = `
+                <div class="name">${plotData.name}</div>
+                <div class="area">${plotData.area}</div>
+            `;
+            document.getElementById('labels-container').appendChild(label);
+
+            labels.push({
+                element: label,
+                mesh: mesh,
+                position: new THREE.Vector3(plotData.x, 5, plotData.z)
+            });
+        }
+
+        function createRoads() {
+            // 主干道
+            const mainRoadGeometry = new THREE.PlaneGeometry(200, 8);
+            const roadMaterial = new THREE.MeshStandardMaterial({
+                color: 0x555555,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+
+            const mainRoad1 = new THREE.Mesh(mainRoadGeometry, roadMaterial);
+            mainRoad1.rotation.x = -Math.PI / 2;
+            mainRoad1.position.set(0, 0.1, 0);
+            scene.add(mainRoad1);
+
+            const mainRoad2 = new THREE.Mesh(mainRoadGeometry, roadMaterial);
+            mainRoad2.rotation.x = -Math.PI / 2;
+            mainRoad2.rotation.z = Math.PI / 2;
+            mainRoad2.position.set(0, 0.1, 0);
+            scene.add(mainRoad2);
+
+            // 添加道路标线
+            const lineGeometry = new THREE.PlaneGeometry(200, 0.3);
+            const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            
+            const line1 = new THREE.Mesh(lineGeometry, lineMaterial);
+            line1.rotation.x = -Math.PI / 2;
+            line1.position.set(0, 0.2, 0);
+            scene.add(line1);
+
+            const line2 = new THREE.Mesh(lineGeometry, lineMaterial);
+            line2.rotation.x = -Math.PI / 2;
+            line2.rotation.z = Math.PI / 2;
+            line2.position.set(0, 0.2, 0);
+            scene.add(line2);
+        }
+
+        function updateLabels() {
+            labels.forEach(label => {
+                const vector = label.position.clone();
+                vector.project(camera);
+
+                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
+
+                label.element.style.left = `${x}px`;
+                label.element.style.top = `${y}px`;
+
+                // 根据距离调整透明度
+                const distance = camera.position.distanceTo(label.mesh.position);
+                const opacity = Math.max(0.3, Math.min(1, 1 - (distance - 50) / 100));
+                label.element.style.opacity = opacity;
+            });
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            updateLabels();
+            renderer.render(scene, camera);
+        }
+
+        // 菜单交互
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 导航交互
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 初始化
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字沙盘三维展示系统 - 青川县庄子上工业园区</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="park_common.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            font-family: "Microsoft YaHei","微软雅黑",sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+    </style>
+
+</head>
+<body>
+
+<!-- 加载动画 -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-title">🏭 青川县庄子上工业园区</div>
+    <div class="loading-bar-bg"><div class="loading-bar"></div></div>
+    <div class="loading-tip" id="loadingTip">正在加载三维数字沙盘...</div>
+</div>
+
+<div class="screen-container">
+    <!-- 顶部标题栏 -->
+    <div class="title-box">
+        <div class="title-left">
+            <span class="time" id="currentTime"></span>
+        </div>
+        <div class="title-center">
+            <h1>数字沙盘三维展示</h1>
+        </div>
+        <div class="title-right">
+            <button class="common-btn" id="refreshBtn" onclick="refreshData()" title="刷新数据">
+                <i class="fa fa-refresh"></i>
+            </button>
+            <a href="../index.html" class="back-btn" title="返回主页">
+                <i class="fa fa-home"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- 地图 -->
+    <div class="map-wrapper">
+        <div id="amap"></div>
+
+        <!-- 右下控制栏 -->
+        <div class="control-bar">
+            <button class="ctrl-btn" id="btnLayer" onclick="toggleLayer()" title="切换图层">🛰️</button>
+            <button class="ctrl-btn" id="btn3D" onclick="toggleViewMode()" title="2D/3D切换">3D</button>
+            <button class="ctrl-btn" onclick="resetView()" title="一键复位">📍</button>
+        </div>
+    </div>
+</div>
+
+<!-- 高德地图SDK -->
+<script>
+    window._AMapSecurityConfig = {
+        securityJsCode: '8cc1e17e87bd8d7f80d303d6e7bdbc0a',
+    };
+</script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=7d2674ce8375986e20c048ead06989d0&callback=amapReady&securityJsCode=8cc1e17e87bd8d7f80d303d6e7bdbc0a" defer></script>
+
+<script>
+    /* ===== 园区坐标 ===== */
+    const PARK_CENTER = [105.238, 32.575];
+
+    /* 周边城市 */
+    const nearbyCities = [
+        { name: '广元市',  lng: 105.843, lat: 32.435,  dist: 50.20,  dir: '东' },
+        { name: '绵阳市',  lng: 104.679, lat: 31.467,  dist: 120.50, dir: '南偏西' },
+        { name: '成都市',  lng: 104.065, lat: 30.659,  dist: 280.30, dir: '西南' },
+        { name: '重庆市',  lng: 106.551, lat: 29.563,  dist: 350.80, dir: '东南' },
+        { name: '西安市',  lng: 108.940, lat: 34.263,  dist: 420.60, dir: '东北' },
+        { name: '兰州市',  lng: 103.823, lat: 36.061,  dist: 560.40, dir: '西北' },
+    ];
+
+    let map = null;
+    let satelliteLayer = null;
+    let isSatellite = true;
+    let is3DMode = true;
+    let cityMarkers = [];
+    let flightPolylines = [];
+    let flightParticles = [];
+    let animFrameId = null;
+    let districtPolygons = []; // 青川县边界
+
+    /* ===== 地图初始化 ===== */
+    window.amapReady = function() {
+        if (typeof AMap === 'undefined') {
+            document.getElementById('loadingTip').textContent = '❌ 地图加载失败，请检查网络';
+            return;
+        }
+
+        map = new AMap.Map('amap', {
+            zoom: 8,   // 先设一个初始值,后面用 setFitView
+            pitch: 55,
+            bearing: 0,
+            center: PARK_CENTER,
+            viewMode: '3D',
+            showLabel: true,
+            showIndoorMap: false,
+            rotateEnable: true,
+            pitchEnable: true,
+            dragEnable: true,
+            zoomEnable: true,
+            features: ['bg', 'road', 'building', 'point'],
+        });
+
+        AMap.plugin([
+            'AMap.Scale',
+            'AMap.DistrictSearch',
+            'AMap.Geocoder',
+        ], function() {
+            // 比例尺
+            const scale = new AMap.Scale({
+                position: 'LB',
+                offset: new AMap.Pixel(15, 15),
+            });
+            map.addControl(scale);
+
+            // 1. 加载卫星图层（默认）
+            satelliteLayer = new AMap.TileLayer.Satellite({ zIndex: 0 });
+            satelliteLayer.setMap(map);
+
+            // 2. 绘制青川县行政区边界
+            drawDistrictBoundary();
+
+            // 3. 绘制园区标志 + 飞行路径 (不包含闪烁标注)
+            drawBaseMarkers();
+
+            // 4. 自动适配视野
+            fitAllInView();
+
+            // 隐藏加载
+            setTimeout(function() {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }, 1200);
+        });
+    };
+
+    /* ===== 青川县行政区边界 ===== */
+    function drawDistrictBoundary() {
+        const districtSearch = new AMap.DistrictSearch({
+            extensions: 'all',
+            subdistrict: 0,
+            level: 'district',
+        });
+        districtSearch.search('青川县', function(status, result) {
+            if (status === 'complete' && result.districtList.length > 0) {
+                const bounds = result.districtList[0].boundaries;
+                if (bounds && bounds.length > 0) {
+                    bounds.forEach(function(boundary) {
+                        const poly = new AMap.Polygon({
+                            path: boundary,
+                            fillColor: 'rgba(64,196,255,0.06)',
+                            fillOpacity: 0.15,
+                            strokeColor: 'rgba(64,196,255,0.5)',
+                            strokeWeight: 2,
+                            strokeStyle: 'solid',
+                            zIndex: 5,
+                        });
+                        poly.setMap(map);
+                        districtPolygons.push(poly);
+
+                        // 外发光边线
+                        const glowPoly = new AMap.Polygon({
+                            path: boundary,
+                            fillColor: 'transparent',
+                            fillOpacity: 0,
+                            strokeColor: 'rgba(64,196,255,0.15)',
+                            strokeWeight: 5,
+                            strokeStyle: 'solid',
+                            zIndex: 4,
+                        });
+                        glowPoly.setMap(map);
+                        districtPolygons.push(glowPoly);
+                    });
+                }
+            }
+        });
+    }
+
+    /* ===== 绘制基础标记 ===== */
+    function drawBaseMarkers() {
+        drawParkMarker();
+        nearbyCities.forEach(function(city) {
+            drawCityMarker(city);
+            drawFlightPath(city);
+        });
+        startFlightAnimation();
+    }
+
+    /* ===== 园区中心标记 ===== */
+    function drawParkMarker() {
+        const parkIcon = new AMap.Icon({
+            size: new AMap.Size(50, 50),
+            image: 'data:image/svg+xml,' + encodeURIComponent(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">' +
+                '<circle cx="25" cy="25" r="22" fill="none" stroke="#40c4ff" stroke-width="2" opacity="0.6"/>' +
+                '<circle cx="25" cy="25" r="14" fill="rgba(64,196,255,0.2)" stroke="#40c4ff" stroke-width="1.5"/>' +
+                '<circle cx="25" cy="25" r="6" fill="#40c4ff"/>' +
+                '</svg>'
+            ),
+            imageSize: new AMap.Size(50, 50),
+        });
+        const marker = new AMap.Marker({
+            position: PARK_CENTER,
+            icon: parkIcon,
+            offset: new AMap.Pixel(-25, -25),
+            zIndex: 100,
+            title: '青川县庄子上工业园区',
+        });
+        marker.setMap(map);
+    }
+
+    /* ===== 城市标记（闪烁POI + 静态文字） ===== */
+    function drawCityMarker(city) {
+        // POI光点：用 content Marker + CSS blink 动画，执行闪烁
+        const poiMarker = new AMap.Marker({
+            position: [city.lng, city.lat],
+            content: '<div style="' +
+                'width:16px;height:16px;' +
+                'background:rgba(64,196,255,0.25);' +
+                'border:2px solid #40c4ff;' +
+                'border-radius:50%;' +
+                'animation:blinkMarker 1.2s ease-in-out infinite;' +
+                'box-shadow:0 0 10px rgba(64,196,255,0.5);' +
+                '">' +
+                '<div style="width:6px;height:6px;background:#40c4ff;border-radius:50%;margin:5px auto 0;"></div>' +
+                '</div>',
+            offset: new AMap.Pixel(-8, -8),
+            zIndex: 90,
+        });
+        poiMarker.setMap(map);
+        poiMarker._cityData = city;
+        poiMarker.on('click', function() { onCityClick(city); });
+        cityMarkers.push(poiMarker);
+    }
+
+    /* ===== 飞行路径 + 中间距离标注 ===== */
+    function bezierPoint(from, to, midArc, t) {
+        return [
+            (1-t)*(1-t)*from[0] + 2*(1-t)*t*midArc[0] + t*t*to[0],
+            (1-t)*(1-t)*from[1] + 2*(1-t)*t*midArc[1] + t*t*to[1],
+        ];
+    }
+
+    function drawFlightPath(city) {
+        const from = PARK_CENTER;
+        const to = [city.lng, city.lat];
+        const dx = to[0] - from[0];
+        const dy = to[1] - from[1];
+        const len = Math.sqrt(dx*dx + dy*dy);
+        if (len === 0) return;
+        const nx = -dy / len;
+        const ny = dx / len;
+        const arcOffset = len * 0.25;
+        const midArc = [(from[0]+to[0])/2 + nx * arcOffset, (from[1]+to[1])/2 + ny * arcOffset];
+
+        // 贝塞尔路径
+        const path = [];
+        const segments = 40;
+        for (let i = 0; i <= segments; i++) {
+            const t = i / segments;
+            const x = (1-t)*(1-t)*from[0] + 2*(1-t)*t*midArc[0] + t*t*to[0];
+            const y = (1-t)*(1-t)*from[1] + 2*(1-t)*t*midArc[1] + t*t*to[1];
+            path.push([x, y]);
+        }
+
+        const polyline = new AMap.Polyline({
+            path: path,
+            strokeColor: '#40c4ff',
+            strokeOpacity: 0.55,
+            strokeWeight: 4.5,
+            strokeStyle: 'dashed',
+            strokeDasharray: [8, 6],
+            zIndex: 40,
+            lineJoin: 'round',
+        });
+        polyline.setMap(map);
+        flightPolylines.push({ polyline, path, city, midArc });
+
+        // 路径中点：闪烁边框的距离标注
+        var midPt = bezierPoint(from, [city.lng, city.lat], midArc, 0.5);
+        var distMarker = new AMap.Marker({
+            position: midPt,
+            content: '<div style="' +
+                'background:rgba(10,16,36,0.88);' +
+                'border:1.5px solid rgba(64,196,255,0.8);' +
+                'border-radius:4px;' +
+                'padding:3px 10px;' +
+                'color:#40c4ff;' +
+                'font-size:12px;' +
+                'font-weight:600;' +
+                'white-space:nowrap;' +
+                'text-align:center;line-height:1.6;' +
+                'animation:blinkBorder 1.5s ease-in-out infinite;' +
+                '">距' + city.name + '<br/>' + city.dist.toFixed(2) + ' km</div>',
+            offset: new AMap.Pixel(-40, -20),
+            zIndex: 93,
+        });
+        distMarker.setMap(map);
+    }
+
+    /* ===== 飞行粒子 ===== */
+    function startFlightAnimation() {
+        flightParticles = [];
+        flightPolylines.forEach(function(item) {
+            for (let i = 0; i < 4; i++) {
+                const particle = new AMap.Marker({
+                    position: PARK_CENTER,
+                    icon: new AMap.Icon({
+                        size: new AMap.Size(6, 6),
+                        image: 'data:image/svg+xml,' + encodeURIComponent(
+                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 6">' +
+                            '<circle cx="3" cy="3" r="2.5" fill="#40c4ff" opacity="0.8"/>' +
+                            '</svg>'
+                        ),
+                        imageSize: new AMap.Size(6, 6),
+                    }),
+                    offset: new AMap.Pixel(-3, -3),
+                    zIndex: 95,
+                });
+                particle.setMap(map);
+                particle._t = i / 4;
+                particle._speed = 0.0015 + Math.random() * 0.001;
+                particle._from = PARK_CENTER;
+                particle._to = [item.city.lng, item.city.lat];
+                particle._midArc = item.midArc;
+                flightParticles.push(particle);
+            }
+        });
+
+        function animate() {
+            flightParticles.forEach(function(p) {
+                p._t += p._speed;
+                if (p._t > 1) p._t = 0;
+                const t = p._t;
+                const f = p._from, m = p._midArc, g = p._to;
+                const pos = [
+                    (1-t)*(1-t)*f[0] + 2*(1-t)*t*m[0] + t*t*g[0],
+                    (1-t)*(1-t)*f[1] + 2*(1-t)*t*m[1] + t*t*g[1],
+                ];
+                p.setPosition(pos);
+            });
+            animFrameId = requestAnimationFrame(animate);
+        }
+        animate();
+    }
+
+    /* ===== 视野：青川边界居中，所有城市可见 ===== */
+    function fitAllInView() {
+        // 先以所有城市计算 bounds
+        var minLng = PARK_CENTER[0], maxLng = PARK_CENTER[0];
+        var minLat = PARK_CENTER[1], maxLat = PARK_CENTER[1];
+        nearbyCities.forEach(function(c) {
+            if (c.lng < minLng) minLng = c.lng;
+            if (c.lng > maxLng) maxLng = c.lng;
+            if (c.lat < minLat) minLat = c.lat;
+            if (c.lat > maxLat) maxLat = c.lat;
+        });
+        var padLng = (maxLng - minLng) * 0.15;
+        var padLat = (maxLat - minLat) * 0.15;
+        var sw = new AMap.LngLat(minLng - padLng, minLat - padLat);
+        var ne = new AMap.LngLat(maxLng + padLng, maxLat + padLat);
+        map.setBounds(new AMap.Bounds(sw, ne));
+        // 强制居中到青川
+        setTimeout(function() {
+            map.setCenter(PARK_CENTER);
+            map.setPitch(55);
+            map.setZoom(map.getZoom() + 2);
+        }, 300);
+    }
+
+    /* ===== 城市点击 ===== */
+    function onCityClick(city) {
+        map.setZoomAndCenter(10, [city.lng, city.lat]);
+        const iw = new AMap.InfoWindow({
+            content: '<div style="padding:8px 14px;font-size:13px;color:#fff;">' +
+                '<b style="color:#40c4ff;">' + city.name + '</b><br/>' +
+                '距离: ' + city.dist.toFixed(2) + ' km | 方位: ' + city.dir +
+                '</div>',
+            offset: new AMap.Pixel(0, -45),
+        });
+        iw.open(map, [city.lng, city.lat]);
+        setTimeout(function() { iw.close(); }, 3000);
+    }
+
+    /* ===== 图层切换 ===== */
+    function toggleLayer() {
+        const btn = document.getElementById('btnLayer');
+        if (isSatellite) {
+            satelliteLayer.setMap(null);
+            map.setMapStyle('amap://styles/darkblue');
+            btn.textContent = '🌐';
+            btn.classList.add('active');
+            isSatellite = false;
+        } else {
+            map.setMapStyle('');
+            satelliteLayer.setMap(map);
+            btn.textContent = '🛰️';
+            btn.classList.remove('active');
+            isSatellite = true;
+        }
+    }
+
+    /* ===== 2D/3D切换 ===== */
+    function toggleViewMode() {
+        const btn = document.getElementById('btn3D');
+        if (is3DMode) {
+            map.setPitch(0);
+            btn.textContent = '2D';
+            btn.classList.add('active');
+            is3DMode = false;
+        } else {
+            map.setPitch(55);
+            btn.textContent = '3D';
+            btn.classList.remove('active');
+            is3DMode = true;
+        }
+    }
+
+    /* ===== 一键复位 ===== */
+    function resetView() {
+        fitAllInView();
+        is3DMode = true;
+        document.getElementById('btn3D').textContent = '3D';
+        document.getElementById('btn3D').classList.remove('active');
+    }
+
+    // 快捷键
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'f' || e.key === 'F') fitAllInView();
+    });
+
+    window.addEventListener('resize', function() {
+        if (map) map.resize();
+    });
+
+    /* ===== 标题栏时间 ===== */
+    function updateTime() {
+        var now = new Date();
+        document.getElementById('currentTime').textContent =
+            now.getFullYear() + '-' +
+            String(now.getMonth()+1).padStart(2,'0') + '-' +
+            String(now.getDate()).padStart(2,'0') + ' ' +
+            String(now.getHours()).padStart(2,'0') + ':' +
+            String(now.getMinutes()).padStart(2,'0') + ':' +
+            String(now.getSeconds()).padStart(2,'0');
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    /* ===== 刷新数据 ===== */
+    function refreshData() {
+        var btn = document.getElementById('refreshBtn');
+        btn.style.pointerEvents = 'none';
+        var icon = btn.querySelector('i');
+        icon.style.animation = 'fa-spin 0.8s linear infinite';
+        icon.classList.add('fa-spin');
+
+        // 重新适配视野
+        if (map) {
+            fitAllInView();
+            map.resize();
+        }
+
+        setTimeout(function() {
+            btn.style.pointerEvents = 'auto';
+            icon.style.animation = '';
+            icon.classList.remove('fa-spin');
+        }, 1200);
+    }
+</script>
+
+        <div class="bottom-tabs">
+            <a class="tab-btn active" style="pointer-events:none;opacity:0.8" href="park_sandbox.html">沙盘</a>
+            <a class="tab-btn" href="park_economy.html">经济</a>
+            <a class="tab-btn" href="park_land.html">用地</a>
+            <a class="tab-btn" href="park_enterprise.html">企业</a>
+            <a class="tab-btn" href="park_service.html">服务</a>
+            <a class="tab-btn" href="park_energy.html">能耗</a>
+            <a class="tab-btn" href="park_safety.html">安全</a>
+        </div>
+<script src="park_loading.js"></script>
+</body>
+</html>

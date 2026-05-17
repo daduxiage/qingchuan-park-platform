@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用地规划 - 青川县庄子上工业园区</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="park_common.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            font-family: "Microsoft YaHei","微软雅黑",sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .legend-panel {
+            position: absolute;
+            left: 16px;
+            bottom: 20px;
+            z-index: 100;
+            background: rgba(10,16,36,0.9);
+            border: 1px solid rgba(43,104,224,0.45);
+            border-radius: 8px;
+            padding: 14px 16px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 200px;
+            transition: all 0.3s;
+        }
+
+        .legend-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #40c4ff;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+            text-align: center;
+            border-bottom: 1px solid rgba(43,104,224,0.3);
+            padding-bottom: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #a0cfff;
+            padding: 3px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+            padding: 4px 6px;
+        }
+
+        .legend-item:hover {
+            background: rgba(64,196,255,0.1);
+            color: #fff;
+        }
+
+        .legend-item.active {
+            background: rgba(64,196,255,0.15);
+            color: #40c4ff;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 14px;
+            border-radius: 2px;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
+        }
+
+        .legend-count {
+            margin-left: auto;
+            font-size: 10px;
+            color: rgba(160,207,255,0.6);
+            background: rgba(43,104,224,0.2);
+            padding: 1px 6px;
+            border-radius: 8px;
+        }
+
+        .info-popup {
+            position: absolute;
+            background: rgba(10,16,36,0.95);
+            border: 1px solid rgba(64,196,255,0.5);
+            border-radius: 8px;
+            padding: 14px 18px;
+            z-index: 200;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 24px rgba(64,196,255,0.2);
+            min-width: 180px;
+        }
+
+        .info-popup.show {
+            opacity: 1;
+        }
+
+        .info-popup .popup-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #40c4ff;
+            margin-bottom: 6px;
+        }
+
+        .info-popup .popup-detail {
+            font-size: 11px;
+            color: #a0cfff;
+            line-height: 1.8;
+        }
+
+        .info-popup .popup-detail span {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .stats-panel {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+
+        .stat-card {
+            background: rgba(10,16,36,0.85);
+            border: 1px solid rgba(43,104,224,0.4);
+            border-radius: 8px;
+            padding: 10px 16px;
+            backdrop-filter: blur(8px);
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .stat-card .sc-num {
+            font-size: 22px;
+            font-weight: 700;
+            color: #40c4ff;
+            line-height: 1;
+        }
+
+        .stat-card .sc-label {
+            font-size: 10px;
+            color: #a0cfff;
+            margin-top: 4px;
+            white-space: nowrap;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-title">🏗️ 青川县庄子上工业园区</div>
+        <div class="loading-bar-bg"><div class="loading-bar"></div></div>
+        <div class="loading-tip" id="loadingTip">正在加载用地规划图...</div>
+    </div>
+
+    <div class="screen-container">
+        <div class="title-box">
+            <div class="title-left">
+                <span class="time" id="currentTime"></span>
+            </div>
+            <div class="title-center">
+                <h1>用地规划图</h1>
+            </div>
+            <div class="title-right">
+                <button class="common-btn" id="refreshBtn" onclick="refreshData()" title="刷新数据">
+                    <i class="fa fa-refresh"></i>
+                </button>
+                <a href="../index.html" class="back-btn" title="返回主页">
+                    <i class="fa fa-home"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="map-wrapper">
+            <div id="amap"></div>
+
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <div class="sc-num" id="statTotal">0</div>
+                    <div class="sc-label">规划地块</div>
+                </div>
+                <div class="stat-card">
+                    <div class="sc-num" id="statArea">0</div>
+                    <div class="sc-label">总规划面积(亩)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="sc-num" id="statBuilt">0</div>
+                    <div class="sc-label">工业用地(亩)</div>
+                </div>
+            </div>
+
+            <div class="legend-panel" id="legendPanel">
+                <div class="legend-title">📋 用地类型图例</div>
+                <div class="legend-item" data-type="industrial" onclick="filterByType('industrial')">
+                    <div class="legend-color" style="background:#4caf50;"></div>
+                    <span>工业用地</span>
+                    <span class="legend-count">4块</span>
+                </div>
+                <div class="legend-item" data-type="commercial" onclick="filterByType('commercial')">
+                    <div class="legend-color" style="background:#ffc107;"></div>
+                    <span>商业用地</span>
+                    <span class="legend-count">9块</span>
+                </div>
+                <div class="legend-item" data-type="storage" onclick="filterByType('storage')">
+                    <div class="legend-color" style="background:#2196f3;"></div>
+                    <span>仓储用地</span>
+                    <span class="legend-count">4块</span>
+                </div>
+            </div>
+
+            <div class="control-bar">
+                <button class="ctrl-btn" id="btnLayer" onclick="toggleLayer()" title="切换图层">🛰️</button>
+                <button class="ctrl-btn" id="btn3D" onclick="toggleViewMode()" title="2D/3D切换">3D</button>
+                <button class="ctrl-btn" onclick="resetView()" title="一键复位">📍</button>
+                <button class="ctrl-btn" id="btnLegend" onclick="toggleLegend()" title="显示/隐藏图例" style="position:relative;">
+                    📋
+                </button>
+            </div>
+
+            <div class="info-popup" id="infoPopup"></div>
+        </div>
+    </div>
+
+    <script>
+        window._AMapSecurityConfig = {
+            securityJsCode: '8cc1e17e87bd8d7f80d303d6e7bdbc0a',
+        };
+    </script>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=7d2674ce8375986e20c048ead06989d0&callback=amapReady" defer></script>
+
+    <script>
+        const PARK_CENTER = [105.238, 32.575];
+
+        const LAND_PLOTS = [
+            {
+                id: 'A-1',
+                name: '工业用地A-1',
+                type: 'industrial',
+                color: '#4caf50',
+                fillColor: 'rgba(76,175,80,0.35)',
+                strokeColor: 'rgba(76,175,80,0.8)',
+                path: [
+                    [105.230, 32.580], [105.236, 32.580],
+                    [105.236, 32.585], [105.230, 32.585]
+                ],
+                area: 48.0,
+                desc: '一类工业用地，用于农产品加工、食品制造等低污染产业'
+            },
+            {
+                id: 'A-2',
+                name: '工业用地A-2',
+                type: 'industrial',
+                color: '#388e3c',
+                fillColor: 'rgba(56,142,60,0.35)',
+                strokeColor: 'rgba(56,142,60,0.8)',
+                path: [
+                    [105.230, 32.577], [105.236, 32.577],
+                    [105.236, 32.580], [105.230, 32.580]
+                ],
+                area: 24.0,
+                desc: '一类工业用地，用于新型材料研发制造'
+            },
+            {
+                id: 'A-3',
+                name: '工业用地A-3',
+                type: 'industrial',
+                color: '#66bb6a',
+                fillColor: 'rgba(102,187,106,0.35)',
+                strokeColor: 'rgba(102,187,106,0.8)',
+                path: [
+                    [105.230, 32.565], [105.236, 32.565],
+                    [105.236, 32.568], [105.230, 32.568]
+                ],
+                area: 48.0,
+                desc: '二类工业用地，用于建材加工、机械制造'
+            },
+            {
+                id: 'A-4',
+                name: '工业用地A-4',
+                type: 'industrial',
+                color: '#43a047',
+                fillColor: 'rgba(67,160,71,0.35)',
+                strokeColor: 'rgba(67,160,71,0.8)',
+                path: [
+                    [105.230, 32.562], [105.236, 32.562],
+                    [105.236, 32.565], [105.230, 32.565]
+                ],
+                area: 24.0,
+                desc: '新能源产业用地，用于光伏组件、储能设备'
+            },
+            {
+                id: 'B-1',
+                name: '商业用地B-1',
+                type: 'commercial',
+                color: '#ffc107',
+                fillColor: 'rgba(255,193,7,0.35)',
+                strokeColor: 'rgba(255,193,7,0.8)',
+                path: [
+                    [105.236, 32.577], [105.242, 32.577],
+                    [105.242, 32.580], [105.236, 32.580]
+                ],
+                area: 24.0,
+                desc: '商业服务业用地，用于商务办公、酒店餐饮'
+            },
+            {
+                id: 'B-2',
+                name: '商业用地B-2',
+                type: 'commercial',
+                color: '#ffb300',
+                fillColor: 'rgba(255,179,0,0.35)',
+                strokeColor: 'rgba(255,179,0,0.8)',
+                path: [
+                    [105.242, 32.577], [105.248, 32.577],
+                    [105.248, 32.580], [105.242, 32.580]
+                ],
+                area: 24.0,
+                desc: '商业服务业用地，用于商业综合体'
+            },
+            {
+                id: 'B-3',
+                name: '商业用地B-3',
+                type: 'commercial',
+                color: '#ffa000',
+                fillColor: 'rgba(255,160,0,0.35)',
+                strokeColor: 'rgba(255,160,0,0.8)',
+                path: [
+                    [105.248, 32.577], [105.254, 32.577],
+                    [105.254, 32.580], [105.248, 32.580]
+                ],
+                area: 24.0,
+                desc: '商业服务业用地，用于零售商业'
+            },
+            {
+                id: 'B-4',
+                name: '商业用地B-4',
+                type: 'commercial',
+                color: '#ffc107',
+                fillColor: 'rgba(255,193,7,0.35)',
+                strokeColor: 'rgba(255,193,7,0.8)',
+                path: [
+                    [105.236, 32.574], [105.242, 32.574],
+                    [105.242, 32.577], [105.236, 32.577]
+                ],
+                area: 24.0,
+                desc: '商业服务业用地，用于科创服务中心'
+            },
+            {
+                id: 'B-5',
+                name: '商业用地B-5',
+                type: 'commercial',
+                color: '#ffb300',
+                fillColor: 'rgba(255,179,0,0.35)',
+                strokeColor: 'rgba(255,179,0,0.8)',
+                path: [
+                    [105.242, 32.574], [105.248, 32.574],
+                    [105.248, 32.577], [105.242, 32.577]
+                ],
+                area: 24.0,
+                desc: '商业服务业用地，用于金融服务'
+            },
+            {
+                id: 'B-6',
+                name: '商业用地B-6',
+                type: 'commercial',
+                color: '#ffc107',
+                fillColor: 'rgba(255,193,7,0.35)',
+                strokeColor: 'rgba(255,193,7,0.8)',
+                path: [
+                    [105.236, 32.571], [105.242, 32.571],
+                    [105.242, 32.574], [105.236, 32.574]
+                ],
+                area: 24.0,
+                desc: '商业服务业用地，用于商务办公'
+            },
+            {
+                id: 'B-7',
+                name: '商业用地B-7',
+                type: 'commercial',
+                color: '#ffb300',
+                fillColor: 'rgba(255,179,0,0.35)',
+                strokeColor: 'rgba(255,179,0,0.8)',
+                path: [
+                    [105.242, 32.571], [105.248, 32.571],
+                    [105.248, 32.574], [105.242, 32.574]
+                ],
+                area: 24.0,
+                desc: '商业服务业用地，用于餐饮娱乐'
+            },
+            {
+                id: 'B-8',
+                name: '商业用地B-8',
+                type: 'commercial',
+                color: '#ffc107',
+                fillColor: 'rgba(255,193,7,0.35)',
+                strokeColor: 'rgba(255,193,7,0.8)',
+                path: [
+                    [105.236, 32.568], [105.242, 32.568],
+                    [105.242, 32.571], [105.236, 32.571]
+                ],
+                area: 24.0,
+                desc: '商业服务业用地，用于商业配套'
+            },
+            {
+                id: 'B-9',
+                name: '商业用地B-9',
+                type: 'commercial',
+                color: '#ffb300',
+                fillColor: 'rgba(255,179,0,0.35)',
+                strokeColor: 'rgba(255,179,0,0.8)',
+                path: [
+                    [105.242, 32.568], [105.248, 32.568],
+                    [105.248, 32.571], [105.242, 32.571]
+                ],
+                area: 24.0,
+                desc: '商业服务业用地，用于仓储物流配套'
+            },
+            {
+                id: 'C-1',
+                name: '仓储用地C-1',
+                type: 'storage',
+                color: '#2196f3',
+                fillColor: 'rgba(33,150,243,0.35)',
+                strokeColor: 'rgba(33,150,243,0.8)',
+                path: [
+                    [105.248, 32.582], [105.254, 32.582],
+                    [105.254, 32.585], [105.248, 32.585]
+                ],
+                area: 24.0,
+                desc: '物流仓储用地，用于大宗商品仓储'
+            },
+            {
+                id: 'C-2',
+                name: '仓储用地C-2',
+                type: 'storage',
+                color: '#1976d2',
+                fillColor: 'rgba(25,118,210,0.35)',
+                strokeColor: 'rgba(25,118,210,0.8)',
+                path: [
+                    [105.248, 32.579], [105.254, 32.579],
+                    [105.254, 32.582], [105.248, 32.582]
+                ],
+                area: 24.0,
+                desc: '物流仓储用地，用于综合物流园'
+            },
+            {
+                id: 'C-3',
+                name: '仓储用地C-3',
+                type: 'storage',
+                color: '#2196f3',
+                fillColor: 'rgba(33,150,243,0.35)',
+                strokeColor: 'rgba(33,150,243,0.8)',
+                path: [
+                    [105.248, 32.576], [105.254, 32.576],
+                    [105.254, 32.579], [105.248, 32.579]
+                ],
+                area: 24.0,
+                desc: '物流仓储用地，用于冷链物流'
+            },
+            {
+                id: 'C-4',
+                name: '仓储用地C-4',
+                type: 'storage',
+                color: '#1976d2',
+                fillColor: 'rgba(25,118,210,0.35)',
+                strokeColor: 'rgba(25,118,210,0.8)',
+                path: [
+                    [105.248, 32.573], [105.254, 32.573],
+                    [105.254, 32.576], [105.248, 32.576]
+                ],
+                area: 24.0,
+                desc: '物流仓储用地，用于快递集散'
+            }
+        ];
+
+        let map = null;
+        let satelliteLayer = null;
+        let isSatellite = true;
+        let is3DMode = true;
+        let allPolygons = [];
+        let activeFilter = null;
+
+        window.amapReady = function() {
+            if (typeof AMap === 'undefined') {
+                document.getElementById('loadingTip').textContent = '❌ 地图加载失败，请检查网络';
+                return;
+            }
+
+            map = new AMap.Map('amap', {
+                zoom: 16,
+                pitch: 55,
+                bearing: 0,
+                center: PARK_CENTER,
+                viewMode: '3D',
+                showLabel: true,
+                showIndoorMap: false,
+                rotateEnable: true,
+                pitchEnable: true,
+                dragEnable: true,
+                zoomEnable: true,
+                features: ['bg', 'road', 'building'],
+            });
+
+            AMap.plugin([
+                'AMap.Scale',
+                'AMap.ToolBar',
+            ], function() {
+                const scale = new AMap.Scale({
+                    position: 'LB',
+                    offset: new AMap.Pixel(15, 15),
+                });
+                map.addControl(scale);
+
+                satelliteLayer = new AMap.TileLayer.Satellite({ zIndex: 0 });
+                satelliteLayer.setMap(map);
+
+                drawAllLandPlots();
+                drawCenterMarker();
+                updateStats();
+
+                setTimeout(function() {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                }, 1200);
+            });
+        };
+
+        function drawCenterMarker() {
+            const marker = new AMap.Marker({
+                position: PARK_CENTER,
+                icon: new AMap.Icon({
+                    size: new AMap.Size(40, 40),
+                    image: 'data:image/svg+xml,' + encodeURIComponent(
+                        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">' +
+                        '<circle cx="20" cy="20" r="18" fill="none" stroke="#40c4ff" stroke-width="2" opacity="0.5"/>' +
+                        '<circle cx="20" cy="20" r="8" fill="rgba(64,196,255,0.3)" stroke="#40c4ff" stroke-width="1.5"/>' +
+                        '<circle cx="20" cy="20" r="3" fill="#40c4ff"/>' +
+                        '</svg>'
+                    ),
+                    imageSize: new AMap.Size(40, 40),
+                }),
+                offset: new AMap.Pixel(-20, -20),
+                zIndex: 110,
+                title: '青川县庄子上工业园区',
+            });
+            marker.setMap(map);
+        }
+
+        function drawAllLandPlots() {
+            LAND_PLOTS.forEach(function(plot) {
+                const polygon = new AMap.Polygon({
+                    path: plot.path,
+                    fillColor: plot.fillColor,
+                    fillOpacity: 0.6,
+                    strokeColor: plot.strokeColor,
+                    strokeWeight: 2,
+                    strokeStyle: 'solid',
+                    strokeDasharray: [0, 0],
+                    zIndex: 10,
+                    cursor: 'pointer',
+                });
+
+                const glowPolygon = new AMap.Polygon({
+                    path: plot.path,
+                    fillColor: 'transparent',
+                    fillOpacity: 0,
+                    strokeColor: plot.strokeColor,
+                    strokeWeight: 4,
+                    strokeStyle: 'solid',
+                    strokeOpacity: 0.2,
+                    zIndex: 9,
+                });
+
+                polygon.setMap(map);
+                glowPolygon.setMap(map);
+
+                polygon.on('click', function(e) {
+                    showPlotInfo(plot, e);
+                });
+
+                polygon.on('mouseover', function() {
+                    polygon.setOptions({
+                        fillOpacity: 0.85,
+                        strokeWeight: 3,
+                    });
+                });
+
+                polygon.on('mouseout', function() {
+                    polygon.setOptions({
+                        fillOpacity: 0.6,
+                        strokeWeight: 2,
+                    });
+                    hidePlotInfo();
+                });
+
+                const labelCenter = getPolygonCenter(plot.path);
+                const labelMarker = new AMap.Marker({
+                    position: labelCenter,
+                    content: '<div style="color:#fff;font-size:11px;font-weight:700;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.9);white-space:nowrap;pointer-events:none;line-height:1.2;">' + plot.id + '</div>',
+                    offset: new AMap.Pixel(-15, -8),
+                    zIndex: 50,
+                });
+                labelMarker.setMap(map);
+
+                allPolygons.push({
+                    polygon: polygon,
+                    glow: glowPolygon,
+                    label: labelMarker,
+                    plot: plot
+                });
+            });
+        }
+
+        function getPolygonCenter(path) {
+            let sumLng = 0, sumLat = 0;
+            path.forEach(function(p) {
+                sumLng += p[0];
+                sumLat += p[1];
+            });
+            return [sumLng / path.length, sumLat / path.length];
+        }
+
+        function showPlotInfo(plot, e) {
+            const popup = document.getElementById('infoPopup');
+            popup.innerHTML = '<div class="popup-title">' + plot.id + ' ' + plot.name + '</div>' +
+                '<div class="popup-detail">' +
+                '用地类型：<span>' + getTypeName(plot.type) + '</span><br/>' +
+                '规划面积：<span>' + plot.area.toFixed(1) + ' 亩</span><br/>' +
+                '功能说明：<span>' + plot.desc + '</span>' +
+                '</div>';
+            popup.style.left = (e.pixel.x + 15) + 'px';
+            popup.style.top = (e.pixel.y - 100) + 'px';
+            popup.classList.add('show');
+        }
+
+        function hidePlotInfo() {
+            document.getElementById('infoPopup').classList.remove('show');
+        }
+
+        function getTypeName(type) {
+            const names = {
+                'industrial': '工业用地',
+                'commercial': '商业用地',
+                'storage': '仓储用地'
+            };
+            return names[type] || type;
+        }
+
+        function filterByType(type) {
+            const legendItems = document.querySelectorAll('.legend-item');
+
+            if (activeFilter === type) {
+                activeFilter = null;
+                legendItems.forEach(function(item) { item.classList.remove('active'); });
+                allPolygons.forEach(function(item) {
+                    item.polygon.setMap(map);
+                    item.glow.setMap(map);
+                    item.label.setMap(map);
+                });
+            } else {
+                activeFilter = type;
+                legendItems.forEach(function(item) {
+                    if (item.getAttribute('data-type') === type) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+                allPolygons.forEach(function(item) {
+                    if (item.plot.type === type) {
+                        item.polygon.setMap(map);
+                        item.glow.setMap(map);
+                        item.label.setMap(map);
+                    } else {
+                        item.polygon.setMap(null);
+                        item.glow.setMap(null);
+                        item.label.setMap(null);
+                    }
+                });
+            }
+        }
+
+        function updateStats() {
+            const totalPlots = LAND_PLOTS.length;
+            const totalArea = LAND_PLOTS.reduce(function(sum, p) { return sum + p.area; }, 0);
+            const industrialArea = LAND_PLOTS
+                .filter(function(p) { return p.type === 'industrial'; })
+                .reduce(function(sum, p) { return sum + p.area; }, 0);
+
+            document.getElementById('statTotal').textContent = totalPlots;
+            document.getElementById('statArea').textContent = totalArea.toFixed(0);
+            document.getElementById('statBuilt').textContent = industrialArea.toFixed(0);
+        }
+
+        function toggleLayer() {
+            const btn = document.getElementById('btnLayer');
+            if (isSatellite) {
+                satelliteLayer.setMap(null);
+                map.setMapStyle('amap://styles/darkblue');
+                btn.textContent = '🌐';
+                btn.classList.add('active');
+                isSatellite = false;
+            } else {
+                map.setMapStyle('');
+                satelliteLayer.setMap(map);
+                btn.textContent = '🛰️';
+                btn.classList.remove('active');
+                isSatellite = true;
+            }
+        }
+
+        function toggleViewMode() {
+            const btn = document.getElementById('btn3D');
+            if (is3DMode) {
+                map.setPitch(0);
+                btn.textContent = '2D';
+                btn.classList.add('active');
+                is3DMode = false;
+            } else {
+                map.setPitch(55);
+                btn.textContent = '3D';
+                btn.classList.remove('active');
+                is3DMode = true;
+            }
+        }
+
+        function resetView() {
+            map.setZoomAndCenter(16, PARK_CENTER);
+            map.setPitch(55);
+            is3DMode = true;
+            document.getElementById('btn3D').textContent = '3D';
+            document.getElementById('btn3D').classList.remove('active');
+            if (activeFilter) {
+                activeFilter = null;
+                document.querySelectorAll('.legend-item').forEach(function(item) { item.classList.remove('active'); });
+                allPolygons.forEach(function(item) {
+                    item.polygon.setMap(map);
+                    item.glow.setMap(map);
+                    item.label.setMap(map);
+                });
+            }
+        }
+
+        function toggleLegend() {
+            const panel = document.getElementById('legendPanel');
+            const btn = document.getElementById('btnLegend');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'flex';
+                btn.classList.remove('active');
+            } else {
+                panel.style.display = 'none';
+                btn.classList.add('active');
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'r' || e.key === 'R') resetView();
+            if (e.key === 'l' || e.key === 'L') toggleLegend();
+        });
+
+        window.addEventListener('resize', function() {
+            if (map) map.resize();
+        });
+
+        function updateTime() {
+            var now = new Date();
+            document.getElementById('currentTime').textContent =
+                now.getFullYear() + '-' +
+                String(now.getMonth()+1).padStart(2,'0') + '-' +
+                String(now.getDate()).padStart(2,'0') + ' ' +
+                String(now.getHours()).padStart(2,'0') + ':' +
+                String(now.getMinutes()).padStart(2,'0') + ':' +
+                String(now.getSeconds()).padStart(2,'0');
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        function refreshData() {
+            var btn = document.getElementById('refreshBtn');
+            btn.style.pointerEvents = 'none';
+            var icon = btn.querySelector('i');
+            icon.style.animation = 'fa-spin 0.8s linear infinite';
+            icon.classList.add('fa-spin');
+
+            if (map) {
+                resetView();
+                map.resize();
+            }
+
+            setTimeout(function() {
+                btn.style.pointerEvents = 'auto';
+                icon.style.animation = '';
+                icon.classList.remove('fa-spin');
+            }, 1200);
+        }
+    </script>
+
+        <div class="bottom-tabs">
+            <a class="tab-btn" href="park_sandbox.html">沙盘</a>
+            <a class="tab-btn" href="park_economy.html">经济</a>
+            <a class="tab-btn active" style="pointer-events:none;opacity:0.8" href="park_land.html">用地</a>
+            <a class="tab-btn" href="park_enterprise.html">企业</a>
+            <a class="tab-btn" href="park_service.html">服务</a>
+            <a class="tab-btn" href="park_energy.html">能耗</a>
+            <a class="tab-btn" href="park_safety.html">安全</a>
+        </div>
+<script src="park_loading.js"></script>
+</body>
+</html>
