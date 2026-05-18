@@ -472,16 +472,18 @@
             min-height: 0;
         }
         .svc-card {
-            background: linear-gradient(145deg, rgba(10, 20, 48, 0.78), rgba(15, 28, 60, 0.70));
+            background: linear-gradient(145deg, rgba(6,14,35,0.42), rgba(10,20,48,0.35));
             border: 1px solid rgba(43, 104, 224, 0.25);
             border-radius: 8px;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             box-shadow:
-                0 0 15px rgba(43, 104, 224, 0.08),
-                inset 0 1px 0 rgba(64, 196, 255, 0.05);
+                0 4px 24px rgba(0,0,0,0.15),
+                inset 0 1px 0 rgba(64,196,255,0.08);
         }
         .svc-title {
             font-size: 17px; font-weight: 700; color: #40c4ff;
@@ -1671,24 +1673,51 @@ function initServiceDashboard(){
   serviceInited=true;
   renderGaugeItems();
   initHUDParticles(); // 初始化HUD粒子效果
-  // 1. 产业协作 - 水平堆叠条形图
-  serviceCharts.industryCollab=echarts.init(document.getElementById('svcIndustryCollab'));
-  serviceCharts.industryCollab.setOption({
-    grid:{left:10,right:20,top:18,bottom:16,containLabel:true},
-    legend:{data:['总量','已完成'],top:0,textStyle:{color:'#a0cfff',fontSize:11},itemWidth:14,itemHeight:8},
-    xAxis:{type:'value',axisLine:{lineStyle:{color:'rgba(64,196,255,0.25)'}},splitLine:{show:false},axisLabel:{color:'#78909c',fontSize:10}},
-    yAxis:{type:'category',data:['服务','需求'],axisLine:{lineStyle:{color:'rgba(64,196,255,0.25)'}},axisTick:{show:false},axisLabel:{color:'#cfe8ff',fontSize:12}},
-    series:[
-      {name:'总量',type:'bar',barWidth:16,itemStyle:{
-        color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#40c4ff'},{offset:1,color:'#2b68e0'}]),
-        borderRadius:[0,3,3,0]
-      },label:{show:true,position:'right',color:'#cfe8ff',fontSize:11,fontWeight:600},data:[530,185]},
-      {name:'已完成',type:'bar',barWidth:16,itemStyle:{
-        color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#ffd54f'},{offset:1,color:'#ff8f00'}]),
-        borderRadius:[0,3,3,0]
-      },label:{show:true,position:'right',color:'#ffd54f',fontSize:11,fontWeight:600},data:[466,168]}
-    ]
-  });
+  // 1. 产业协作 - 仪表盘（双指针）
+  var svcTotal=530, svcDone=466, svcPct=+(svcDone/svcTotal*100).toFixed(1);
+  var reqTotal=185, reqDone=168, reqPct=+(reqDone/reqTotal*100).toFixed(1);
+  var ptrPath='path://M2.9,0.7L2.9,0.7c1.4,0,2.6,1.2,2.6,2.6v115c0,1.4-1.2,2.6-2.6,2.6l0,0c-1.4,0-2.6-1.2-2.6-2.6V3.3C0.3,1.9,1.4,0.7,2.9,0.7z';
+  var collabEl=document.getElementById('svcIndustryCollab');
+  var collabCh=echarts.init(collabEl);
+  // 面板隐藏时 clientHeight=0，需 resize 后计算
+  setTimeout(function(){
+    var ch=collabEl.clientHeight||collabCh.getHeight()||220;
+    var gNum=Math.round(ch*0.12), gTitle=Math.round(ch*0.05);
+    collabCh.setOption({
+    tooltip:{trigger:'item',formatter:'{b}: {c}%'},
+    series:[{
+      type:'gauge',startAngle:200,endAngle:-20,
+      center:['42%','50%'],radius:'68%',
+      anchor:{show:true,showAbove:true,size:16,itemStyle:{color:'#FAC858'}},
+      pointer:{icon:ptrPath,width:8,length:'80%',offsetCenter:[0,'8%']},
+      progress:{show:true,overlap:true,roundCap:true},
+      axisLine:{roundCap:true,lineStyle:{color:[[0.3,'#40c4ff'],[0.7,'#ff9500'],[1,'#3a5a80']]}},
+      axisTick:{distance:3,lineStyle:{color:'#8ab4d8',width:1}},
+      splitLine:{distance:3,lineStyle:{color:'#8ab4d8',width:2}},
+      axisLabel:{distance:10,color:'#8ab4d8',fontSize:9,formatter:'{value}'},
+      detail:{show:false},
+      title:{show:false},
+      data:[
+        {value:svcPct,name:'服务完成'},
+        {value:reqPct,name:'需求完成'}
+      ]
+    }],
+    // 标签直接用 graphic 画在容器右侧
+    graphic:[
+      {type:'text',left:'80%',top:'18%',style:{text:'服务完成',fontSize:gTitle,fill:'#8ab4d8',textAlign:'left'}},
+      {type:'text',left:'80%',top:'30%',style:{text:''+svcDone,fontSize:gNum,fill:'#40c4ff',fontWeight:700,textAlign:'left'}},
+      {type:'text',left:'80%',top:'52%',style:{text:'需求完成',fontSize:gTitle,fill:'#8ab4d8',textAlign:'left'}},
+      {type:'text',left:'80%',top:'64%',style:{text:''+reqDone,fontSize:gNum,fill:'#ff9500',fontWeight:700,textAlign:'left'}}
+    ],
+    legend:{
+      data:['服务完成','需求完成'],
+      bottom:0,
+      icon:'roundRect',itemWidth:16,itemHeight:6,
+      textStyle:{color:'#8ab4d8',fontSize:9}
+    }
+    });
+    serviceCharts.industryCollab=collabCh;
+  },100);
   // 2. 服务类型 - 南丁格尔玫瑰图 - 自动旋转
   serviceCharts.serviceType = ParkCharts.pieRose('svcServiceType',{
     name:'服务类型',
@@ -1697,21 +1726,68 @@ function initServiceDashboard(){
       {value:1,name:'其他'},{value:1,name:'人才用工'},{value:1,name:'配套需求'}
     ]
   });
-  // 3. 惠企政策 - 柱线组合图
+  // 3. 惠企政策 - 散点气泡图（Y轴年份/X轴月份/气泡大小=数值）
   serviceCharts.policyChart=echarts.init(document.getElementById('svcPolicyChart'));
-  var months=['2023-01','2023-02','2023-03','2023-04','2023-05','2023-06'];
+  var years = ['2023','2024','2025','2026','2027'];
+  // 生成5年×12月模拟数据
+  var entData = []; // 惠及企业 [month, yearIndex, value]
+  var pushData = []; // 推送人次
+  var seed = 42;
+  function rnd(min,max){ seed=(seed*9301+49297)%233280; return Math.floor(min+(seed/233280)*(max-min+1)); }
+  for (var y = 0; y < 5; y++) {
+    for (var m = 1; m <= 12; m++) {
+      var ev = rnd(1,8);
+      var pv = rnd(5,25);
+      entData.push({ value:[m, y], symbolSize: ev * 3, _raw: ev });
+      pushData.push({ value:[m, y], symbolSize: pv * 1.5, _raw: pv });
+    }
+  }
   serviceCharts.policyChart.setOption({
-    grid:{left:32,right:28,top:10,bottom:22,containLabel:true},
-    legend:{data:['政策总量','惠及企业','推送人次'],bottom:-2,textStyle:{color:'#a0cfff',fontSize:9},itemWidth:12,itemHeight:7},
-    xAxis:{type:'category',data:months,axisLine:{lineStyle:{color:'rgba(64,196,255,0.2)'}},axisTick:{show:false},axisLabel:{color:'#88a4c4',fontSize:9,rotate:30}},
-    yAxis:[
-      {type:'value',name:'单位：条',nameTextStyle:{color:'#78909c',fontSize:9},axisLine:{show:false},splitLine:{lineStyle:{color:'rgba(64,196,255,0.08)'}},axisLabel:{color:'#78909c',fontSize:9}},
-      {type:'value',name:'单位：个',nameTextStyle:{color:'#78909c',fontSize:9},axisLine:{show:false},splitLine:{show:false},axisLabel:{color:'#78909c',fontSize:9}}
-    ],
+    tooltip: {
+      trigger:'item',
+      formatter: function(p){
+        var ym = years[p.value[1]] + '年' + p.value[0] + '月';
+        return ym + '<br/>' + p.marker + p.seriesName + ': ' + p.data._raw;
+      }
+    },
+    legend: {
+      data:['惠及企业','推送人次'],
+      bottom:0,
+      icon:'roundRect',
+      itemWidth:16,
+      itemHeight:6,
+      textStyle:{color:'#8ab4d8',fontSize:9}
+    },
+    grid:{left:4,right:24,top:8,bottom:28,containLabel:true},
+    xAxis:{
+      type:'value', min:1, max:12, interval:1,
+      name:'月份',
+      splitLine:{lineStyle:{color:'#8ab4d8',opacity:.15}}
+    },
+    yAxis:{
+      type:'category',
+      data:years,
+      inverse:true,
+      axisLine:{lineStyle:{color:'#3a5a80'}},
+      axisTick:{show:false}
+    },
     series:[
-      {name:'政策总量',type:'line',yAxisIndex:1,smooth:true,symbol:'circle',symbolSize:6,lineStyle:{color:'#d946ef',width:2.5,shadowColor:'rgba(217,70,239,0.4)',shadowBlur:4},itemStyle:{color:'#d946ef'},data:[6,12,5,17,23,8]},
-      {name:'惠及企业',type:'bar',yAxisIndex:0,barWidth:12,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(64,196,255,0.85)'},{offset:1,color:'rgba(43,104,224,0.7)'}]),borderRadius:[2,2,0,0]},data:[3,4,2,4,4,2]},
-      {name:'推送人次',type:'bar',yAxisIndex:0,barWidth:12,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(255,213,79,0.95)'},{offset:1,color:'rgba(255,143,0,0.8)'}]),borderRadius:[2,2,0,0]},data:[11,16,9,18,19,9]}
+      {
+        name:'惠及企业', type:'scatter',
+        color:'#40c4ff',
+        data: entData,
+        emphasis:{focus:'series'},
+        animationDuration:1200,
+        animationEasing:'elasticOut'
+      },
+      {
+        name:'推送人次', type:'scatter',
+        color:'#ff9500',
+        data: pushData,
+        emphasis:{focus:'series'},
+        animationDuration:1200,
+        animationEasing:'elasticOut'
+      }
     ]
   });
   // 4. 服务状态 - 南丁格尔玫瑰图 - 自动旋转
@@ -1720,17 +1796,15 @@ function initServiceDashboard(){
     data:[{value:2,name:'已解决'},{value:2,name:'待处理'},{value:5,name:'处理中'}]
   });
   // 5. 行业监管 - 堆叠柱状图
-  serviceCharts.supervision=echarts.init(document.getElementById('svcSupervision'));
-  serviceCharts.supervision.setOption({
-    grid:{left:35,right:10,top:16,bottom:26,containLabel:true},
-    legend:{data:['安全检查','疫情检查','环保检查'],top:2,textStyle:{color:'#a0cfff',fontSize:9},itemWidth:12,itemHeight:7},
-    xAxis:{type:'category',data:months,axisLine:{lineStyle:{color:'rgba(64,196,255,0.2)'}},axisTick:{show:false},axisLabel:{color:'#88a4c4',fontSize:9,rotate:30}},
-    yAxis:{type:'value',name:'单位：次',nameTextStyle:{color:'#78909c',fontSize:9},axisLine:{show:false},splitLine:{lineStyle:{color:'rgba(64,196,255,0.08)'}},axisLabel:{color:'#78909c',fontSize:9}},
+  serviceCharts.supervision = ParkCharts.barStack('svcSupervision',{
     series:[
-      {name:'安全检查',type:'bar',stack:'total',barWidth:14,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#ffd54f'},{offset:1,color:'#ff8f00'}]),borderRadius:[0,0,0,0]},data:[7,2,1,9,6,3]},
-      {name:'疫情检查',type:'bar',stack:'total',barWidth:14,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#67e8f9'},{offset:1,color:'#06b6d4'}])},data:[32,24,11,19,15,6]},
-      {name:'环保检查',type:'bar',stack:'total',barWidth:14,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#f472b6'},{offset:1,color:'#d946ef'}]),borderRadius:[2,2,0,0]},data:[33,46,21,23,43,18]}
-    ]
+      {name:'安全检查',data:[7,2,1,9,6,3]},
+      {name:'疫情检查',data:[32,24,11,19,15,6]},
+      {name:'环保检查',data:[33,46,21,23,43,18]}
+    ],
+    xData:['2023-01','2023-02','2023-03','2023-04','2023-05','2023-06'],
+    unit:'次',
+    colors:['#5070dd','#b6d634','#505372']
   });
   /* 窗口resize时同步 */
   window.addEventListener('resize',function(){Object.keys(serviceCharts).forEach(function(k){if(serviceCharts[k])serviceCharts[k].resize();});});

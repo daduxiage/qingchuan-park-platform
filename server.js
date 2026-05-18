@@ -218,7 +218,16 @@ function handleRequest(req, res, urlPath) {
     }
 
     // 静态文件
+    // 修复重复的 /pages/ 路径 → 301 跳转
     let filePath = urlPath;
+    var cleaned = filePath;
+    while (cleaned.includes('/pages/pages/')) {
+        cleaned = cleaned.replace('/pages/pages/', '/pages/');
+    }
+    if (cleaned !== filePath) {
+        res.writeHead(301, { 'Location': cleaned });
+        return res.end();
+    }
     if (filePath === '/') filePath = '/index.html';
     const fullPath = path.join(ROOT, filePath);
 

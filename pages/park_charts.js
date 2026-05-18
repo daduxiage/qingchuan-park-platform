@@ -359,6 +359,54 @@
  * 【交互】
  *   tooltip: axis 触发
  *   emphasis: shadowBlur:20, shadowColor rgba(64,196,255,.6)
+ *
+ * ============================================================
+ *  图表 #6：堆叠柱状图 barStack — 样式标准
+ * ============================================================
+ *
+ *   ★ 与 #2/#5 的核心区别：多系列堆叠 + 百分比标签
+ *
+ * 【生成方法】
+ *   ParkCharts.barStack(domId, opts)
+ *     domId  - 容器 DOM id（字符串）
+ *     opts   - {
+ *         series: [{name:string, data:number[]}],
+ *         xData?: string[],
+ *         colors?: string[],
+ *         unit?: string
+ *       }
+ *     返回值  - ECharts 实例（可调用 .resize() 等）
+ *
+ * 【视觉规范】
+ *   堆叠配色  ['#5070dd','#b6d634','#505372','#ff994d','#0ca8df'] 5色
+ *   轴文字色  T.text     = #8ab4d8
+ *   网格线色  T.text, opacity:.15
+ *
+ * 【柱体样式】
+ *   type: bar, stack: 'total'         — 堆叠模式
+ *   barWidth: '60%'                   — 柱宽 60%
+ *   ★ 每个系列按传入 colors[] 独立配色
+ *   ★ 数据自动转为百分比（值/该列总和），Y轴显示 0-100%
+ *
+ * 【数据标签】
+ *   label.show: true                  — 每段显示原始数值（非百分比）
+ *   tooltip 自定义 formatter          — 同样显示原始数值，非百分比
+ *
+ * 【Y 轴】
+ *   max: 1                             — 百分比堆叠上限
+ *   axisLabel: v*100+'%'               — Y 轴显示 0-100%
+ *
+ * 【Grid 布局】
+ *   left:4, right:24, top:28, bottom:24, containLabel:true
+ *
+ * 【图例】
+ *   legend.selectedMode: false        — 不可点击切换
+ *   legend.icon: 'roundRect', itemWidth:16, itemHeight:6
+ *   legend.textStyle: color T.text, fontSize:9
+ *
+ * 【入场动画】
+ *   animationDuration: 1200
+ *   animationEasing: 'elasticOut'
  */
 (function(global){
   'use strict';
@@ -819,6 +867,92 @@
           }
         }
       }]
+    });
+
+    return ch;
+  };
+
+  // =====================
+  // 6. 堆叠柱状图 ★图表标准#6
+  // =====================
+  PC.barStack = function(domId, opts){
+    var el = document.getElementById(domId);
+    if (!el) return null;
+    var ch = echarts.init(el);
+    var seriesData = opts.series || [];
+    var xData = opts.xData || ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    var colors = opts.colors || ['#5070dd','#b6d634','#505372','#ff994d','#0ca8df'];
+
+    // 计算每列总和
+    var n = xData.length;
+    var totalData = [];
+    for (var i = 0; i < n; i++) {
+      var sum = 0;
+      for (var j = 0; j < seriesData.length; j++) {
+        sum += (seriesData[j].data[i] || 0);
+      }
+      totalData.push(sum);
+    }
+
+    var series = seriesData.map(function(s, sid){
+      return {
+        name: s.name,
+        type: 'bar',
+        stack: 'total',
+        barWidth: '60%',
+        color: colors[sid % colors.length],
+        itemStyle: { borderRadius: 0 },
+        label: {
+          show: true,
+          color: '#fff',
+          fontSize: 8,
+          formatter: function(p){
+            return String(seriesData[p.seriesIndex].data[p.dataIndex]);
+          }
+        },
+        data: s.data.map(function(d, did){
+          return totalData[did] <= 0 ? 0 : d / totalData[did];
+        }),
+        animationDuration: 1200,
+        animationEasing: 'elasticOut'
+      };
+    });
+
+    ch.setOption({
+      tooltip: {
+        trigger:'axis',
+        axisPointer:{ type:'shadow' },
+        formatter: function(params){
+          var tip = params[0].axisValue;
+          for (var i = 0; i < params.length; i++) {
+            var p = params[i];
+            tip += '<br/>' + p.marker + p.seriesName + ': ' + seriesData[p.seriesIndex].data[p.dataIndex];
+          }
+          return tip;
+        }
+      },
+      legend: {
+        data: seriesData.map(function(s){return s.name;}),
+        top: 2,
+        icon: 'roundRect',
+        itemWidth: 16,
+        itemHeight: 6,
+        selectedMode: false,
+        textStyle: { color: T.text, fontSize: 9 }
+      },
+      grid: { left:4, right:24, top:28, bottom:24, containLabel: true },
+      xAxis: {
+        type: 'category',
+        data: xData,
+        axisTick: { show: false }
+      },
+      yAxis: {
+        type: 'value',
+        max: 1,
+        axisLabel: { formatter: function(v){ return Math.round(v*100)+'%'; } },
+        splitLine: { lineStyle: { color: T.text, opacity: .15 } }
+      },
+      series: series
     });
 
     return ch;
