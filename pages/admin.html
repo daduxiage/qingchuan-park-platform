@@ -169,11 +169,14 @@ function renderStatus(data){
 
 function copyLog(){
     var text=document.getElementById('deployLog').textContent;
-    // 取最新100行
     var lines=text.split('\n').filter(function(l){return l.trim()}).slice(0,100);
-    navigator.clipboard.writeText(lines.join('\n')).then(function(){
-        log('日志已复制 ('+lines.length+'行)');
-    }).catch(function(){log('复制失败');});
+    var str=lines.join('\n');
+    var ta=document.createElement('textarea');
+    ta.value=str;ta.style.position='fixed';ta.style.left='-9999px';
+    document.body.appendChild(ta);
+    ta.select();document.execCommand('copy');
+    document.body.removeChild(ta);
+    log('日志已复制 ('+lines.length+'行)');
 }
 
 function fetchGitLog(){
