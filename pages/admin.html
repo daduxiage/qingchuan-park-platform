@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>运维面板 · 青川庄子上智慧工业园</title>
+    <script>if(localStorage.getItem('ss_theme')!=='dark'){document.documentElement.classList.add('light-theme')}</script>
+    <link rel="stylesheet" href="/pages/common.css?v=20260315"/>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <script src="/pages/echarts.min.js"></script>
+    <style>
+.status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.status-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:16px;display:flex;align-items:center;gap:12px;transition:all .3s}
+.status-card .sc-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.status-card .sc-body{flex:1;min-width:0}
+.status-card .sc-value{font-size:22px;font-weight:700;line-height:1.2}
+.status-card .sc-label{font-size:11px;color:var(--text-tertiary);margin-top:2px}
+.tag-active{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-warning{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.tag-error{background:rgba(255,77,79,0.12);color:#ff4d4f;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.deploy-log{max-height:200px;overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;line-height:1.6;white-space:pre-wrap;color:var(--text-secondary)}
+.config-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.config-item{display:flex;flex-direction:column;gap:6px}
+.config-item label{font-size:12px;color:var(--text-tertiary);font-weight:600}
+@media(max-width:900px){.status-grid{grid-template-columns:repeat(2,1fr)}.config-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="loading-mask" id="loadingMask"><div class="loading-spinner"></div><div class="loading-text">运维面板 · 加载中...</div></div>
+<div class="page-header"><div class="page-header-left"><a href="../index.html" class="back-btn"><i class="fa fa-home"></i></a><div class="page-breadcrumb">青川县庄子上工业园区智慧园区平台 / <span>系统运维</span></div></div><div class="page-header-right"></div></div>
+<div class="page-body">
+
+<!-- 状态卡片 -->
+<div class="status-grid" id="statusGrid"></div>
+
+<!-- 部署控制 + Git 信息 -->
+<div class="card" style="margin-bottom:24px">
+<div class="card-header"><div class="card-title"><i class="fa fa-rocket" style="color:#40c4ff"></i> 部署控制</div>
+<div class="card-toolbar">
+    <button class="btn btn-default btn-sm" onclick="refreshAll()"><i class="fa fa-refresh"></i> 刷新</button>
+    <button class="btn btn-primary btn-sm" id="btnDeploy" onclick="doDeploy()"><i class="fa fa-cloud-upload-alt"></i> 一键部署</button>
+</div></div>
+<div class="card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
+        <div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:4px">本地版本</div><div id="gitLocal" style="font-family:monospace;font-size:13px">--</div></div>
+        <div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:4px">GitHub 最新</div><div id="gitRemote" style="font-family:monospace;font-size:13px">--</div></div>
+    </div>
+    <div id="deployHint" style="margin-bottom:12px"></div>
+    <div class="deploy-log" id="deployLog">等待操作...</div>
+</div></div>
+
+<!-- 配置管理 -->
+<div class="card" style="margin-bottom:24px">
+<div class="card-header"><div class="card-title"><i class="fa fa-cog" style="color:#ff9500"></i> 配置管理</div>
+<div class="card-toolbar"><button class="btn btn-primary btn-sm" onclick="saveConfig()"><i class="fa fa-save"></i> 保存配置</button></div></div>
+<div class="card-body">
+    <div class="config-row">
+        <div class="config-item"><label>部署 Token</label><input class="form-control" id="cfgDeployToken" placeholder="用于 API 调用的验证令牌"></div>
+        <div class="config-item"><label>GitHub 仓库地址</label><input class="form-control" id="cfgRepoUrl" placeholder="https://github.com/..."></div>
+        <div class="config-item"><label>高德地图 Key</label><input class="form-control" id="cfgAmapKey" placeholder="AMap JSAPI Key"></div>
+        <div class="config-item"><label>百度地图 AK</label><input class="form-control" id="cfgBaiduAk" placeholder="百度地图 AK"></div>
+    </div>
+</div></div>
+
+</div>
+
+<script src="/pages/common.js"></script>
+<script>
+(function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
+
+function getCssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#a0cfff'}
+
+var deployLog=document.getElementById('deployLog');
+function log(msg){deployLog.textContent+='['+new Date().toLocaleTimeString()+'] '+msg+'\n';deployLog.scrollTop=deployLog.scrollHeight}
+
+function renderStatus(data){
+    var d=data.data||{};
+    var cards=[
+        {icon:'fa-server',cls:'rgba(64,196,255,0.15)',color:'#40c4ff',label:'服务状态',value:d.server?'<span class="tag-active">运行中</span>':'<span class="tag-error">离线</span>'},
+        {icon:'fa-clock',cls:'rgba(76,217,100,0.15)',color:'#4cd964',label:'运行时间',value:fmtUptime(d.server?d.server.uptime:0)},
+        {icon:'fa-code-branch',cls:'rgba(255,149,0,0.15)',color:'#ff9500',label:'落后版本',value:(d.git?d.git.behind:0)+' 个提交',sub:d.git&&d.git.behind>0?'<span class="tag-warning">需更新</span>':'<span class="tag-active">已最新</span>'},
+        {icon:'fa-github',cls:'rgba(139,92,246,0.15)',color:'#8b5cf6',label:'GitHub',value:d.github?'<span class="tag-active">连通</span>':'<span class="tag-error">断连</span>'}
+    ];
+    var g=document.getElementById('statusGrid');
+    g.innerHTML=cards.map(function(c,i){
+        return '<div class="status-card"><div class="sc-icon" style="background:'+c.cls+';color:'+c.color+'"><i class="fa '+c.icon+'"></i></div><div class="sc-body"><div class="sc-value">'+c.value+'</div><div class="sc-label">'+c.label+(c.sub?' '+c.sub:'')+'</div></div></div>';
+    }).join('');
+    if(d.git){
+        document.getElementById('gitLocal').textContent=d.git.local;
+        document.getElementById('gitRemote').textContent=d.git.remote;
+        var hint=document.getElementById('deployHint');
+        if(d.git.behind>0){
+            hint.innerHTML='<span class="tag-warning"><i class="fa fa-exclamation-triangle"></i> 服务器落后 '+d.git.behind+' 个提交，建议立即部署</span>';
+        }else{
+            hint.innerHTML='<span class="tag-active"><i class="fa fa-check-circle"></i> 服务器已是最新版本</span>';
+        }
+        document.getElementById('btnDeploy').disabled=!d.github;
+    }
+}
+
+function fmtUptime(s){
+    var d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);
+    return (d?d+'天 ':'')+h+'时 '+m+'分';
+}
+
+function refreshAll(){
+    log('刷新状态...');
+    fetch('/api/admin/status').then(function(r){return r.json()}).then(renderStatus).catch(function(e){log('获取状态失败: '+e.message)});
+}
+
+function doDeploy(){
+    var tok=document.getElementById('cfgDeployToken').value||'park2024';
+    document.getElementById('btnDeploy').disabled=true;
+    log('开始部署...');
+    fetch('/api/deploy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:tok})})
+    .then(function(r){return r.json()})
+    .then(function(d){
+        log(d.ok?'部署成功: '+d.output:'部署失败: '+(d.output||''));
+        setTimeout(refreshAll,3000);
+    })
+    .catch(function(e){log('请求失败: '+e.message)})
+    .finally(function(){document.getElementById('btnDeploy').disabled=false});
+}
+
+function saveConfig(){
+    var cfg={deployToken:document.getElementById('cfgDeployToken').value,repo:document.getElementById('cfgRepoUrl').value,amap:document.getElementById('cfgAmapKey').value,baidu:document.getElementById('cfgBaiduAk').value};
+    localStorage.setItem('admin_config',JSON.stringify(cfg));
+    log('配置已保存到本地存储');
+}
+
+function loadConfig(){
+    try{var c=JSON.parse(localStorage.getItem('admin_config'));if(c){
+        document.getElementById('cfgDeployToken').value=c.deployToken||'park2024';
+        document.getElementById('cfgRepoUrl').value=c.repo||'https://github.com/daduxiage/qingchuan-park-platform';
+        document.getElementById('cfgAmapKey').value=c.amap||'';
+        document.getElementById('cfgBaiduAk').value=c.baidu||'';
+    }}catch(e){}
+}
+
+loadConfig();
+refreshAll();
+setInterval(refreshAll,30000);
+</script>
+</body>
+</html>

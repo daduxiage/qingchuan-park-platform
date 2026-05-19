@@ -137,6 +137,38 @@ routes['GET:/api/health'] = (req, res) => {
     res.json({ status: 'ok', uptime: process.uptime(), time: new Date().toISOString() });
 };
 
+// 运维面板 - 综合状态
+routes['GET:/api/admin/status'] = (req, res) => {
+    var info = {
+        server: {
+            uptime: process.uptime(),
+            node: process.version,
+            memory: process.memoryUsage(),
+            pid: process.pid,
+            time: new Date().toISOString()
+        },
+        git: { local: '', remote: '', behind: 0 },
+        pm2: '',
+        github: false
+    };
+    exec('cd /opt/park-platform && git log -1 --format="%h %s (%cr)"', function(e, o) {
+        info.git.local = (o || '').trim() || 'N/A';
+        exec('cd /opt/park-platform && git fetch origin main --dry-run 2>&1 && git rev-list HEAD..origin/main --count', function(e2, o2) {
+            info.git.behind = parseInt((o2 || '0').trim()) || 0;
+            exec('cd /opt/park-platform && git ls-remote origin HEAD | cut -f1 | xargs -I{} git log -1 --format="%h %s (%cr)" {}', function(e3, o3) {
+                info.git.remote = (o3 || '').trim() || 'fetching...';
+                exec('pm2 jlist 2>/dev/null || echo "{}"', function(e4, o4) {
+                    try { var p = JSON.parse(o4); info.pm2 = p[0] ? p[0].pm2_env.status : 'N/A'; } catch(x) { info.pm2 = 'N/A'; }
+                    exec('curl -s -o /dev/null -w "%{http_code}" --connect-timeout 3 https://github.com', function(e5, o5) {
+                        info.github = (o5 || '').trim() === '200';
+                        res.json({ ok: true, data: info });
+                    });
+                });
+            });
+        });
+    });
+};
+
 // 自动部署
 routes['POST:/api/deploy'] = (req, res) => {
     var p = req.body || {};
