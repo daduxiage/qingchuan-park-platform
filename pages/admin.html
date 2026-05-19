@@ -63,6 +63,17 @@
 
 </div>
 
+<!-- 部署确认弹窗 -->
+<div class="modal-overlay" id="deployModal">
+<div class="modal" style="width:440px">
+<div class="modal-header"><span class="modal-title"><i class="fa fa-rocket" style="color:#ff9500;margin-right:6px"></i>确认部署</span><div class="modal-close" onclick="closeDeployModal()">×</div></div>
+<div class="modal-body" style="padding:20px 24px;font-size:14px;line-height:1.8">
+    <p>确定要执行一键部署吗？</p>
+    <p style="color:var(--text-tertiary);font-size:12px">将拉取 GitHub 最新代码并重启服务，部署期间服务短暂不可用。</p>
+</div>
+<div class="modal-footer"><button class="btn btn-default" onclick="closeDeployModal()">取消</button><button class="btn btn-primary" id="btnConfirmDeploy"><i class="fa fa-cloud-upload-alt"></i> 确认部署</button></div>
+</div></div>
+
 <script src="/pages/common.js"></script>
 <script>
 (function(){document.querySelector('#loadingMask').classList.add('hide');setTimeout(function(){document.querySelector('#loadingMask').style.display='none'},500);})();
@@ -117,7 +128,15 @@ function refreshAll(){
 }
 
 function doDeploy(){
-    if(!confirm('确定要执行一键部署吗？\n\n将拉取 GitHub 最新代码并重启服务。')) return;
+    document.getElementById('deployModal').classList.add('show');
+}
+
+function closeDeployModal(){
+    document.getElementById('deployModal').classList.remove('show');
+}
+
+function execDeploy(){
+    closeDeployModal();
     var tok=document.getElementById('cfgDeployToken').value||'park2024';
     document.getElementById('btnDeploy').disabled=true;
     log('开始部署...');
@@ -147,6 +166,7 @@ function loadConfig(){
 }
 
 loadConfig();
+document.getElementById('btnConfirmDeploy').onclick=execDeploy;
 refreshAll();
 setInterval(refreshAll,3000);
 </script>
