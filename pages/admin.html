@@ -150,8 +150,8 @@ function fmtUptime(s){
 }
 
 function refreshAll(){
-    log('刷新状态...');
-    fetch('/api/admin/status').then(function(r){return r.json()}).then(renderStatus).catch(function(e){if(!_deploying)log('获取状态失败: '+e.message)});
+    if(_deploying) return;
+    fetch('/api/admin/status').then(function(r){return r.json()}).then(renderStatus).catch(function(e){log('获取状态失败: '+e.message)});
 }
 
 function doDeploy(){
@@ -175,7 +175,10 @@ function execDeploy(){
         setTimeout(refreshAll,3000);
     })
     .catch(function(e){log('请求失败: '+e.message)})
-    .finally(function(){document.getElementById('btnDeploy').disabled=false;_deploying=false});
+    .finally(function(){
+        document.getElementById('btnDeploy').disabled=false;
+        setTimeout(function(){_deploying=false},15000);
+    });
 }
 
 function saveConfig(){
