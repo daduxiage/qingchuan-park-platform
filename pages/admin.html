@@ -21,7 +21,24 @@
 .config-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .config-item{display:flex;flex-direction:column;gap:6px}
 .config-item label{font-size:12px;color:var(--text-tertiary);font-weight:600}
-@media(max-width:900px){.status-grid{grid-template-columns:repeat(2,1fr)}.config-row{grid-template-columns:1fr}}
+.diag-row{display:flex;gap:16px;min-height:140px}
+.diag-left{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;flex:0 0 260px}
+.diag-item{cursor:pointer;background:var(--bg-card);border:2px solid var(--border-color);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px;transition:all .2s}
+.diag-item:hover{border-color:#40c4ff}
+.diag-item.active{border-color:#40c4ff;box-shadow:0 0 12px rgba(64,196,255,0.2)}
+.diag-item .di-icon{font-size:28px;flex-shrink:0}
+.diag-item .di-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;animation:pulse-dot 2s infinite}
+.diag-item .di-dot.green{background:#4cd964;box-shadow:0 0 6px rgba(76,217,100,0.5)}
+.diag-item .di-dot.red{background:#ff4d4f;box-shadow:0 0 6px rgba(255,77,79,0.5)}
+.diag-item .di-dot.yellow{background:#ff9500;box-shadow:0 0 6px rgba(255,149,0,0.5)}
+.diag-item .di-dot.gray{background:#666;box-shadow:none}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.5}}
+.diag-right{flex:1;background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:16px;display:none;overflow-y:auto;max-height:200px}
+.diag-right.show{display:block}
+.diag-right h4{font-size:14px;margin:0 0 8px;color:var(--text-primary)}
+.diag-right p{font-size:12px;color:var(--text-secondary);line-height:1.7;margin:4px 0}
+.diag-right .fix-cmd{background:rgba(0,0,0,0.3);border-radius:6px;padding:8px 12px;font-family:monospace;font-size:11px;color:#40c4ff;margin-top:8px;white-space:pre-wrap}
+@media(max-width:768px){.diag-row{flex-direction:column}.diag-left{flex:auto;grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -47,6 +64,16 @@
     <div id="deployHint" style="margin-bottom:12px"></div>
     <div class="deploy-log" id="deployLog">等待操作...</div>
 </div></div>
+
+<!-- 网络诊断 -->
+<div class="card" style="margin-bottom:24px">
+<div class="card-header"><div class="card-title"><i class="fa fa-heartbeat" style="color:#4cd964"></i> 网络诊断</div>
+<div class="card-toolbar"><button class="btn btn-default btn-sm" onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> 检测</button></div></div>
+<div class="card-body">
+<div class="diag-row">
+    <div class="diag-left" id="diagLeft"></div>
+    <div class="diag-right" id="diagRight"></div>
+</div></div></div>
 
 <!-- 配置管理 -->
 <div class="card" style="margin-bottom:24px">
@@ -165,6 +192,55 @@ function loadConfig(){
     }}catch(e){}
 }
 
+// ===== 网络诊断 =====
+var diagData=[
+    {id:'cloud',icon:'fa-cloud',color:'#40c4ff',label:'云服务器',desc:'轻量云服务器 CentOS 7',detail:'<h4><i class="fa fa-cloud"></i> 云服务器</h4><p>IP: 119.45.122.65:8520<br>系统: CentOS 7<br>Node: 由 PM2 托管</p><p>如果状态异常：</p><div class="fix-cmd">ssh root@119.45.122.65\ncd /opt/park-platform\npm2 restart park-platform</div>'},
+    {id:'github',icon:'fa-github',color:'#8b5cf6',label:'GitHub',desc:'daduxiage/qingchuan-park-platform',detail:'<h4><i class="fa fa-github"></i> GitHub 仓库</h4><p>仓库: daduxiage/qingchuan-park-platform<br>分支: main</p><p>如果连接失败：</p><p>1. 检查服务器网络：<span class="fix-cmd">ping github.com</span></p><p>2. 切换镜像：<span class="fix-cmd">git remote set-url origin https://ghproxy.com/https://github.com/...</span></p>'}
+];
+function initDiag(){
+    var left=document.getElementById('diagLeft');
+    left.innerHTML=diagData.map(function(d){
+        return '<div class="diag-item" id="diag-'+d.id+'" onclick="showDiag(\''+d.id+'\')"><span class="di-dot gray" id="dot-'+d.id+'"></span><span class="di-icon" style="color:'+d.color+'"><i class="fa '+d.icon+'"></i></span><div><div style="font-size:13px;font-weight:600">'+d.label+'</div><div style="font-size:11px;color:var(--text-tertiary)">'+d.desc+'</div></div></div>';
+    }).join('');
+    runDiagnostics();
+}
+function showDiag(id){
+    var item=diagData.find(function(d){return d.id===id});
+    document.querySelectorAll('.diag-item').forEach(function(el){el.classList.remove('active')});
+    document.getElementById('diag-'+id).classList.add('active');
+    var right=document.getElementById('diagRight');
+    right.innerHTML=item.detail;
+    right.classList.add('show');
+}
+function runDiagnostics(){
+    // 检测云服务器
+    var start=Date.now();
+    fetch('/api/health').then(function(r){return r.json()}).then(function(d){
+        setDiag('cloud','green','延迟 '+(Date.now()-start)+'ms');
+    }).catch(function(){
+        setDiag('cloud','red','连接失败');
+    });
+    // 检测 GitHub（轻量请求）
+    var gs=Date.now();
+    fetch('https://api.github.com/repos/daduxiage/qingchuan-park-platform',{mode:'no-cors'}).then(function(){
+        // no-cors 无法读响应，但 fetch 不抛错说明可达
+        setDiag('github','green','延迟 '+(Date.now()-gs)+'ms');
+    }).catch(function(){
+        setDiag('github','red','连接失败');
+    });
+    // 30秒超时降级为黄色
+    setTimeout(function(){
+        if(document.getElementById('dot-github').classList.contains('gray'))
+            setDiag('github','yellow','超时');
+    },30000);
+}
+function setDiag(id,cls,msg){
+    var dot=document.getElementById('dot-'+id);
+    dot.className='di-dot '+cls;
+    dot.title=msg;
+}
+initDiag();
+setInterval(runDiagnostics,60000);
 loadConfig();
 document.getElementById('btnConfirmDeploy').onclick=execDeploy;
 refreshAll();
