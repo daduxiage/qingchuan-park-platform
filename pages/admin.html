@@ -109,8 +109,15 @@
 
 function getCssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#a0cfff'}
 
-var deployLog=document.getElementById('deployLog'), _serverUptime=0, _uptimeTimer=null, _deploying=false;
-function log(msg){deployLog.textContent='['+new Date().toLocaleTimeString()+'] '+msg+'\n'+deployLog.textContent;deployLog.scrollTop=0}
+var deployLog=document.getElementById('deployLog'), _serverUptime=0, _uptimeTimer=null, _deploying=false, _lastLogTime='';
+function log(msg){
+    var t=new Date().toLocaleTimeString();
+    var key=t+'|'+msg.slice(0,10);
+    if(key===_lastLogTime) return;
+    _lastLogTime=key;
+    deployLog.textContent='['+t+'] '+msg+'\n'+deployLog.textContent;
+    deployLog.scrollTop=0;
+}
 
 function startUptimeTick(){
     clearInterval(_uptimeTimer);
@@ -180,11 +187,11 @@ function execDeploy(){
     .then(function(d){
         log(d.ok?'部署成功: '+d.output:'部署失败: '+(d.output||''));
         document.getElementById('btnDeploy').disabled=false;
-        // 服务重启需要时间，20秒后自动刷新
+        // 服务重启需要时间，10秒后自动刷新
         setTimeout(function(){
             _deploying=false;
             refreshAll();
-        },20000);
+        },10000);
     })
     .catch(function(e){log('请求失败: '+e.message);_deploying=false;document.getElementById('btnDeploy').disabled=false;})
 }
