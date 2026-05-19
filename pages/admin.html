@@ -227,19 +227,11 @@ function runDiagnostics(){
     }).catch(function(){
         setDiag('cloud','red','连接失败');
     });
-    // 检测 GitHub（轻量请求）
+    // GitHub（服务器代理）
     var gs=Date.now();
-    fetch('https://api.github.com/repos/daduxiage/qingchuan-park-platform',{mode:'no-cors'}).then(function(){
-        // no-cors 无法读响应，但 fetch 不抛错说明可达
-        setDiag('github','green','延迟 '+(Date.now()-gs)+'ms');
-    }).catch(function(){
-        setDiag('github','red','连接失败');
-    });
-    // 30秒超时降级为黄色
-    setTimeout(function(){
-        if(document.getElementById('dot-github').classList.contains('gray'))
-            setDiag('github','yellow','超时');
-    },30000);
+    fetch('/api/admin/github-check').then(function(r){return r.json()}).then(function(d){
+        setDiag('github',d.ok?'green':'red','延迟 '+(Date.now()-gs)+'ms');
+    }).catch(function(){setDiag('github','red','连接失败');});
 }
 function setDiag(id,cls,msg){
     var dot=document.getElementById('dot-'+id);

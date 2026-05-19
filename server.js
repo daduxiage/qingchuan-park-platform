@@ -186,6 +186,16 @@ routes['POST:/api/deploy'] = (req, res) => {
     });
 };
 
+// GitHub 连通检测（服务器端代理）
+routes['GET:/api/admin/github-check'] = (req, res) => {
+    var opts = { hostname:'api.github.com', path:'/repos/daduxiage/qingchuan-park-platform', method:'HEAD', timeout:8000 };
+    var h = (typeof require('https')!=='undefined')?require('https'):require('http');
+    var r = h.request(opts, function(resp){ res.json({ok:true,status:resp.statusCode}); });
+    r.on('error', function(){ res.json({ok:false,status:0}); });
+    r.on('timeout', function(){ r.destroy(); res.json({ok:false,status:0}); });
+    r.end();
+};
+
 // ===== 辅助函数 =====
 function getIP(req) {
     const xff = req.headers['x-forwarded-for'];
