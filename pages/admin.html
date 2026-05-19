@@ -21,13 +21,14 @@
 .config-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .config-item{display:flex;flex-direction:column;gap:6px}
 .config-item label{font-size:12px;color:var(--text-tertiary);font-weight:600}
-.diag-row{display:flex;gap:16px;min-height:140px}
-.diag-left{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;flex:0 0 260px}
-.diag-item{cursor:pointer;background:var(--bg-card);border:2px solid var(--border-color);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px;transition:all .2s}
-.diag-item:hover{border-color:#40c4ff}
-.diag-item.active{border-color:#40c4ff;box-shadow:0 0 12px rgba(64,196,255,0.2)}
-.diag-item .di-icon{font-size:28px;flex-shrink:0}
-.diag-item .di-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;animation:pulse-dot 2s infinite}
+.diag-row{display:flex;gap:16px}
+.diag-left{display:flex;gap:24px;flex:0 0 auto}
+.diag-item{cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .2s;width:72px;text-align:center}
+.diag-item:hover{transform:scale(1.05)}
+.diag-item.active .di-icon{opacity:1;filter:drop-shadow(0 0 8px currentColor)}
+.diag-item .di-icon{font-size:36px;flex-shrink:0;opacity:0.8;transition:all .2s;color:#40c4ff}
+.diag-item .di-label{font-size:11px;color:var(--text-secondary);white-space:nowrap}
+.diag-item .di-dot{width:8px;height:8px;border-radius:50%;animation:pulse-dot 2s infinite}
 .diag-item .di-dot.green{background:#4cd964;box-shadow:0 0 6px rgba(76,217,100,0.5)}
 .diag-item .di-dot.red{background:#ff4d4f;box-shadow:0 0 6px rgba(255,77,79,0.5)}
 .diag-item .di-dot.yellow{background:#ff9500;box-shadow:0 0 6px rgba(255,149,0,0.5)}
@@ -38,7 +39,8 @@
 .diag-right h4{font-size:14px;margin:0 0 8px;color:var(--text-primary)}
 .diag-right p{font-size:12px;color:var(--text-secondary);line-height:1.7;margin:4px 0}
 .diag-right .fix-cmd{background:rgba(0,0,0,0.3);border-radius:6px;padding:8px 12px;font-family:monospace;font-size:11px;color:#40c4ff;margin-top:8px;white-space:pre-wrap}
-@media(max-width:768px){.diag-row{flex-direction:column}.diag-left{flex:auto;grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.diag-row{flex-direction:column}.diag-left{flex:auto}}
+@media(max-width:900px){.status-grid{grid-template-columns:repeat(2,1fr)}.config-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -204,7 +206,7 @@ var diagData=[
 function initDiag(){
     var left=document.getElementById('diagLeft');
     left.innerHTML=diagData.map(function(d){
-        return '<div class="diag-item" id="diag-'+d.id+'" onclick="showDiag(\''+d.id+'\')"><span class="di-dot gray" id="dot-'+d.id+'"></span><span class="di-icon" style="color:'+d.color+'"><i class="fa '+d.icon+'"></i></span><div><div style="font-size:13px;font-weight:600">'+d.label+'</div><div style="font-size:11px;color:var(--text-tertiary)">'+d.desc+'</div></div></div>';
+        return '<div class="diag-item" id="diag-'+d.id+'" onclick="showDiag(\''+d.id+'\')"><span class="di-icon"><i class="fa '+d.icon+'"></i></span><span class="di-dot gray" id="dot-'+d.id+'"></span><span class="di-label">'+d.label+'</span></div>';
     }).join('');
     runDiagnostics();
 }
