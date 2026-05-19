@@ -137,7 +137,7 @@ routes['GET:/api/health'] = (req, res) => {
     res.json({ status: 'ok', uptime: process.uptime(), time: new Date().toISOString() });
 };
 
-// 自动部署（带简易token校验）
+// 自动部署（先git pull，再通知pm2延迟重启）
 routes['POST:/api/deploy'] = (req, res) => {
     var body = '';
     req.on('data', function(d) { body += d; });
@@ -147,8 +147,15 @@ routes['POST:/api/deploy'] = (req, res) => {
             res.writeHead(403); res.end(JSON.stringify({ ok: false, error: 'invalid token' }));
             return;
         }
-        exec('cd /opt/park-platform && git pull origin main && pm2 restart park-platform', { timeout: 120000 }, function(err, stdout, stderr) {
-            res.json({ ok: !err, output: (stdout + stderr).trim(), error: err ? err.message : null });
+        exec('cd /opt/park-platform && git pull origin main', { timeout: 60000 }, function(err, stdout, stderr) {
+            var result = (stdout + stderr).trim();
+            // 先响应，再异步重启
+            res.json({ ok: !err, output: result, step: err ? 'pull_failed' : 'pull_ok_restarting' });
+            if (!err) {
+                setTimeout(function() {
+                    exec('pm2 restart park-platform', function() {});
+                }, 500);
+            }
         });
     });
 };
