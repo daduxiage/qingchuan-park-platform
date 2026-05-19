@@ -146,16 +146,26 @@ routes['GET:/api/admin/status'] = (req, res) => {
     };
     exec('cd /opt/park-platform && git log -1 --format="%h %s (%cr)"', function(e, o) {
         info.git.local = (o || '').trim() || 'N/A';
-        exec('cd /opt/park-platform && git log origin/main -1 --format="%h %s (%cr)" 2>/dev/null || echo "N/A"', function(e2, o2) {
-            info.git.remote = (o2 || '').trim() || 'N/A';
-            exec('cd /opt/park-platform && git rev-list HEAD..origin/main --count 2>/dev/null || echo 0', function(e3, o3) {
+        // 用 ls-remote 获取真实远程 HEAD（浅克隆下 git log origin/main 不准）
+        exec('cd /opt/park-platform && git ls-remote origin main 2>/dev/null | cut -f1', function(e2, o2) {
+            var remoteHash = (o2 || '').trim();
+            if (remoteHash) {
+                exec('cd /opt/park-platform && git log ' + remoteHash + ' -1 --format="%h %s (%cr)" 2>/dev/null || echo "' + remoteHash.slice(0,7) + '"', function(e2b, o2b) {
+                    info.git.remote = (o2b || '').trim() || remoteHash.slice(0,7);
+                    finish(remoteHash);
+                });
+            } else { info.git.remote = 'N/A'; finish(null); }
+        });
+        function finish(remoteHash) {
+            var behindCmd = remoteHash ? 'git rev-list HEAD..'+remoteHash+' --count 2>/dev/null || echo 0' : 'echo 0';
+            exec('cd /opt/park-platform && ' + behindCmd, function(e3, o3) {
                 info.git.behind = parseInt((o3 || '0').trim()) || 0;
                 exec('pm2 jlist 2>/dev/null || echo "[]"', function(e4, o4) {
                     try { var j = JSON.parse(o4); info.pm2 = j[0] ? j[0].pm2_env.status : 'N/A'; } catch(x) {}
                     res.json({ ok: true, data: info });
                 });
             });
-        });
+        }
     });
 };
 
