@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 const PORT = process.env.PORT || 8520;
 const ROOT = __dirname;
@@ -134,6 +135,22 @@ routes['POST:/api/interfaces'] = (req, res) => { const row = db.insert('api_inte
 // 健康检查
 routes['GET:/api/health'] = (req, res) => {
     res.json({ status: 'ok', uptime: process.uptime(), time: new Date().toISOString() });
+};
+
+// 自动部署（带简易token校验）
+routes['POST:/api/deploy'] = (req, res) => {
+    var body = '';
+    req.on('data', function(d) { body += d; });
+    req.on('end', function() {
+        try { var p = JSON.parse(body); } catch(e) { p = {}; }
+        if (p.token !== 'park2024') {
+            res.writeHead(403); res.end(JSON.stringify({ ok: false, error: 'invalid token' }));
+            return;
+        }
+        exec('cd /opt/park-platform && git pull origin main && pm2 restart park-platform', { timeout: 120000 }, function(err, stdout, stderr) {
+            res.json({ ok: !err, output: (stdout + stderr).trim(), error: err ? err.message : null });
+        });
+    });
 };
 
 // ===== 辅助函数 =====
