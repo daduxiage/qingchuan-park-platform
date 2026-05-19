@@ -144,13 +144,13 @@ routes['GET:/api/admin/status'] = (req, res) => {
         git: { local: '', remote: '', behind: 0 },
         pm2: ''
     };
-    exec('cd /opt/park-platform && git log -1 --format="%h %s (%cr)"', function(e, o) {
+    exec('cd '+__dirname+' && git log -1 --format="%h %s (%cr)"', function(e, o) {
         info.git.local = (o || '').trim() || 'N/A';
         // 用 ls-remote 获取真实远程 HEAD（浅克隆下 git log origin/main 不准）
-        exec('cd /opt/park-platform && git ls-remote origin main 2>/dev/null | cut -f1', function(e2, o2) {
+        exec('cd '+__dirname+' && git ls-remote origin main 2>/dev/null | cut -f1', function(e2, o2) {
             var remoteHash = (o2 || '').trim();
             if (remoteHash) {
-                exec('cd /opt/park-platform && git log ' + remoteHash + ' -1 --format="%h %s (%cr)" 2>/dev/null || echo "' + remoteHash.slice(0,7) + '"', function(e2b, o2b) {
+                exec('cd '+__dirname+' && git log ' + remoteHash + ' -1 --format="%h %s (%cr)" 2>/dev/null || echo "' + remoteHash.slice(0,7) + '"', function(e2b, o2b) {
                     info.git.remote = (o2b || '').trim() || remoteHash.slice(0,7);
                     finish(remoteHash);
                 });
@@ -158,7 +158,7 @@ routes['GET:/api/admin/status'] = (req, res) => {
         });
         function finish(remoteHash) {
             var behindCmd = remoteHash ? 'git rev-list HEAD..'+remoteHash+' --count 2>/dev/null || echo 0' : 'echo 0';
-            exec('cd /opt/park-platform && ' + behindCmd, function(e3, o3) {
+            exec('cd '+__dirname+' && ' + behindCmd, function(e3, o3) {
                 info.git.behind = parseInt((o3 || '0').trim()) || 0;
                 exec('pm2 jlist 2>/dev/null || echo "[]"', function(e4, o4) {
                     try { var j = JSON.parse(o4); info.pm2 = j[0] ? j[0].pm2_env.status : 'N/A'; } catch(x) {}
@@ -176,7 +176,7 @@ routes['POST:/api/deploy'] = (req, res) => {
         res.writeHead(403); res.end(JSON.stringify({ ok: false, error: 'invalid token' }));
         return;
     }
-    exec('cd /opt/park-platform && git pull origin main', { timeout: 180000 }, function(err, stdout, stderr) {
+    exec('cd '+__dirname+' && git pull origin main', { timeout: 180000 }, function(err, stdout, stderr) {
         var result = (stdout + stderr).trim();
         res.end(JSON.stringify({ ok: !err, output: result }));
         if (!err) {
