@@ -117,6 +117,7 @@ function refreshAll(){
 }
 
 function doDeploy(){
+    if(!confirm('确定要执行一键部署吗？\n\n将拉取 GitHub 最新代码并重启服务。')) return;
     var tok=document.getElementById('cfgDeployToken').value||'park2024';
     document.getElementById('btnDeploy').disabled=true;
     log('开始部署...');
