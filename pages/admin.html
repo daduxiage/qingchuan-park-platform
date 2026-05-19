@@ -244,7 +244,7 @@ function setDiag(id,cls,msg){
     dot.title=msg;
 }
 initDiag();
-setInterval(runDiagnostics,60000);
+setInterval(runDiagnostics,1000);
 loadConfig();
 document.getElementById('btnConfirmDeploy').onclick=execDeploy;
 _deploying=false;
