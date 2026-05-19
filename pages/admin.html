@@ -224,13 +224,19 @@ function showDiag(id){
     right.innerHTML=item.detail;
     right.classList.add('show');
 }
+var _diag_fails=0, _diag_timer=null;
 function runDiagnostics(){
+    clearInterval(_diag_timer);
+    var interval=_diag_fails>5?30000:1000;
+    _diag_timer=setInterval(runDiagnostics,interval);
     // 检测云服务器
     var start=Date.now();
     fetch('/api/health').then(function(r){return r.json()}).then(function(d){
         setDiag('cloud','green','延迟 '+(Date.now()-start)+'ms');
+        _diag_fails=0;
     }).catch(function(){
         setDiag('cloud','red','连接失败');
+        _diag_fails++;
     });
     // GitHub（服务器代理）
     var gs=Date.now();
@@ -244,7 +250,7 @@ function setDiag(id,cls,msg){
     dot.title=msg;
 }
 initDiag();
-setInterval(runDiagnostics,1000);
+runDiagnostics();
 loadConfig();
 document.getElementById('btnConfirmDeploy').onclick=execDeploy;
 _deploying=false;
