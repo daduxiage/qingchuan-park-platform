@@ -139,23 +139,18 @@ routes['GET:/api/health'] = (req, res) => {
 
 // 自动部署
 routes['POST:/api/deploy'] = (req, res) => {
-    var body = '';
-    req.on('data', function(d) { body += d; });
-    req.on('end', function() {
-        try { var p = JSON.parse(body); } catch(e) { p = {}; }
-        if (p.token !== 'park2024') {
-            res.writeHead(403); res.end(JSON.stringify({ ok: false, error: 'invalid token' }));
-            return;
+    var p = req.body || {};
+    if (p.token !== 'park2024') {
+        res.writeHead(403); res.end(JSON.stringify({ ok: false, error: 'invalid token' }));
+        return;
+    }
+    exec('cd /opt/park-platform && git pull origin main', { timeout: 60000 }, function(err, stdout, stderr) {
+        var result = (stdout + stderr).trim();
+        res.end(JSON.stringify({ ok: !err, output: result }));
+        if (!err) {
+            var child = spawn('pm2', ['restart', 'park-platform'], { detached: true, stdio: 'ignore' });
+            child.unref();
         }
-        exec('cd /opt/park-platform && git pull origin main', { timeout: 60000 }, function(err, stdout, stderr) {
-            var result = (stdout + stderr).trim();
-            res.end(JSON.stringify({ ok: !err, output: result }));
-            // 用独立进程重启，不受当前进程影响
-            if (!err) {
-                var child = spawn('pm2', ['restart', 'park-platform'], { detached: true, stdio: 'ignore' });
-                child.unref();
-            }
-        });
     });
 };
 
