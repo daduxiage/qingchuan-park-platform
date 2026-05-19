@@ -17,7 +17,14 @@
 .tag-active{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
 .tag-warning{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
 .tag-error{background:rgba(255,77,79,0.12);color:#ff4d4f;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
-.deploy-log{height:calc(12*1.6em);max-height:calc(12*1.6em);overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:10px 12px;font-family:monospace;font-size:12px;line-height:1.6;white-space:pre-wrap;color:var(--text-secondary)}
+.deploy-body{display:flex;gap:16px}
+.deploy-body .deploy-col{flex:1;min-width:0}
+.deploy-log{height:calc(100*1.6em);max-height:calc(100*1.6em);overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:10px 12px;font-family:monospace;font-size:12px;line-height:1.6;white-space:pre-wrap;color:var(--text-secondary)}
+.git-log{height:calc(100*1.6em);max-height:calc(100*1.6em);overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:10px 12px;font-family:monospace;font-size:12px;line-height:1.6}
+.git-item{padding:3px 0;display:flex;gap:8px;align-items:flex-start}
+.git-item .g-hash{color:#40c4ff;flex-shrink:0;font-weight:600}
+.git-item .g-msg{color:var(--text-secondary);word-break:break-all}
+.git-item .g-time{color:var(--text-tertiary);flex-shrink:0;font-size:11px}
 .config-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .config-item{display:flex;flex-direction:column;gap:6px}
 .config-item label{font-size:12px;color:var(--text-tertiary);font-weight:600}
@@ -55,16 +62,22 @@
 <div class="card" style="margin-bottom:24px">
 <div class="card-header"><div class="card-title"><i class="fa fa-rocket" style="color:#40c4ff"></i> 部署控制</div>
 <div class="card-toolbar">
+    <button class="btn btn-default btn-sm" onclick="copyLog()"><i class="fa fa-copy"></i> 复制日志</button>
     <button class="btn btn-default btn-sm" onclick="refreshAll()"><i class="fa fa-refresh"></i> 刷新</button>
     <button class="btn btn-primary btn-sm" id="btnDeploy" onclick="doDeploy()"><i class="fa fa-cloud-upload-alt"></i> 一键部署</button>
 </div></div>
 <div class="card-body">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
-        <div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:4px">本地版本</div><div id="gitLocal" style="font-family:monospace;font-size:13px">--</div></div>
-        <div><div style="font-size:12px;color:var(--text-tertiary);margin-bottom:4px">GitHub 最新</div><div id="gitRemote" style="font-family:monospace;font-size:13px">--</div></div>
-    </div>
     <div id="deployHint" style="margin-bottom:12px"></div>
-    <div class="deploy-log" id="deployLog">等待操作...</div>
+    <div class="deploy-body">
+        <div class="deploy-col">
+            <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:6px">部署日志</div>
+            <div class="deploy-log" id="deployLog">等待操作...</div>
+        </div>
+        <div class="deploy-col">
+            <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:6px">版本历史</div>
+            <div class="git-log" id="gitLog">加载中...</div>
+        </div>
+    </div>
 </div></div>
 
 <!-- 网络诊断 -->
@@ -115,7 +128,10 @@ function log(msg){
     var key=t+'|'+msg.slice(0,10);
     if(key===_lastLogTime) return;
     _lastLogTime=key;
-    deployLog.textContent='['+t+'] '+msg+'\n'+deployLog.textContent;
+    var lines=deployLog.textContent.split('\n').filter(function(l){return l.trim()});
+    lines.unshift('['+t+'] '+msg);
+    if(lines.length>100) lines=lines.slice(0,100);
+    deployLog.textContent=lines.join('\n');
     deployLog.scrollTop=0;
 }
 
@@ -142,8 +158,6 @@ function renderStatus(data){
         return '<div class="status-card"><div class="sc-icon" style="background:'+c.cls+';color:'+c.color+'"><i class="fa '+c.icon+'"></i></div><div class="sc-body"><div class="sc-value">'+c.value+'</div><div class="sc-label">'+c.label+(c.sub?' '+c.sub:'')+'</div></div></div>';
     }).join('');
     if(d.git){
-        document.getElementById('gitLocal').textContent=d.git.local;
-        document.getElementById('gitRemote').textContent=d.git.remote;
         var hint=document.getElementById('deployHint');
         if(d.git.behind>0){
             hint.innerHTML='<span class="tag-warning"><i class="fa fa-exclamation-triangle"></i> 服务器落后 '+d.git.behind+' 个提交，建议立即部署</span>';
@@ -151,6 +165,24 @@ function renderStatus(data){
             hint.innerHTML='<span class="tag-active"><i class="fa fa-check-circle"></i> 服务器已是最新版本</span>';
         }
     }
+}
+
+function copyLog(){
+    var text=document.getElementById('deployLog').textContent;
+    // 取最新100行
+    var lines=text.split('\n').filter(function(l){return l.trim()}).slice(0,100);
+    navigator.clipboard.writeText(lines.join('\n')).then(function(){
+        log('日志已复制 ('+lines.length+'行)');
+    }).catch(function(){log('复制失败');});
+}
+
+function fetchGitLog(){
+    fetch('/api/admin/git-log').then(function(r){return r.json()}).then(function(d){
+        var el=document.getElementById('gitLog');
+        el.innerHTML=d.data.map(function(c){
+            return '<div class="git-item"><span class="g-hash">'+c.hash+'</span><span class="g-msg">'+c.msg+'</span><span class="g-time">'+c.time+'</span></div>';
+        }).join('');
+    }).catch(function(){});
 }
 
 function fmtUptime(s){
@@ -162,10 +194,13 @@ function refreshAll(){
     if(_deploying) return;
     fetch('/api/admin/status').then(function(r){return r.json()}).then(function(d){
         renderStatus(d);
-        var t=new Date().toLocaleTimeString();
-        deployLog.textContent='['+t+'] 刷新完成\n'+deployLog.textContent;
+        var lines=deployLog.textContent.split('\n').filter(function(l){return l.trim()});
+        lines.unshift('['+new Date().toLocaleTimeString()+'] 刷新完成');
+        if(lines.length>100) lines=lines.slice(0,100);
+        deployLog.textContent=lines.join('\n');
         deployLog.scrollTop=0;
     }).catch(function(e){log('获取状态失败: '+e.message)});
+    fetchGitLog();
 }
 
 function doDeploy(){

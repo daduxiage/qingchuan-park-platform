@@ -195,6 +195,15 @@ routes['GET:/api/admin/github-check'] = (req, res) => {
     r.end();
 };
 
+// Git 版本历史
+routes['GET:/api/admin/git-log'] = (req, res) => {
+    exec('cd '+__dirname+' && git log -12 --format="%h|%s|%cr"', { timeout: 5000 }, function(e, o) {
+        var lines = (o || '').trim().split('\n').filter(Boolean);
+        var commits = lines.map(function(l){ var p=l.split('|'); return {hash:p[0],msg:p[1]||'',time:p[2]||''}; });
+        res.json({ ok: true, data: commits });
+    });
+};
+
 // ===== 辅助函数 =====
 function getIP(req) {
     const xff = req.headers['x-forwarded-for'];
