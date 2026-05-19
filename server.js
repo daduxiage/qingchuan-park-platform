@@ -1,7 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 
 const PORT = process.env.PORT || 8520;
 const ROOT = __dirname;
@@ -137,7 +137,7 @@ routes['GET:/api/health'] = (req, res) => {
     res.json({ status: 'ok', uptime: process.uptime(), time: new Date().toISOString() });
 };
 
-// 自动部署（先git pull，再通知pm2延迟重启）
+// 自动部署
 routes['POST:/api/deploy'] = (req, res) => {
     var body = '';
     req.on('data', function(d) { body += d; });
@@ -149,12 +149,11 @@ routes['POST:/api/deploy'] = (req, res) => {
         }
         exec('cd /opt/park-platform && git pull origin main', { timeout: 60000 }, function(err, stdout, stderr) {
             var result = (stdout + stderr).trim();
-            // 先响应，再异步重启
-            res.json({ ok: !err, output: result, step: err ? 'pull_failed' : 'pull_ok_restarting' });
+            res.end(JSON.stringify({ ok: !err, output: result }));
+            // 用独立进程重启，不受当前进程影响
             if (!err) {
-                setTimeout(function() {
-                    exec('pm2 restart park-platform', function() {});
-                }, 500);
+                var child = spawn('pm2', ['restart', 'park-platform'], { detached: true, stdio: 'ignore' });
+                child.unref();
             }
         });
     });
