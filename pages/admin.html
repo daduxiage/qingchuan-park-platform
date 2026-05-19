@@ -70,7 +70,7 @@
 function getCssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#a0cfff'}
 
 var deployLog=document.getElementById('deployLog');
-function log(msg){deployLog.textContent+='['+new Date().toLocaleTimeString()+'] '+msg+'\n';deployLog.scrollTop=deployLog.scrollHeight}
+function log(msg){deployLog.textContent='['+new Date().toLocaleTimeString()+'] '+msg+'\n'+deployLog.textContent;deployLog.scrollTop=0}
 
 function renderStatus(data){
     var d=data.data||{};
