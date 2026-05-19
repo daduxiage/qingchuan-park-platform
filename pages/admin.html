@@ -17,7 +17,7 @@
 .tag-active{background:rgba(76,217,100,0.12);color:#4cd964;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
 .tag-warning{background:rgba(255,149,0,0.12);color:#ff9500;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
 .tag-error{background:rgba(255,77,79,0.12);color:#ff4d4f;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
-.deploy-log{max-height:200px;overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;line-height:1.6;white-space:pre-wrap;color:var(--text-secondary)}
+.deploy-log{height:calc(12*1.6em);max-height:calc(12*1.6em);overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:10px 12px;font-family:monospace;font-size:12px;line-height:1.6;white-space:pre-wrap;color:var(--text-secondary)}
 .config-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .config-item{display:flex;flex-direction:column;gap:6px}
 .config-item label{font-size:12px;color:var(--text-tertiary);font-weight:600}
@@ -153,7 +153,12 @@ function fmtUptime(s){
 
 function refreshAll(){
     if(_deploying) return;
-    fetch('/api/admin/status').then(function(r){return r.json()}).then(renderStatus).catch(function(e){log('获取状态失败: '+e.message)});
+    fetch('/api/admin/status').then(function(r){return r.json()}).then(function(d){
+        renderStatus(d);
+        var t=new Date().toLocaleTimeString();
+        deployLog.textContent='['+t+'] 刷新完成\n'+deployLog.textContent;
+        deployLog.scrollTop=0;
+    }).catch(function(e){log('获取状态失败: '+e.message)});
 }
 
 function doDeploy(){
