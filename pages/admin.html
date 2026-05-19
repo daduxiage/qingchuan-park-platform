@@ -249,6 +249,7 @@ initDiag();
 setInterval(runDiagnostics,60000);
 loadConfig();
 document.getElementById('btnConfirmDeploy').onclick=execDeploy;
+_deploying=false;
 refreshAll();
 setInterval(refreshAll,3000);
 </script>
