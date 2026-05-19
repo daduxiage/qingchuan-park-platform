@@ -69,14 +69,24 @@
 
 function getCssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#a0cfff'}
 
-var deployLog=document.getElementById('deployLog');
+var deployLog=document.getElementById('deployLog'), _serverUptime=0, _uptimeTimer=null;
 function log(msg){deployLog.textContent='['+new Date().toLocaleTimeString()+'] '+msg+'\n'+deployLog.textContent;deployLog.scrollTop=0}
+
+function startUptimeTick(){
+    clearInterval(_uptimeTimer);
+    _uptimeTimer=setInterval(function(){
+        _serverUptime+=1;
+        var el=document.getElementById('uptimeVal');
+        if(el) el.textContent=fmtUptime(_serverUptime);
+    },1000);
+}
 
 function renderStatus(data){
     var d=data.data||{};
+    if(d.server){_serverUptime=Math.floor(d.server.uptime);startUptimeTick();}
     var cards=[
         {icon:'fa-server',cls:'rgba(64,196,255,0.15)',color:'#40c4ff',label:'服务状态',value:'<span class="tag-active">运行中</span>'},
-        {icon:'fa-clock',cls:'rgba(76,217,100,0.15)',color:'#4cd964',label:'运行时间',value:fmtUptime(d.server?d.server.uptime:0)},
+        {icon:'fa-clock',cls:'rgba(76,217,100,0.15)',color:'#4cd964',label:'运行时间',value:'<span id="uptimeVal">'+fmtUptime(_serverUptime)+'</span>'},
         {icon:'fa-code-branch',cls:'rgba(255,149,0,0.15)',color:'#ff9500',label:'落后版本',value:(d.git?d.git.behind:0)+' 个提交',sub:d.git&&d.git.behind>0?'<span class="tag-warning">需更新</span>':'<span class="tag-active">已最新</span>'},
         {icon:'fa-microchip',cls:'rgba(139,92,246,0.15)',color:'#8b5cf6',label:'PM2进程',value:d.pm2==='online'?'<span class="tag-active">在线</span>':'<span class="tag-warning">'+d.pm2+'</span>'}
     ];
