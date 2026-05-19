@@ -166,7 +166,7 @@ routes['POST:/api/deploy'] = (req, res) => {
         res.writeHead(403); res.end(JSON.stringify({ ok: false, error: 'invalid token' }));
         return;
     }
-    exec('cd /opt/park-platform && git pull origin main', { timeout: 60000 }, function(err, stdout, stderr) {
+    exec('cd /opt/park-platform && git pull origin main', { timeout: 180000 }, function(err, stdout, stderr) {
         var result = (stdout + stderr).trim();
         res.end(JSON.stringify({ ok: !err, output: result }));
         if (!err) {
